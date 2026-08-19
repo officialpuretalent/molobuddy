@@ -11,6 +11,7 @@ These instructions apply to the whole repository. Read the relevant design docum
 - Backend: `docs/backend_design/README.md`
 - API contracts: `docs/api_design/README.md`
 - Data design: `docs/data_design/README.md`
+- Running locally against Firebase: `docs/local_development.md`
 
 If implementation conflicts with an accepted design or the glossary, update the design deliberately or treat the implementation as incorrect.
 

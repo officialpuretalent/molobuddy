@@ -1,7 +1,8 @@
 # Client-First Authentication Design
 
-- **Status:** Draft v0.1
+- **Status:** Draft v0.2, first slice implemented (see section 17)
 - **Identity service:** Firebase Authentication with Identity Platform
+- **Development project:** `molobuddy-development`
 - **Client:** Flutter
 - **Last updated:** 19 August 2026
 
@@ -332,7 +333,33 @@ Provider error strings are never shown raw or used for control flow outside the 
 - Assert that tokens and credentials are redacted from captured logs/crash fixtures.
 - Test each platform's deep-link lifecycle from killed, background and foreground states.
 
-## 17. Acceptance criteria
+## 17. Implementation status
+
+The identity service is the `molobuddy-development` Firebase project. Setup
+steps and configuration live in the
+[local development runbook](../local_development.md).
+
+| Area | State |
+|---|---|
+| Email/password sign-in, client side | Implemented behind `AuthService`; verified against the real project |
+| Failure mapping (section 15) | Implemented for the email/password subset; provider strings never surface raw |
+| Email-enumeration protection (section 11) | Enabled on the project |
+| ID-token and App Check verification (section 8, steps 1–4) | Implemented in `FirebaseAdminRequestTokenVerifier`; distinct failure codes covered by tests |
+| Federation adapters (section 4) | Not built. Google renders as a disabled `coming_soon` preview |
+| App Check client (section 13) | Not built |
+| MFA (section 12) | Not built; disabled on the project |
+| Membership, region routing (section 8, steps 5–10) | Not built; no regional data yet |
+
+**One consequence is worth stating plainly.** The server requires an App Check
+token, and the Flutter application does not send one. With
+`AUTH_VERIFIER=firebase`, an application request to `/v1/session` therefore
+fails with `app_check_required` even when the ID token is valid, so local
+development runs the `local` verifier instead. Acceptance criterion 8 below
+keeps the two failures distinct, and that distinction must survive whatever
+closes this gap. Adding App Check to the client is the fix; relaxing the
+verifier is not.
+
+## 18. Acceptance criteria
 
 1. Adding a provider does not change feature code or backend authorisation logic.
 2. Features cannot import Firebase Auth or read raw tokens.

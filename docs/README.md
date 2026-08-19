@@ -35,3 +35,4 @@ Do not mix implementation notes into a design contract unless they constrain obs
 - [System architecture](product/system_architecture.md)
 - [Product glossary](product/glossary.md)
 - [Molo brand platform](product/brand_platform.md)
+- [Local development runbook](local_development.md)

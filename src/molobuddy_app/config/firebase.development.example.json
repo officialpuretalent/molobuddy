@@ -1,0 +1,9 @@
+{
+  "MOLO_AUTH_MODE": "firebase",
+  "MOLO_API_BASE_URL": "http://localhost:8080",
+  "MOLO_FIREBASE_API_KEY": "",
+  "MOLO_FIREBASE_APP_ID": "",
+  "MOLO_FIREBASE_SENDER_ID": "",
+  "MOLO_FIREBASE_PROJECT_ID": "",
+  "MOLO_FIREBASE_AUTH_DOMAIN": ""
+}

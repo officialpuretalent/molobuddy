@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Molo app (Firebase development)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "cwd": "src/molobuddy_app",
+      "args": [
+        "--dart-define-from-file=config/firebase.development.json"
+      ]
+    },
+    {
+      "name": "Molo app (preview, no Firebase)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "cwd": "src/molobuddy_app",
+      "args": [
+        "--dart-define=MOLO_AUTH_MODE=preview"
+      ]
+    }
+  ]
+}

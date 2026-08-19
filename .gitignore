@@ -1,0 +1,57 @@
+# Repository-wide ignores. Language-specific rules stay in each application
+# directory, for example src/molobuddy_app/.gitignore.
+
+# Local runtime configuration. These carry per-environment Firebase and API
+# values and must never be committed. Templates ending in .example.json are
+# tracked so a new machine knows what to fill in.
+**/config/*.json
+!**/config/*.example.json
+.env
+.env.*
+!.env.example
+
+# Service-account keys and other credential material.
+*-service-account.json
+*serviceAccountKey*.json
+*.pem
+*.p12
+*.p8
+*.keystore
+*.jks
+
+# Firebase tooling
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+database-debug.log
+pubsub-debug.log
+ui-debug.log
+
+# Google Cloud tooling
+.gcloudignore
+
+# Operating system
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editors and IDEs
+.idea/
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/extensions.json
+*.iml
+*.swp
+*.swo
+*~
+
+# Logs and scratch output
+*.log
+coverage/
+tmp/
