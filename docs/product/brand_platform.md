@@ -1,6 +1,6 @@
 # Molo Brand Platform
 
-- **Status:** Proposed v1.1 for brand approval
+- **Status:** Approved foundation v1.2
 - **Brand:** Molo
 - **Working product/company name:** MoloBuddy
 - **Launch market:** South African tax practices and their clients
@@ -493,13 +493,16 @@ Accepted product foundation palette:
 
 | Role | Name | Foundation value | Direction |
 |---|---|---|---|
-| Primary | Molo Blue | `#3155F5` | Electric, confident blue; technology and forward motion |
-| Accent | Hello Coral | `#FF6E67` | Warm human energy used sparingly and never as body text on white |
-| Dark | Deep Ink | `#0B1020` | Near-black blue for authority and depth |
-| Light | Soft Cloud | `#F4F6FA` | Cool, quiet surface colour |
-| Positive | Aloe | `#0E9F6E` | Restrained green for verified progress, not general decoration |
+| Primary | Molo Plum | `#241529` | Dark, warm authority for primary actions, text and deep brand surfaces |
+| Signature | Molo Pulse | `#F25775` | Recognisable human energy for momentum, progress and selected moments |
+| Light | Warm Canvas | `#FFF9F7` | Premium light canvas with subtle warmth |
+| Supporting | Soft Blush | `#F8ECEE` | Quiet grouping and supportive surfaces |
+| Accessible accent | Pulse Text | `#9B263B` | Links, focus and small readable accents on light surfaces |
+| Positive | Verified Green | `#087A55` | Confirmed success only, not general decoration |
 
-The brand should not inherit Cash App green, a generic black-and-white neobank look, Google's four-colour system or the warm beige/orange shorthand now common in AI products.
+Molo Pulse is used with restraint. A screen remains mostly neutral, with Molo Plum carrying professional gravity and Pulse appearing where progress or selection deserves recognition. This creates a warmer and more distinctive identity without turning every control pink.
+
+The brand should not inherit Cash App green, a generic black-and-white neobank look, Google's four-colour system, generic blue-purple SaaS conventions or the warm beige/orange shorthand now common in AI products.
 
 Colour must carry consistent meaning in the product. Never rely on colour alone for status.
 

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:molobuddy_app/app/adaptive/auth_shell_layout.dart';
 import 'package:molobuddy_app/app/adaptive/window_class.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_status_pill.dart';
@@ -14,6 +15,7 @@ import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_method_descriptor.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_model.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_state.dart';
+import 'package:molobuddy_app/core/auth/ui/widgets/auth_legal_links_text.dart';
 
 class SignInView extends ConsumerStatefulWidget {
   const SignInView({super.key});
@@ -27,6 +29,10 @@ class _SignInViewState extends ConsumerState<SignInView> {
   final _passwordController = TextEditingController();
   final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
+
+  /// Field validation belongs to this form instance, not the shared auth
+  /// session, so a returning visitor never arrives to errors they did not cause.
+  bool _submitted = false;
 
   @override
   void dispose() {
@@ -64,7 +70,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
 
     return Title(
       title: localisations.signInPageTitle,
-      color: MoloColours.deepInk,
+      color: MoloColours.moloPlum,
       child: Scaffold(
         body: SafeArea(
           child: LayoutBuilder(
@@ -77,9 +83,13 @@ class _SignInViewState extends ConsumerState<SignInView> {
               if (showHero) {
                 return Row(
                   children: [
-                    const Expanded(flex: 9, child: _BrandStoryPanel()),
+                    SizedBox(
+                      width: MoloAuthShellLayout.supportingPaneWidth(
+                        constraints.maxWidth,
+                      ),
+                      child: const _BrandStoryPanel(),
+                    ),
                     Expanded(
-                      flex: 11,
                       child: _SignInPane(
                         viewState: viewState,
                         initialising: authState is AsyncLoading,
@@ -90,6 +100,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
                         obscurePassword: _obscurePassword,
                         onTogglePassword: _togglePassword,
                         onSubmit: _submit,
+                        showValidation: _submitted,
                       ),
                     ),
                   ],
@@ -105,6 +116,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
                 obscurePassword: _obscurePassword,
                 onTogglePassword: _togglePassword,
                 onSubmit: _submit,
+                showValidation: _submitted,
                 showWordmark: true,
               );
             },
@@ -119,6 +131,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
   }
 
   void _submit() {
+    setState(() => _submitted = true);
     _passwordFocusNode.unfocus();
     unawaited(
       ref
@@ -142,6 +155,7 @@ class _SignInPane extends StatelessWidget {
     required this.obscurePassword,
     required this.onTogglePassword,
     required this.onSubmit,
+    required this.showValidation,
     this.showWordmark = false,
   });
 
@@ -154,6 +168,7 @@ class _SignInPane extends StatelessWidget {
   final bool obscurePassword;
   final VoidCallback onTogglePassword;
   final VoidCallback onSubmit;
+  final bool showValidation;
   final bool showWordmark;
 
   @override
@@ -163,7 +178,7 @@ class _SignInPane extends StatelessWidget {
     final googleMethod = _methodById(viewState.methods, 'google.com');
 
     return ColoredBox(
-      color: MoloColours.canvas,
+      color: MoloColours.warmCanvas,
       child: Stack(
         children: [
           Center(
@@ -195,9 +210,12 @@ class _SignInPane extends StatelessWidget {
                         ),
                         const SizedBox(height: MoloSpacing.lg),
                       ],
-                      Text(
-                        localisations.welcomeBack,
-                        style: Theme.of(context).textTheme.headlineMedium,
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          localisations.welcomeBack,
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
                       ),
                       const SizedBox(height: MoloSpacing.sm),
                       Text(
@@ -222,7 +240,7 @@ class _SignInPane extends StatelessWidget {
                         decoration: InputDecoration(
                           labelText: localisations.emailLabel,
                           hintText: localisations.emailHint,
-                          errorText: viewState.emailInvalid
+                          errorText: showValidation && viewState.emailInvalid
                               ? localisations.invalidEmail
                               : null,
                         ),
@@ -239,7 +257,8 @@ class _SignInPane extends StatelessWidget {
                         textInputAction: TextInputAction.done,
                         decoration: InputDecoration(
                           labelText: localisations.passwordLabel,
-                          errorText: viewState.passwordTooShort
+                          errorText:
+                              showValidation && viewState.passwordTooShort
                               ? localisations.passwordTooShort
                               : null,
                           suffixIcon: IconButton(
@@ -256,6 +275,7 @@ class _SignInPane extends StatelessWidget {
                         ),
                         onSubmitted: (_) => isBusy ? null : onSubmit(),
                       ),
+                      const SizedBox(height: MoloSpacing.xs),
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
@@ -305,6 +325,7 @@ class _SignInPane extends StatelessWidget {
                           label: localisations.googleComingSoonHint,
                           button: true,
                           enabled: false,
+                          excludeSemantics: true,
                           child: OutlinedButton(
                             key: const Key('google_sign_in_button'),
                             onPressed: null,
@@ -323,7 +344,7 @@ class _SignInPane extends StatelessWidget {
                                 MoloStatusPill(
                                   label: localisations.comingSoon,
                                   foreground: MoloColours.secondaryText,
-                                  background: MoloColours.softCloud,
+                                  background: MoloColours.softBlush,
                                 ),
                               ],
                             ),
@@ -331,8 +352,39 @@ class _SignInPane extends StatelessWidget {
                         ),
                       ],
                       const SizedBox(height: MoloSpacing.lg),
-                      Text(
-                        localisations.termsNotice,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(child: Text(localisations.newToMolo)),
+                          TextButton(
+                            key: const Key('create_account_link'),
+                            onPressed: isBusy
+                                ? null
+                                : () => const RegistrationRoute().go(context),
+                            child: Text(localisations.createAccount),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: MoloSpacing.lg),
+                      AuthLegalLinksText(
+                        label: localisations.termsNotice(
+                          localisations.termsOfService,
+                          localisations.privacyPolicy,
+                        ),
+                        termsLabel: localisations.termsOfService,
+                        privacyLabel: localisations.privacyPolicy,
+                        onTermsPressed: () => showAuthLegalPreviewDialog(
+                          context,
+                          title: localisations.termsOfService,
+                          body: localisations.legalPreviewBody,
+                          closeLabel: localisations.closeLabel,
+                        ),
+                        onPrivacyPressed: () => showAuthLegalPreviewDialog(
+                          context,
+                          title: localisations.privacyPolicy,
+                          body: localisations.legalPreviewBody,
+                          closeLabel: localisations.closeLabel,
+                        ),
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: MoloColours.secondaryText,
@@ -377,49 +429,68 @@ class _BrandStoryPanel extends StatelessWidget {
     return ClipRect(
       child: ColoredBox(
         key: const Key('auth_hero_panel'),
-        color: MoloColours.deepInk,
+        color: MoloColours.moloPlum,
         child: Stack(
           children: [
             const Positioned(
               top: -110,
               right: -90,
-              child: _Orb(size: 300, color: MoloColours.moloBlue),
+              child: _Orb(size: 300, color: MoloColours.moloPulse),
             ),
             Positioned(
               bottom: -70,
               left: -40,
               child: _Orb(
                 size: 190,
-                color: MoloColours.helloCoral.withValues(alpha: 0.9),
+                color: MoloColours.pulseText.withValues(alpha: 0.86),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(MoloSpacing.display),
+              padding: const EdgeInsets.all(MoloSpacing.xl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const MoloWordmark(onDark: true),
-                  const Spacer(),
-                  Text(
-                    localisations.brandStoryTitle,
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: MoloColours.surface,
-                    ),
-                  ),
-                  const SizedBox(height: MoloSpacing.lg),
-                  Text(
-                    localisations.brandStoryBody,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: MoloColours.surface.withValues(alpha: 0.72),
+                  const SizedBox(height: MoloSpacing.xl),
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              localisations.brandStoryTitle,
+                              style: Theme.of(context).textTheme.headlineMedium
+                                  ?.copyWith(color: MoloColours.surface),
+                            ),
+                            const SizedBox(height: MoloSpacing.md),
+                            Text(
+                              localisations.brandStoryBody,
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(
+                                    color: MoloColours.surface.withValues(
+                                      alpha: 0.72,
+                                    ),
+                                  ),
+                            ),
+                            const SizedBox(height: MoloSpacing.xl),
+                            _StoryPoint(
+                              label: localisations.brandStoryPointOne,
+                            ),
+                            const SizedBox(height: MoloSpacing.md),
+                            _StoryPoint(
+                              label: localisations.brandStoryPointTwo,
+                            ),
+                            const SizedBox(height: MoloSpacing.md),
+                            _StoryPoint(
+                              label: localisations.brandStoryPointThree,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: MoloSpacing.xl),
-                  _StoryPoint(label: localisations.brandStoryPointOne),
-                  const SizedBox(height: MoloSpacing.md),
-                  _StoryPoint(label: localisations.brandStoryPointTwo),
-                  const SizedBox(height: MoloSpacing.md),
-                  _StoryPoint(label: localisations.brandStoryPointThree),
-                  const Spacer(),
                   Text(
                     localisations.brandPromise,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -464,7 +535,7 @@ class _StoryPoint extends StatelessWidget {
       children: [
         const Icon(
           Icons.arrow_forward_rounded,
-          color: MoloColours.helloCoral,
+          color: MoloColours.moloPulse,
           size: 20,
         ),
         const SizedBox(width: MoloSpacing.sm),
@@ -519,7 +590,7 @@ class _PreviewNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: MoloColours.moloBlueTint,
+        color: MoloColours.pulseTint,
         borderRadius: BorderRadius.circular(MoloSpacing.controlRadius),
       ),
       child: Padding(
@@ -532,14 +603,14 @@ class _PreviewNotice extends StatelessWidget {
             const Icon(
               Icons.science_outlined,
               size: 17,
-              color: MoloColours.moloBlue,
+              color: MoloColours.pulseText,
             ),
             const SizedBox(width: MoloSpacing.xs),
             Expanded(
               child: Text(
                 message,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: MoloColours.moloBlue,
+                  color: MoloColours.pulseText,
                   fontWeight: FontWeight.w500,
                 ),
               ),

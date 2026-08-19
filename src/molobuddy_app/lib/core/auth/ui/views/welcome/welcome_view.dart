@@ -46,7 +46,7 @@ class WelcomeView extends ConsumerWidget {
     final signingOut = viewState.status == AuthViewStatus.signingOut;
     return Title(
       title: localisations.welcomePageTitle,
-      color: MoloColours.deepInk,
+      color: MoloColours.moloPlum,
       child: Scaffold(
         key: const Key('welcome_view'),
         body: SafeArea(
@@ -128,7 +128,7 @@ class WelcomeView extends ConsumerWidget {
                               MoloStatusPill(
                                 label: localisations.welcomeHeading,
                                 icon: Icons.check_circle_outline,
-                                foreground: MoloColours.aloe,
+                                foreground: MoloColours.success,
                                 background: const Color(0xFFECFDF3),
                               ),
                               if (environment.isPreview)
@@ -236,10 +236,10 @@ class _WorkspaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foreground = accent ? MoloColours.surface : MoloColours.deepInk;
+    final foreground = accent ? MoloColours.surface : MoloColours.moloPlum;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: accent ? MoloColours.moloBlue : MoloColours.surface,
+        color: accent ? MoloColours.moloPlum : MoloColours.surface,
         borderRadius: BorderRadius.circular(MoloSpacing.cardRadius),
         border: accent ? null : Border.all(color: MoloColours.border),
       ),
@@ -252,14 +252,14 @@ class _WorkspaceCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: accent
                     ? MoloColours.surface.withValues(alpha: 0.16)
-                    : MoloColours.moloBlueTint,
+                    : MoloColours.pulseTint,
                 borderRadius: BorderRadius.circular(MoloSpacing.sm),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(MoloSpacing.sm),
                 child: Icon(
                   icon,
-                  color: accent ? MoloColours.surface : MoloColours.moloBlue,
+                  color: accent ? MoloColours.moloPulse : MoloColours.pulseText,
                 ),
               ),
             ),

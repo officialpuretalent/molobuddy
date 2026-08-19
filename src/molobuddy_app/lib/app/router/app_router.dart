@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:molobuddy_app/app/design_system/motion/molo_motion.dart';
 import 'package:molobuddy_app/core/auth/auth_providers.dart';
+import 'package:molobuddy_app/core/auth/ui/views/registration/registration_view.dart';
 import 'package:molobuddy_app/core/auth/ui/views/sign_in/sign_in_view.dart';
 import 'package:molobuddy_app/core/auth/ui/views/welcome/welcome_view.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -12,8 +14,18 @@ class SignInRoute extends GoRouteData with $SignInRoute {
   const SignInRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return const SignInView();
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return _moloPage(context, state, child: const SignInView());
+  }
+}
+
+@TypedGoRoute<RegistrationRoute>(path: '/sign-up')
+class RegistrationRoute extends GoRouteData with $RegistrationRoute {
+  const RegistrationRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return _moloPage(context, state, child: const RegistrationView());
   }
 }
 
@@ -22,9 +34,34 @@ class WelcomeRoute extends GoRouteData with $WelcomeRoute {
   const WelcomeRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return const WelcomeView();
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return _moloPage(context, state, child: const WelcomeView());
   }
+}
+
+Page<void> _moloPage(
+  BuildContext context,
+  GoRouterState state, {
+  required Widget child,
+}) {
+  if (MediaQuery.disableAnimationsOf(context)) {
+    return NoTransitionPage<void>(key: state.pageKey, child: child);
+  }
+
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: MoloMotion.route,
+    reverseTransitionDuration: MoloMotion.routeReverse,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final arrival = CurvedAnimation(
+        parent: animation,
+        curve: MoloMotion.standard,
+        reverseCurve: MoloMotion.exit,
+      );
+      return FadeTransition(opacity: arrival, child: child);
+    },
+  );
 }
 
 @Riverpod(keepAlive: true)
@@ -35,10 +72,13 @@ GoRouter appRouter(Ref ref) {
     redirect: (context, state) {
       final signedIn = ref.read(authRepositoryProvider).currentUser != null;
       final onSignIn = state.matchedLocation == const SignInRoute().location;
-      if (!signedIn && !onSignIn) {
+      final onRegistration =
+          state.matchedLocation == const RegistrationRoute().location;
+      final onPublicAuthRoute = onSignIn || onRegistration;
+      if (!signedIn && !onPublicAuthRoute) {
         return const SignInRoute().location;
       }
-      if (signedIn && onSignIn) {
+      if (signedIn && onPublicAuthRoute) {
         return const WelcomeRoute().location;
       }
       return null;

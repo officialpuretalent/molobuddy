@@ -1,6 +1,6 @@
 # Molo Product Visual System
 
-- **Status:** Accepted foundation v1.0
+- **Status:** Accepted foundation v1.1
 - **Applies to:** Flutter Web, Android and iOS
 - **First implemented journey:** Authentication
 - **Last updated:** 19 August 2026
@@ -17,39 +17,44 @@ The reference lesson observed in products such as [Revolut](https://www.revolut.
 
 | Token | Value | Purpose |
 |---|---:|---|
-| `moloBlue` | `#3155F5` | Primary action, active navigation, focus emphasis and key brand moments |
-| `moloBlueTint` | `#EEF2FF` | Selected and supportive backgrounds |
-| `deepInk` | `#0B1020` | Primary text, dark hero surfaces and authority |
-| `canvas` | `#FBFCFE` | Main light canvas |
-| `softCloud` | `#F4F6FA` | Secondary surfaces and quiet structure |
-| `white` | `#FFFFFF` | Cards and content surfaces |
-| `slate` | `#667085` | Secondary text; `4.97:1` against white |
-| `cloudLine` | `#D8DEE9` | Borders and dividers |
-| `helloCoral` | `#FF6E67` | Small expressive details, illustrations and highlights |
-| `aloe` | `#0E9F6E` | Confirmed success |
-| `amber` | `#D97706` | Warnings and attention |
-| `error` | `#D92D20` | Errors and destructive actions |
+| `moloPlum` | `#241529` | Primary actions, dark brand surfaces, text and professional authority |
+| `warmCanvas` | `#FFF9F7` | Main light canvas with quiet warmth |
+| `surface` | `#FFFFFF` | Cards and content surfaces |
+| `softBlush` | `#F8ECEE` | Secondary surfaces and quiet structure |
+| `moloPulse` | `#F25775` | The recognisable Molo signal for momentum, progress and selected moments |
+| `pulseTint` | `#FDECEF` | Selected and supportive backgrounds |
+| `pulseText` | `#9B263B` | Accessible links, focus and compact accents on light surfaces |
+| `secondaryText` | `#685E68` | Secondary text; `6.20:1` against white |
+| `controlBorder` | `#9A858D` | Meaningful control boundaries; `3.43:1` against white |
+| `border` | `#E4D5D8` | Non-essential dividers and surface separation |
+| `success` | `#087A55` | Confirmed success |
+| `warning` | `#A85D00` | Warnings and attention |
+| `error` | `#C2382B` | Errors and destructive actions |
+| `information` | `#3459D4` | Informational states only, not general brand decoration |
 
-`moloBlue` with white text has a WCAG contrast ratio of approximately `5.60:1`. `deepInk` on white is approximately `18.93:1`. These measured pairs are the default for primary controls and body content.
+Measured contrast pairs include Molo Plum on white at approximately `17.29:1`, Molo Pulse on Molo Plum at `5.27:1`, Pulse Text on white at `7.68:1` and Control Border on white at `3.43:1`.
 
-Hello Coral, Aloe and Amber do not carry readable status alone on a light surface. Pair them with an icon, a label and a sufficiently dark text colour. Hello Coral is not a primary button colour and is never used for body text on white.
+Molo Pulse is a signature, not a flood colour. Primary actions normally use Molo Plum. Pulse marks progress, meaningful selection and a small number of brand moments. It never replaces semantic success, warning or error colour, and it is not used as body text on white.
 
 ### Semantic light scheme
 
 | Semantic role | Token |
 |---|---|
-| Background | `canvas` |
-| Surface | `white` |
-| Surface muted | `softCloud` |
-| Primary | `moloBlue` |
-| On primary | `white` |
-| Text primary | `deepInk` |
-| Text secondary | `slate` |
-| Border | `cloudLine` |
-| Focus ring | `moloBlue` with a visible outer tint |
-| Success | `aloe` plus explicit text/icon |
-| Warning | `amber` plus explicit text/icon |
+| Background | `warmCanvas` |
+| Surface | `surface` |
+| Surface muted | `softBlush` |
+| Primary action | `moloPlum` |
+| On primary | `surface` |
+| Signature accent | `moloPulse` |
+| Text primary | `moloPlum` |
+| Text secondary | `secondaryText` |
+| Control boundary | `controlBorder` |
+| Quiet divider | `border` |
+| Focus ring and links | `pulseText` |
+| Success | `success` plus explicit text/icon |
+| Warning | `warning` plus explicit text/icon |
 | Error | `error` plus explicit text/icon |
+| Information | `information` plus explicit text/icon |
 
 Dark mode is not enabled by simply inverting the light palette. It requires a dedicated, contrast-tested semantic scheme and visual-regression matrix before release. Until then, the application declares the accepted light scheme consistently across targets.
 
@@ -74,7 +79,7 @@ Molo uses bundled Geist Sans Regular (400) and Medium (500), registered through 
 - Prefer borders and surface contrast over heavy shadows. Elevation should explain hierarchy, not decorate it.
 - Keep the main form narrow even on wide displays; use the extra space for brand storytelling rather than stretching inputs.
 
-## 5. Authentication composition
+## 5. Authentication and onboarding composition
 
 ### Compact windows
 
@@ -84,7 +89,7 @@ The sign-in journey is one scroll-safe column. Brand mark, welcome statement, cr
 
 Use a two-part composition:
 
-1. a calm Molo Blue/Deep Ink brand panel that communicates control, momentum and trust;
+1. a calm Molo Plum brand panel with controlled Pulse moments that communicates warmth, momentum and trust;
 2. a focused white sign-in surface with no unnecessary navigation or product clutter.
 
 The form keeps the same reading order and interaction model as compact mode. Responsive changes rearrange composition; they do not create a separate feature implementation.
@@ -98,9 +103,34 @@ The form keeps the same reading order and interaction model as compact mode. Res
 - Validation is close to the field, explains how to recover and never exposes raw Firebase or server errors.
 - Password visibility is a labelled toggle with a stable touch target.
 
+### Registration preview
+
+The first registration slice is an explicitly non-persistent product preview. It demonstrates the intended client-first journey without creating a Firebase identity or provisioning a practice before those production commands are connected.
+
+The focused flow has four short stages:
+
+1. **Your account:** name, work email, password and terms acceptance.
+2. **Shape your workspace:** practice name, team size and primary tax region, with the benefit of each default made clear.
+3. **Choose your first win:** the outcomes the user wants Molo to improve first.
+4. **Make it useful:** import clients, add a first client or explore a sample workspace.
+
+Expanded windows pair the form with a quiet workspace context panel. It contains only the Molo identity, current step, practice name, one concise value statement, readiness and the brand promise. It must not repeat the choices or icons shown in the active form. Compact and medium windows use the same content in one scroll-safe column with a concise workspace summary and progress bar. Back navigation retains entered values while the view is alive. The completion screen states clearly that no account or practice data was saved and returns to sign-in.
+
+Sign-in and sign-up use the same supporting-pane width at every expanded breakpoint. The shared edge must remain fixed during navigation so a fade never reveals a geometry jump between authentication pages.
+
+The preview follows the accepted production boundaries: Firebase Authentication will own account creation, and the Molo API will provision the practice, owner membership, home region and defaults. Primary tax region, locale, currency and data residency remain separate concepts even when the first available choice is South Africa.
+
 ## 6. Motion
 
 Use motion to clarify arrival, focus and successful progress. Keep transitions short, interruptible and reduced-motion aware. Do not animate credential values, validation errors aggressively or any security warning playfully.
+
+- Web startup uses a lightweight HTML Molo handoff instead of Flutter's generic progress treatment. It shares the warm canvas, plum wordmark and Pulse accent, then fades only after Flutter has started the app.
+- Route arrival uses a restrained `180ms` opacity transition. Reverse navigation uses `140ms`. Pages do not slide.
+- Onboarding step changes use a `170ms` opacity transition so the relationship between stages remains clear without spatial movement.
+- Motion uses Flutter SDK primitives and browser CSS. No animation dependency is admitted for this foundation.
+- `MediaQuery.disableAnimationsOf` and `prefers-reduced-motion` reduce these transitions to an immediate state change.
+
+Checkboxes use a six-pixel rounded rectangle, a plum selected fill and state-aware Pulse focus and hover treatment. The full control retains the platform-standard touch target even though the visible mark remains compact. In legal consent rows, only the checkbox changes consent. Legal document names are separate, visibly underlined links; the surrounding sentence is never one large tap target.
 
 ## 7. Accessibility and international quality gate
 

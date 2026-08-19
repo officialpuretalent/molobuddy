@@ -6,7 +6,11 @@ part of 'app_router.dart';
 // GoRouterGenerator
 // **************************************************************************
 
-List<RouteBase> get $appRoutes => [$signInRoute, $welcomeRoute];
+List<RouteBase> get $appRoutes => [
+  $signInRoute,
+  $registrationRoute,
+  $welcomeRoute,
+];
 
 RouteBase get $signInRoute => GoRouteData.$route(
   path: '/sign-in',
@@ -19,6 +23,33 @@ mixin $SignInRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/sign-in');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $registrationRoute => GoRouteData.$route(
+  path: '/sign-up',
+  hasOverriddenOnExit: false,
+  factory: $RegistrationRoute._fromState,
+);
+
+mixin $RegistrationRoute on GoRouteData {
+  static RegistrationRoute _fromState(GoRouterState state) =>
+      const RegistrationRoute();
+
+  @override
+  String get location => GoRouteData.$location('/sign-up');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -106,4 +137,4 @@ final class AppRouterProvider
   }
 }
 
-String _$appRouterHash() => r'a72ff1722fb5a3efa63f83dc2f08a75cfc2e335b';
+String _$appRouterHash() => r'36f3eff1e0b65032969a21bddb26237092e5dd36';

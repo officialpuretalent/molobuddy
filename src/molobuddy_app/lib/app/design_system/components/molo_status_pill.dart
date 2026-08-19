@@ -6,8 +6,8 @@ class MoloStatusPill extends StatelessWidget {
   const MoloStatusPill({
     required this.label,
     this.icon,
-    this.foreground = MoloColours.moloBlue,
-    this.background = MoloColours.moloBlueTint,
+    this.foreground = MoloColours.pulseText,
+    this.background = MoloColours.pulseTint,
     super.key,
   });
 

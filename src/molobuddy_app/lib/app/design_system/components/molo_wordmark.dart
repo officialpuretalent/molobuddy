@@ -16,7 +16,7 @@ class MoloWordmark extends StatelessWidget {
         child: Text(
           'molo',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: onDark ? MoloColours.surface : MoloColours.deepInk,
+            color: onDark ? MoloColours.surface : MoloColours.moloPlum,
             fontSize: compact ? 27 : 32,
             fontWeight: FontWeight.w500,
             letterSpacing: -1.4,
