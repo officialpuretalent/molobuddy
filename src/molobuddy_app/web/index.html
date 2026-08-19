@@ -113,6 +113,15 @@
       <span class="molo-bootstrap__pulse"></span>
     </div>
   </div>
+  <!--
+    App Check debug attestation, local development only.
+
+    Uncomment the line below, run the app, then copy the debug token printed
+    in the browser console into Firebase console → App Check → Apps → your Web
+    app → Manage debug tokens. The token bypasses device verification, so it
+    must never be committed or served from a deployed build.
+  -->
+  <!-- <script>self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;</script> -->
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

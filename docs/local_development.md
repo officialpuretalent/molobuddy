@@ -97,22 +97,61 @@ The server selects its token verifier from `AUTH_VERIFIER` in `.env.local`:
   `gcloud auth application-default login` once if `applicationDefault()` cannot
   find credentials.
 
-## Known gap: App Check blocks the real end-to-end path
+## App Check
+
+The client plumbing exists. `MoloAuthenticatedTransport` attaches the identity
+token as `authorization: Bearer …` and the attestation token as
+`x-firebase-appcheck`, which are the headers the control API reads. Both come
+from Molo-owned interfaces, so no feature imports a vendor SDK or sees a raw
+token. A test asserts that containment.
+
+Attestation activates only when the build is configured for it. With neither
+`MOLO_APP_CHECK_RECAPTCHA_SITE_KEY` nor `MOLO_APP_CHECK_DEBUG`, the app uses
+`UnavailableAppCheckGateway` and simply sends no attestation header. A failed
+or missing attestation never blocks a request; the server decides.
+
+### Choosing a provider
+
+Web attestation uses reCAPTCHA. Both options have a free path: reCAPTCHA v3 is
+a no-cost service, and reCAPTCHA Enterprise covers 10,000 assessments a month
+at no cost, which a development project will not approach. Google recommends
+Enterprise for new integrations. Neither shows the user a challenge.
+
+Android and iOS never use reCAPTCHA. They use Play Integrity and App Attest,
+which need no extra account.
+
+### Debug attestation for local work
+
+Local development does not need reCAPTCHA at all.
+
+1. Uncomment the `FIREBASE_APPCHECK_DEBUG_TOKEN` line in
+   `src/molobuddy_app/web/index.html`.
+2. Set `"MOLO_APP_CHECK_DEBUG": true` in `config/firebase.development.json`.
+3. Run the app and copy the debug token printed in the browser console.
+4. Safelist it in Firebase console under App Check → Apps → the Web app →
+   Manage debug tokens.
+
+The debug token bypasses device verification. Never commit it, and never ship
+it in a deployed build. `useAppCheckDebugProvider` is additionally gated on
+`kDebugMode`, so a release build ignores the define.
+
+### Enforcement
+
+App Check is registered against Identity Platform and Firestore but both are
+`UNENFORCED`, which is the state the authentication design asks for. Roll out
+monitoring first and confirm that legitimate traffic is passing before
+enforcing, or valid clients get locked out.
+
+### Until attestation is configured
 
 `FirebaseAdminRequestTokenVerifier` rejects any request without an App Check
-token, which the authentication design intends. The Flutter application does
-not yet send one, because App Check is not set up.
+token. Until a site key or debug token is in place, `AUTH_VERIFIER=firebase`
+answers every `/v1/session` request with `app_check_required`, even for a valid
+ID token, so local development stays on `AUTH_VERIFIER=local`.
 
-So with `AUTH_VERIFIER=firebase`, every application request to `/v1/session`
-fails with `app_check_required`, even when the user holds a valid Firebase ID
-token. Local development therefore stays on `AUTH_VERIFIER=local`.
-
-Closing this gap means adding App Check to the Flutter application and rolling
-it out in monitoring mode before enforcement, per
-[authentication](backend_design/authentication.md) section 13. Until then, do
-not "fix" the failure by weakening the verifier: the App Check requirement is a
-deliberate control, and authentication failures and App Check failures must
-remain distinct.
+Do not "fix" that by weakening the verifier. The App Check requirement is a
+deliberate control, and App Check failures must stay distinguishable from
+authentication failures.
 
 ## Verification
 

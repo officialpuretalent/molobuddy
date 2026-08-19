@@ -346,7 +346,8 @@ steps and configuration live in the
 | Email-enumeration protection (section 11) | Enabled on the project |
 | ID-token and App Check verification (section 8, steps 1–4) | Implemented in `FirebaseAdminRequestTokenVerifier`; distinct failure codes covered by tests |
 | Federation adapters (section 4) | Not built. Google renders as a disabled `coming_soon` preview |
-| App Check client (section 13) | Not built |
+| App Check client (section 13) | Plumbed behind `AppCheckGateway`; inactive until a site key or debug token is configured |
+| Token broker and transport (section 7) | Implemented; a test asserts features cannot import a vendor SDK or read raw tokens |
 | MFA (section 12) | Not built; disabled on the project |
 | Membership, region routing (section 8, steps 5–10) | Not built; no regional data yet |
 

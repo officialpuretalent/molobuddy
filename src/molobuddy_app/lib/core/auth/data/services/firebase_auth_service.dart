@@ -4,11 +4,16 @@ import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_user.dart';
 import 'package:molobuddy_app/core/auth/data/models/firebase_public_configuration.dart';
 import 'package:molobuddy_app/core/auth/data/services/auth_service.dart';
+import 'package:molobuddy_app/core/auth/data/services/auth_token_broker.dart';
 
 final class FirebaseAuthService implements AuthService {
-  FirebaseAuthService._(this._auth);
+  FirebaseAuthService._(this._auth, this.app);
 
   final firebase.FirebaseAuth _auth;
+
+  /// The initialised Firebase app, so attestation activates against the same
+  /// instance rather than initialising a second one.
+  final FirebaseApp app;
 
   static Future<FirebaseAuthService> initialise(
     FirebasePublicConfiguration configuration,
@@ -22,11 +27,20 @@ final class FirebaseAuthService implements AuthService {
         authDomain: configuration.authDomain,
       ),
     );
-    return FirebaseAuthService._(firebase.FirebaseAuth.instanceFor(app: app));
+    return FirebaseAuthService._(
+      firebase.FirebaseAuth.instanceFor(app: app),
+      app,
+    );
   }
 
   @override
   AuthUser? get currentUser => _mapUser(_auth.currentUser);
+
+  /// The broker the authenticated transport uses to read raw ID tokens.
+  ///
+  /// Exposed here so the token source stays the same signed-in session this
+  /// service owns, rather than a second Firebase handle.
+  AuthTokenBroker get tokenBroker => _FirebaseAuthTokenBroker(_auth);
 
   @override
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
@@ -83,5 +97,26 @@ final class FirebaseAuthService implements AuthService {
       'user-disabled' => AuthFailureKind.providerUnavailable,
       _ => AuthFailureKind.unexpected,
     };
+  }
+}
+
+final class _FirebaseAuthTokenBroker implements AuthTokenBroker {
+  _FirebaseAuthTokenBroker(this._auth);
+
+  final firebase.FirebaseAuth _auth;
+
+  @override
+  Future<String?> idToken({bool forceRefresh = false}) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return null;
+    }
+    try {
+      // The SDK owns refresh and persistence; this reads the current token
+      // and only forces a refresh when a caller has seen an expiry response.
+      return await user.getIdToken(forceRefresh);
+    } on Object {
+      return null;
+    }
   }
 }

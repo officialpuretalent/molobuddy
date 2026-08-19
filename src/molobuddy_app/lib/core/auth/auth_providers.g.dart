@@ -50,6 +50,100 @@ final class AuthServiceProvider
 
 String _$authServiceHash() => r'0573df2b9db12b5d0809ec13b91b8e3e1359408e';
 
+/// Raw identity tokens. Only the authenticated transport may read this.
+
+@ProviderFor(authTokenBroker)
+final authTokenBrokerProvider = AuthTokenBrokerProvider._();
+
+/// Raw identity tokens. Only the authenticated transport may read this.
+
+final class AuthTokenBrokerProvider
+    extends
+        $FunctionalProvider<AuthTokenBroker, AuthTokenBroker, AuthTokenBroker>
+    with $Provider<AuthTokenBroker> {
+  /// Raw identity tokens. Only the authenticated transport may read this.
+  AuthTokenBrokerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authTokenBrokerProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authTokenBrokerHash();
+
+  @$internal
+  @override
+  $ProviderElement<AuthTokenBroker> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AuthTokenBroker create(Ref ref) {
+    return authTokenBroker(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AuthTokenBroker value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AuthTokenBroker>(value),
+    );
+  }
+}
+
+String _$authTokenBrokerHash() => r'cbe19122a1441f8c0cadec93164d97f09570dcfa';
+
+/// Application attestation. Only the authenticated transport may read this.
+
+@ProviderFor(appCheckGateway)
+final appCheckGatewayProvider = AppCheckGatewayProvider._();
+
+/// Application attestation. Only the authenticated transport may read this.
+
+final class AppCheckGatewayProvider
+    extends
+        $FunctionalProvider<AppCheckGateway, AppCheckGateway, AppCheckGateway>
+    with $Provider<AppCheckGateway> {
+  /// Application attestation. Only the authenticated transport may read this.
+  AppCheckGatewayProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'appCheckGatewayProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$appCheckGatewayHash();
+
+  @$internal
+  @override
+  $ProviderElement<AppCheckGateway> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AppCheckGateway create(Ref ref) {
+    return appCheckGateway(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AppCheckGateway value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AppCheckGateway>(value),
+    );
+  }
+}
+
+String _$appCheckGatewayHash() => r'b26c2e9d942f141f50806614e11108845537cf2a';
+
 @ProviderFor(authProviderCatalogue)
 final authProviderCatalogueProvider = AuthProviderCatalogueProvider._();
 
