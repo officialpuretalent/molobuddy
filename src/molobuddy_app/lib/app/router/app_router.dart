@@ -6,6 +6,7 @@ import 'package:molobuddy_app/core/auth/auth_providers.dart';
 import 'package:molobuddy_app/core/auth/ui/views/registration/registration_view.dart';
 import 'package:molobuddy_app/core/auth/ui/views/sign_in/sign_in_view.dart';
 import 'package:molobuddy_app/core/auth/ui/views/welcome/welcome_view.dart';
+import 'package:molobuddy_app/core/onboarding/ui/views/onboarding_view.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_router.g.dart';
@@ -27,6 +28,16 @@ class RegistrationRoute extends GoRouteData with $RegistrationRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
     return _moloPage(context, state, child: const RegistrationView());
+  }
+}
+
+@TypedGoRoute<OnboardingRoute>(path: '/onboarding')
+class OnboardingRoute extends GoRouteData with $OnboardingRoute {
+  const OnboardingRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return _moloPage(context, state, child: const OnboardingView());
   }
 }
 

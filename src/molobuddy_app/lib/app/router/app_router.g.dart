@@ -9,6 +9,7 @@ part of 'app_router.dart';
 List<RouteBase> get $appRoutes => [
   $signInRoute,
   $registrationRoute,
+  $onboardingRoute,
   $welcomeRoute,
 ];
 
@@ -50,6 +51,33 @@ mixin $RegistrationRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/sign-up');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $onboardingRoute => GoRouteData.$route(
+  path: '/onboarding',
+  hasOverriddenOnExit: false,
+  factory: $OnboardingRoute._fromState,
+);
+
+mixin $OnboardingRoute on GoRouteData {
+  static OnboardingRoute _fromState(GoRouterState state) =>
+      const OnboardingRoute();
+
+  @override
+  String get location => GoRouteData.$location('/onboarding');
 
   @override
   void go(BuildContext context) => context.go(location);

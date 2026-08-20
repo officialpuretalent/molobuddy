@@ -1,72 +1,171 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:molobuddy_app/core/auth/auth_providers.dart';
+import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
+import 'package:molobuddy_app/core/auth/data/models/auth_method_descriptor.dart';
+import 'package:molobuddy_app/core/auth/data/models/auth_user.dart';
+import 'package:molobuddy_app/core/auth/data/models/molo_session.dart';
+import 'package:molobuddy_app/core/auth/data/repositories/auth_repository.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/registration_view_model.dart';
 
-void main() {
-  test(
-    'registration validates each stage and completes without credentials',
-    () {
-      final container = ProviderContainer.test();
-      final subscription = container.listen(
-        registrationViewModelProvider,
-        (_, _) {},
-      );
-      addTearDown(subscription.close);
-      final viewModel = container.read(registrationViewModelProvider.notifier);
+final class _RecordingRepository implements AuthRepository {
+  _RecordingRepository({this.failure});
 
-      expect(
-        viewModel.continueFromAccount(
-          displayName: '',
-          email: 'not-an-email',
-          password: 'short',
-          acceptedTerms: false,
-        ),
-        isFalse,
-      );
-      expect(container.read(registrationViewModelProvider).nameInvalid, isTrue);
-      expect(
-        container.read(registrationViewModelProvider).termsNotAccepted,
-        isTrue,
-      );
+  final AuthFailure? failure;
+  final List<(String, String, String)> created = [];
 
-      expect(
-        viewModel.continueFromAccount(
-          displayName: 'Naledi Mokoena',
-          email: 'naledi@example.com',
-          password: 'safe-preview-password',
-          acceptedTerms: true,
-        ),
-        isTrue,
-      );
-      expect(
-        container.read(registrationViewModelProvider).step,
-        RegistrationStep.practice,
-      );
+  @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    created.add((email, password, displayName));
+    final refusal = failure;
+    if (refusal != null) {
+      return AuthError(refusal);
+    }
+    return AuthSuccess(
+      AuthUser(id: 'user_1', email: email, displayName: displayName),
+    );
+  }
 
-      expect(viewModel.continueFromPractice(practiceName: 'Molo Tax'), isTrue);
-      expect(viewModel.continueFromPriorities(), isFalse);
-      expect(
-        container.read(registrationViewModelProvider).prioritiesInvalid,
-        isTrue,
-      );
+  @override
+  AuthUser? get currentUser => null;
 
-      viewModel.togglePriority(RegistrationPriority.deadlines);
-      expect(viewModel.continueFromPriorities(), isTrue);
-      expect(
-        container.read(registrationViewModelProvider).step,
-        RegistrationStep.startingPoint,
-      );
-      expect(viewModel.completePreview(), isFalse);
-      viewModel.selectStartingPoint(WorkspaceStartingPoint.sampleWorkspace);
-      expect(viewModel.completePreview(), isTrue);
-      expect(
-        container.read(registrationViewModelProvider).step,
-        RegistrationStep.complete,
-      );
-      expect(
-        container.read(registrationViewModelProvider).email,
-        'naledi@example.com',
-      );
-    },
+  @override
+  Future<AuthResult<List<AuthMethodDescriptor>>> loadMethods() async =>
+      const AuthSuccess([]);
+
+  @override
+  Future<AuthResult<MoloSession>> loadSession() async =>
+      throw UnimplementedError('loadSession');
+
+  @override
+  Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async => throw UnimplementedError('signInWithEmailAndPassword');
+
+  @override
+  Future<AuthResult<void>> signOut() async =>
+      throw UnimplementedError('signOut');
+}
+
+(RegistrationViewModel, ProviderContainer) _build(
+  _RecordingRepository repository,
+) {
+  final container = ProviderContainer(
+    overrides: [authRepositoryProvider.overrideWithValue(repository)],
   );
+  addTearDown(container.dispose);
+  container.read(registrationViewModelProvider);
+  return (container.read(registrationViewModelProvider.notifier), container);
+}
+
+RegistrationViewState _stateOf(ProviderContainer container) {
+  return container.read(registrationViewModelProvider);
+}
+
+Future<bool> _submitValid(RegistrationViewModel model) {
+  return model.createAccount(
+    displayName: 'Thando Mokoena',
+    email: 'Thando@Example.com',
+    password: 'safe-preview-password',
+    acceptedTerms: true,
+  );
+}
+
+void main() {
+  test('creates the account and normalises what it sends', () async {
+    final repository = _RecordingRepository();
+    final (model, _) = _build(repository);
+
+    final created = await _submitValid(model);
+
+    expect(created, isTrue);
+    expect(repository.created, [
+      ('thando@example.com', 'safe-preview-password', 'Thando Mokoena'),
+    ]);
+  });
+
+  test('refuses to call the provider with an unusable form', () async {
+    final repository = _RecordingRepository();
+    final (model, container) = _build(repository);
+
+    final created = await model.createAccount(
+      displayName: 'T',
+      email: 'not-an-email',
+      password: 'short',
+      acceptedTerms: false,
+    );
+
+    expect(created, isFalse);
+    expect(repository.created, isEmpty);
+    final state = _stateOf(container);
+    expect(state.nameInvalid, isTrue);
+    expect(state.emailInvalid, isTrue);
+    expect(state.passwordTooShort, isTrue);
+    expect(state.termsNotAccepted, isTrue);
+  });
+
+  test('reports a taken address on the email field, not as a banner', () async {
+    final (model, container) = _build(
+      _RecordingRepository(
+        failure: const AuthFailure(AuthFailureKind.emailAlreadyRegistered),
+      ),
+    );
+
+    final created = await _submitValid(model);
+
+    expect(created, isFalse);
+    expect(_stateOf(container).emailAlreadyRegistered, isTrue);
+    expect(_stateOf(container).failure, isNull);
+  });
+
+  test('reports a rejected password on the password field', () async {
+    final (model, container) = _build(
+      _RecordingRepository(
+        failure: const AuthFailure(AuthFailureKind.passwordRejected),
+      ),
+    );
+
+    await _submitValid(model);
+
+    expect(_stateOf(container).passwordTooShort, isTrue);
+    expect(_stateOf(container).failure, isNull);
+  });
+
+  test('anything no field explains becomes a form-level failure', () async {
+    // This is the path a provider takes when email-enumeration protection
+    // declines to say the address is taken.
+    final (model, container) = _build(
+      _RecordingRepository(
+        failure: const AuthFailure(AuthFailureKind.unexpected),
+      ),
+    );
+
+    await _submitValid(model);
+
+    expect(_stateOf(container).emailAlreadyRegistered, isFalse);
+    expect(_stateOf(container).failure?.kind, AuthFailureKind.unexpected);
+  });
+
+  test('clears a previous refusal when the form is submitted again', () async {
+    final repository = _RecordingRepository();
+    final (model, container) = _build(repository);
+    await model.createAccount(
+      displayName: 'T',
+      email: 'nope',
+      password: 'short',
+      acceptedTerms: false,
+    );
+
+    await _submitValid(model);
+
+    final state = _stateOf(container);
+    expect(state.nameInvalid, isFalse);
+    expect(state.emailInvalid, isFalse);
+    expect(state.termsNotAccepted, isFalse);
+  });
 }

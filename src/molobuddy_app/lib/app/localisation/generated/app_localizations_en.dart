@@ -179,6 +179,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Firebase identity stays behind Molo\'s authentication boundary.';
 
   @override
+  String get emailAlreadyRegistered =>
+      'That address already has an account. Sign in instead.';
+
+  @override
+  String get onboardingChangedElsewhere =>
+      'Your setup changed somewhere else. We\'ve loaded the latest answers.';
+
+  @override
+  String get onboardingAnswerRejected =>
+      'That answer could not be saved. Check it and try again.';
+
+  @override
+  String get onboardingIncomplete =>
+      'A question is still unanswered. Go back and complete it.';
+
+  @override
   String get notFoundPageTitle => 'Page not found | Molo';
 
   @override
@@ -634,6 +650,22 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   @override
   String get secureSessionBody =>
       'Firebase identity stays behind Molo\'s authentication boundary.';
+
+  @override
+  String get emailAlreadyRegistered =>
+      'That address already has an account. Sign in instead.';
+
+  @override
+  String get onboardingChangedElsewhere =>
+      'Your setup changed somewhere else. We\'ve loaded the latest answers.';
+
+  @override
+  String get onboardingAnswerRejected =>
+      'That answer could not be saved. Check it and try again.';
+
+  @override
+  String get onboardingIncomplete =>
+      'A question is still unanswered. Go back and complete it.';
 
   @override
   String get notFoundPageTitle => 'Page not found | Molo';

@@ -409,6 +409,30 @@ abstract class AppLocalizations {
   /// **'Firebase identity stays behind Molo\'\'s authentication boundary.'**
   String get secureSessionBody;
 
+  /// No description provided for @emailAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'That address already has an account. Sign in instead.'**
+  String get emailAlreadyRegistered;
+
+  /// Shown when a save lost to another tab and the wizard reloaded what is stored.
+  ///
+  /// In en, this message translates to:
+  /// **'Your setup changed somewhere else. We\'\'ve loaded the latest answers.'**
+  String get onboardingChangedElsewhere;
+
+  /// No description provided for @onboardingAnswerRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'That answer could not be saved. Check it and try again.'**
+  String get onboardingAnswerRejected;
+
+  /// No description provided for @onboardingIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'A question is still unanswered. Go back and complete it.'**
+  String get onboardingIncomplete;
+
   /// No description provided for @notFoundPageTitle.
   ///
   /// In en, this message translates to:

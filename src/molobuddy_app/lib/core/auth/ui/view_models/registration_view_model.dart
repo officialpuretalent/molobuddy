@@ -1,92 +1,70 @@
+import 'package:molobuddy_app/core/auth/auth_providers.dart';
+import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'registration_view_model.g.dart';
 
-enum RegistrationStep { account, practice, priorities, startingPoint, complete }
-
-enum PracticeSize { solo, smallTeam, growingTeam }
-
-enum RegistrationPriority { deadlines, documents, teamwork, visibility }
-
-enum WorkspaceStartingPoint { importClients, addFirstClient, sampleWorkspace }
-
+/// The account step, and only the account step.
+///
+/// Everything after it is persisted server-side and lives in
+/// `OnboardingViewModel`. Splitting them is what lets an interrupted signup
+/// resume: wizard state that only exists in memory cannot survive a closed
+/// tab, and an account either exists or it does not.
 final class RegistrationViewState {
   const RegistrationViewState({
-    this.step = RegistrationStep.account,
     this.displayName = '',
     this.email = '',
-    this.practiceName = '',
-    this.practiceSize = PracticeSize.solo,
-    this.priorities = const {},
-    this.startingPoint,
+    this.submitting = false,
     this.nameInvalid = false,
     this.emailInvalid = false,
     this.passwordTooShort = false,
     this.termsNotAccepted = false,
-    this.practiceNameInvalid = false,
-    this.prioritiesInvalid = false,
-    this.startingPointInvalid = false,
+    this.emailAlreadyRegistered = false,
+    this.failure,
   });
 
-  final RegistrationStep step;
   final String displayName;
   final String email;
-  final String practiceName;
-  final PracticeSize practiceSize;
-  final Set<RegistrationPriority> priorities;
-  final WorkspaceStartingPoint? startingPoint;
+
+  /// A request is in flight. The button is disabled while it is, so a double
+  /// tap cannot create two accounts.
+  final bool submitting;
+
   final bool nameInvalid;
   final bool emailInvalid;
   final bool passwordTooShort;
   final bool termsNotAccepted;
-  final bool practiceNameInvalid;
-  final bool prioritiesInvalid;
-  final bool startingPointInvalid;
 
-  int get progressIndex => step.index.clamp(0, 3);
+  /// Shown on the email field rather than as a form-level error, because it is
+  /// a fact about that field. Only ever set when the provider actually says so.
+  final bool emailAlreadyRegistered;
 
-  int get readinessPercent => switch (step) {
-    RegistrationStep.account => 12,
-    RegistrationStep.practice => 32,
-    RegistrationStep.priorities => 58,
-    RegistrationStep.startingPoint => 82,
-    RegistrationStep.complete => 100,
-  };
+  /// Anything the provider refused that no single field explains.
+  final AuthFailure? failure;
 
   RegistrationViewState copyWith({
-    RegistrationStep? step,
     String? displayName,
     String? email,
-    String? practiceName,
-    PracticeSize? practiceSize,
-    Set<RegistrationPriority>? priorities,
-    WorkspaceStartingPoint? startingPoint,
-    bool clearStartingPoint = false,
+    bool? submitting,
     bool? nameInvalid,
     bool? emailInvalid,
     bool? passwordTooShort,
     bool? termsNotAccepted,
-    bool? practiceNameInvalid,
-    bool? prioritiesInvalid,
-    bool? startingPointInvalid,
+    bool? emailAlreadyRegistered,
+    AuthFailure? failure,
+    bool clearFailure = false,
   }) {
     return RegistrationViewState(
-      step: step ?? this.step,
       displayName: displayName ?? this.displayName,
       email: email ?? this.email,
-      practiceName: practiceName ?? this.practiceName,
-      practiceSize: practiceSize ?? this.practiceSize,
-      priorities: priorities ?? this.priorities,
-      startingPoint: clearStartingPoint
-          ? null
-          : startingPoint ?? this.startingPoint,
+      submitting: submitting ?? this.submitting,
       nameInvalid: nameInvalid ?? this.nameInvalid,
       emailInvalid: emailInvalid ?? this.emailInvalid,
       passwordTooShort: passwordTooShort ?? this.passwordTooShort,
       termsNotAccepted: termsNotAccepted ?? this.termsNotAccepted,
-      practiceNameInvalid: practiceNameInvalid ?? this.practiceNameInvalid,
-      prioritiesInvalid: prioritiesInvalid ?? this.prioritiesInvalid,
-      startingPointInvalid: startingPointInvalid ?? this.startingPointInvalid,
+      emailAlreadyRegistered:
+          emailAlreadyRegistered ?? this.emailAlreadyRegistered,
+      failure: clearFailure ? null : failure ?? this.failure,
     );
   }
 }
@@ -96,12 +74,20 @@ class RegistrationViewModel extends _$RegistrationViewModel {
   @override
   RegistrationViewState build() => const RegistrationViewState();
 
-  bool continueFromAccount({
+  /// Creates the account, and reports whether the caller may navigate on.
+  ///
+  /// Navigation is the view's job, not this model's; returning a bool keeps
+  /// the model testable without a widget tree.
+  Future<bool> createAccount({
     required String displayName,
     required String email,
     required String password,
     required bool acceptedTerms,
-  }) {
+  }) async {
+    if (state.submitting) {
+      return false;
+    }
+
     final cleanName = displayName.trim();
     final cleanEmail = email.trim().toLowerCase();
     final nameInvalid = cleanName.length < 2;
@@ -115,89 +101,48 @@ class RegistrationViewModel extends _$RegistrationViewModel {
       emailInvalid: emailInvalid,
       passwordTooShort: passwordTooShort,
       termsNotAccepted: termsNotAccepted,
-      step: nameInvalid || emailInvalid || passwordTooShort || termsNotAccepted
-          ? RegistrationStep.account
-          : RegistrationStep.practice,
+      emailAlreadyRegistered: false,
+      clearFailure: true,
     );
-    return !(nameInvalid ||
-        emailInvalid ||
-        passwordTooShort ||
-        termsNotAccepted);
-  }
-
-  bool continueFromPractice({required String practiceName}) {
-    final cleanName = practiceName.trim();
-    final invalid = cleanName.length < 2;
-    state = state.copyWith(
-      practiceName: cleanName,
-      practiceNameInvalid: invalid,
-      step: invalid ? RegistrationStep.practice : RegistrationStep.priorities,
-    );
-    return !invalid;
-  }
-
-  void selectPracticeSize(PracticeSize size) {
-    state = state.copyWith(practiceSize: size);
-  }
-
-  void updatePracticeNamePreview(String value) {
-    state = state.copyWith(
-      practiceName: value.trim(),
-      practiceNameInvalid: false,
-    );
-  }
-
-  void togglePriority(RegistrationPriority priority) {
-    final priorities = {...state.priorities};
-    if (!priorities.add(priority)) {
-      priorities.remove(priority);
-    }
-    state = state.copyWith(
-      priorities: Set.unmodifiable(priorities),
-      prioritiesInvalid: false,
-    );
-  }
-
-  bool continueFromPriorities() {
-    if (state.priorities.isEmpty) {
-      state = state.copyWith(prioritiesInvalid: true);
+    if (nameInvalid || emailInvalid || passwordTooShort || termsNotAccepted) {
       return false;
     }
-    state = state.copyWith(
-      step: RegistrationStep.startingPoint,
-      prioritiesInvalid: false,
-    );
-    return true;
-  }
 
-  void selectStartingPoint(WorkspaceStartingPoint startingPoint) {
-    state = state.copyWith(
-      startingPoint: startingPoint,
-      startingPointInvalid: false,
-    );
-  }
-
-  bool completePreview() {
-    if (state.startingPoint == null) {
-      state = state.copyWith(startingPointInvalid: true);
+    state = state.copyWith(submitting: true);
+    final result = await ref
+        .read(authRepositoryProvider)
+        .createAccount(
+          email: cleanEmail,
+          password: password,
+          displayName: cleanName,
+        );
+    if (!ref.mounted) {
       return false;
     }
-    state = state.copyWith(
-      step: RegistrationStep.complete,
-      startingPointInvalid: false,
-    );
-    return true;
-  }
 
-  void goBack() {
-    final previous = switch (state.step) {
-      RegistrationStep.account => RegistrationStep.account,
-      RegistrationStep.practice => RegistrationStep.account,
-      RegistrationStep.priorities => RegistrationStep.practice,
-      RegistrationStep.startingPoint => RegistrationStep.priorities,
-      RegistrationStep.complete => RegistrationStep.startingPoint,
-    };
-    state = state.copyWith(step: previous);
+    switch (result) {
+      case AuthSuccess():
+        state = state.copyWith(submitting: false, clearFailure: true);
+        return true;
+      case AuthError(:final failure):
+        state = state.copyWith(
+          submitting: false,
+          // Each of these is a fact about one field, so it is reported there.
+          // Everything else, including a provider that declines to say an
+          // address is taken, becomes a neutral form-level message.
+          emailAlreadyRegistered:
+              failure.kind == AuthFailureKind.emailAlreadyRegistered,
+          emailInvalid: failure.kind == AuthFailureKind.invalidCredentials,
+          passwordTooShort: failure.kind == AuthFailureKind.passwordRejected,
+          failure:
+              failure.kind == AuthFailureKind.emailAlreadyRegistered ||
+                  failure.kind == AuthFailureKind.invalidCredentials ||
+                  failure.kind == AuthFailureKind.passwordRejected
+              ? null
+              : failure,
+        );
+        return false;
+    }
   }
 
   static bool _looksLikeEmail(String value) {

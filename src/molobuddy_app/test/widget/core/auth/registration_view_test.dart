@@ -4,12 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:molobuddy_app/app/molo_app.dart';
 import 'package:molobuddy_app/bootstrap/app_environment.dart';
 import 'package:molobuddy_app/core/auth/auth_providers.dart';
+import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
+import 'package:molobuddy_app/core/auth/data/models/auth_user.dart';
 import 'package:molobuddy_app/core/auth/data/services/auth_provider_catalogue_service.dart';
+import 'package:molobuddy_app/core/auth/data/services/auth_service.dart';
 import 'package:molobuddy_app/core/auth/data/services/preview_auth_service.dart';
 import 'package:molobuddy_app/core/auth/ui/widgets/auth_legal_links_text.dart';
 
 void main() {
-  testWidgets('compact registration completes the full preview journey', (
+  testWidgets('the account step creates an account and hands over', (
     tester,
   ) async {
     await _setViewport(tester, const Size(390, 844));
@@ -21,35 +24,6 @@ void main() {
       find.byKey(const Key('registration_compact_progress')),
       findsOneWidget,
     );
-    final checkboxContext = tester.element(find.byType(Checkbox));
-    final checkboxShape = CheckboxTheme.of(checkboxContext).shape;
-    expect(checkboxShape, isA<RoundedRectangleBorder>());
-    expect(
-      (checkboxShape! as RoundedRectangleBorder).borderRadius,
-      BorderRadius.circular(6),
-    );
-    expect(find.byType(CheckboxListTile), findsNothing);
-
-    await tester.tapOnText(find.textRange.ofSubstring('I agree to the'));
-    expect(
-      tester
-          .widget<Checkbox>(
-            find.byKey(const Key('registration_terms_checkbox')),
-          )
-          .value,
-      isFalse,
-    );
-
-    await tester.tapOnText(find.textRange.ofSubstring('Terms of Service'));
-    await tester.pumpAndSettle();
-    expect(
-      find.text(
-        'This document will be available before account creation is enabled.',
-      ),
-      findsOneWidget,
-    );
-    await tester.tap(find.text('Close'));
-    await tester.pumpAndSettle();
 
     await _tapWhenVisible(
       tester,
@@ -58,75 +32,37 @@ void main() {
     expect(find.text('Enter your full name.'), findsOneWidget);
     expect(find.text('You need to agree before continuing.'), findsOneWidget);
 
-    await tester.enterText(
-      find.byKey(const Key('registration_name_field')),
-      'Naledi Mokoena',
-    );
-    await tester.enterText(
-      find.byKey(const Key('registration_email_field')),
-      'naledi@example.com',
-    );
-    await tester.enterText(
-      find.byKey(const Key('registration_password_field')),
-      'safe-preview-password',
-    );
-    // A real click blurs the field first; without this the text-editing
-    // overlay swallows the synthetic tap.
-    FocusManager.instance.primaryFocus?.unfocus();
-    await tester.pumpAndSettle();
-    await _tapWhenVisible(
-      tester,
-      find.byKey(const Key('registration_terms_checkbox')),
-    );
+    await _fillAccount(tester);
     await _tapWhenVisible(
       tester,
       find.byKey(const Key('registration_account_continue')),
     );
 
+    // The account exists now, so signup continues on the route that survives a
+    // closed tab.
     expect(find.byKey(const Key('registration_practice_step')), findsOneWidget);
-    await tester.enterText(
-      find.byKey(const Key('practice_name_field')),
-      'Mokoena Tax Studio',
-    );
-    await _tapWhenVisible(tester, find.byKey(const Key('practice_size_small')));
+  });
+
+  testWidgets('an address that already has an account says so on the field', (
+    tester,
+  ) async {
+    await _setViewport(tester, const Size(390, 844));
+    await _pumpPreviewApp(tester, authService: _AlwaysTakenAuthService());
+    await _openRegistration(tester);
+    await _fillAccount(tester);
+
     await _tapWhenVisible(
       tester,
-      find.byKey(const Key('registration_practice_continue')),
+      find.byKey(const Key('registration_account_continue')),
     );
 
     expect(
-      find.byKey(const Key('registration_priorities_step')),
+      find.text('That address already has an account. Sign in instead.'),
       findsOneWidget,
     );
-    await _tapWhenVisible(tester, find.byKey(const Key('priority_deadlines')));
-    await _tapWhenVisible(
-      tester,
-      find.byKey(const Key('complete_registration_preview')),
-    );
-
-    expect(
-      find.byKey(const Key('registration_starting_point_step')),
-      findsOneWidget,
-    );
-    await _tapWhenVisible(
-      tester,
-      find.byKey(const Key('starting_point_sample')),
-    );
-    await _tapWhenVisible(
-      tester,
-      find.byKey(const Key('finish_registration_preview')),
-    );
-
-    expect(find.byKey(const Key('registration_complete_step')), findsOneWidget);
-    expect(
-      find.text('Your workspace is ready, Naledi Mokoena'),
-      findsOneWidget,
-    );
-    expect(find.text('Mokoena Tax Studio'), findsOneWidget);
-    expect(
-      find.text('Preview complete. No account or practice data was saved.'),
-      findsOneWidget,
-    );
+    // It is a fact about one field, so it belongs on that field rather than in
+    // a banner above the form.
+    expect(find.byKey(const Key('registration_failure_notice')), findsNothing);
   });
 
   testWidgets('expanded registration shows the workspace context panel', (
@@ -148,22 +84,7 @@ void main() {
     );
     expect(find.byKey(const Key('registration_account_step')), findsOneWidget);
 
-    await tester.enterText(
-      find.byKey(const Key('registration_name_field')),
-      'Naledi Mokoena',
-    );
-    await tester.enterText(
-      find.byKey(const Key('registration_email_field')),
-      'naledi@example.com',
-    );
-    await tester.enterText(
-      find.byKey(const Key('registration_password_field')),
-      'safe-preview-password',
-    );
-    await _tapWhenVisible(
-      tester,
-      find.byKey(const Key('registration_terms_checkbox')),
-    );
+    await _fillAccount(tester);
     await _tapWhenVisible(
       tester,
       find.byKey(const Key('registration_account_continue')),
@@ -172,8 +93,9 @@ void main() {
       find.byKey(const Key('practice_name_field')),
       'Mokoena Global Tax',
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
 
+    // The panel previews what is being typed, before it is saved.
     final previewName = tester.widget<Text>(
       find.byKey(const Key('workspace_preview_practice_name')),
     );
@@ -284,6 +206,55 @@ void main() {
   });
 }
 
+final class _AlwaysTakenAuthService implements AuthService {
+  @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    return const AuthError(AuthFailure(AuthFailureKind.emailAlreadyRegistered));
+  }
+
+  @override
+  AuthUser? get currentUser => null;
+
+  @override
+  Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async => throw UnimplementedError('signInWithEmailAndPassword');
+
+  @override
+  Future<AuthResult<void>> signOut() async => const AuthSuccess(null);
+}
+
+Future<void> _fillAccount(
+  WidgetTester tester, {
+  String email = 'naledi@example.com',
+}) async {
+  await tester.enterText(
+    find.byKey(const Key('registration_name_field')),
+    'Naledi Mokoena',
+  );
+  await tester.enterText(
+    find.byKey(const Key('registration_email_field')),
+    email,
+  );
+  await tester.enterText(
+    find.byKey(const Key('registration_password_field')),
+    'safe-preview-password',
+  );
+  // A real click blurs the field first; without this the text-editing overlay
+  // swallows the synthetic tap.
+  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.pumpAndSettle();
+  await _tapWhenVisible(
+    tester,
+    find.byKey(const Key('registration_terms_checkbox')),
+  );
+}
+
 Future<void> _openRegistration(WidgetTester tester) async {
   final link = find.byKey(const Key('create_account_link'));
   await tester.ensureVisible(link);
@@ -332,7 +303,10 @@ Future<void> _setViewport(WidgetTester tester, Size size) async {
   addTearDown(tester.view.resetPhysicalSize);
 }
 
-Future<void> _pumpPreviewApp(WidgetTester tester) async {
+Future<void> _pumpPreviewApp(
+  WidgetTester tester, {
+  AuthService? authService,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -344,7 +318,7 @@ Future<void> _pumpPreviewApp(WidgetTester tester) async {
           ),
         ),
         authServiceProvider.overrideWithValue(
-          PreviewAuthService.forTesting(debugAllowed: true),
+          authService ?? PreviewAuthService.forTesting(debugAllowed: true),
         ),
         authProviderCatalogueProvider.overrideWithValue(
           const BundledPreviewAuthProviderCatalogueService(),

@@ -18,6 +18,7 @@ final class OnboardingViewState {
     this.failure,
     this.completed = false,
     this.practice,
+    this.draftPracticeName,
   });
 
   final OnboardingStep step;
@@ -34,6 +35,13 @@ final class OnboardingViewState {
   final bool completed;
   final PracticeRef? practice;
 
+  /// What the user has typed but not yet saved.
+  ///
+  /// Kept so the supporting panel can preview the practice name live, as it
+  /// did when the whole wizard was in memory. It costs no request: saving
+  /// happens when the step advances, not on every keystroke.
+  final String? draftPracticeName;
+
   OnboardingViewState copyWith({
     OnboardingStep? step,
     OnboardingAnswers? answers,
@@ -43,6 +51,7 @@ final class OnboardingViewState {
     bool clearFailure = false,
     bool? completed,
     PracticeRef? practice,
+    String? draftPracticeName,
   }) {
     return OnboardingViewState(
       step: step ?? this.step,
@@ -52,6 +61,7 @@ final class OnboardingViewState {
       failure: clearFailure ? null : failure ?? this.failure,
       completed: completed ?? this.completed,
       practice: practice ?? this.practice,
+      draftPracticeName: draftPracticeName ?? this.draftPracticeName,
     );
   }
 }
@@ -101,6 +111,16 @@ class OnboardingViewModel extends _$OnboardingViewModel {
         }
         state = AsyncData(current.copyWith(busy: false, failure: failure));
     }
+  }
+
+  /// Records what the user has typed, for the live preview only. Never a
+  /// request: the answer is saved when the step advances.
+  void previewPracticeName(String value) {
+    final current = _current();
+    if (current == null) {
+      return;
+    }
+    state = AsyncData(current.copyWith(draftPracticeName: value.trim()));
   }
 
   /// Moves back one step. Purely local: nothing is unsaved, so there is
