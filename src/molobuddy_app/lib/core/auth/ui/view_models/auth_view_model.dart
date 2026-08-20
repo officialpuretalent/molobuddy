@@ -1,5 +1,7 @@
 import 'package:molobuddy_app/core/auth/auth_providers.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
+import 'package:molobuddy_app/core/auth/data/models/molo_session.dart';
+import 'package:molobuddy_app/core/auth/data/repositories/auth_repository.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -13,7 +15,7 @@ class AuthViewModel extends _$AuthViewModel {
     final methodsResult = await repository.loadMethods();
     final currentUser = repository.currentUser;
 
-    return switch (methodsResult) {
+    final restored = switch (methodsResult) {
       AuthSuccess(:final value) => AuthViewState(
         status: currentUser == null
             ? AuthViewStatus.signedOut
@@ -29,6 +31,22 @@ class AuthViewModel extends _$AuthViewModel {
         user: currentUser,
         failure: failure,
       ),
+    };
+
+    if (currentUser == null) {
+      return restored;
+    }
+
+    // Authentication does not imply authorisation, so a Firebase session
+    // restored from persistence still asks the server who this is. Starting
+    // the app must not depend on that answer, so a failure settles into state
+    // instead of propagating, and it never displaces an earlier failure.
+    return switch (await _loadSessionSafely(repository)) {
+      AuthSuccess(:final value) => restored.copyWith(session: value),
+      AuthError(:final failure) =>
+        restored.failure == null
+            ? restored.copyWith(failure: failure)
+            : restored,
     };
   }
 
@@ -80,22 +98,11 @@ class AuthViewModel extends _$AuthViewModel {
           ),
         );
         final afterSignIn = state.requireValue;
-        final sessionResult = await repository.loadSession();
+        final sessionResult = await _loadSessionSafely(repository);
         if (!ref.mounted) {
           return;
         }
-        state = AsyncData(switch (sessionResult) {
-          AuthSuccess(:final value) => afterSignIn.copyWith(
-            status: AuthViewStatus.signedIn,
-            session: value,
-            clearFailure: true,
-          ),
-          AuthError(:final failure) => afterSignIn.copyWith(
-            status: AuthViewStatus.signedIn,
-            clearSession: true,
-            failure: failure,
-          ),
-        });
+        state = AsyncData(_settledWithSession(afterSignIn, sessionResult));
       case AuthError(:final failure):
         state = AsyncData(
           current.copyWith(status: AuthViewStatus.signedOut, failure: failure),
@@ -126,8 +133,68 @@ class AuthViewModel extends _$AuthViewModel {
     });
   }
 
+  /// Asks the server for the Molo session again, for a user who is already
+  /// signed in. This is the recovery path for a session that failed to load,
+  /// and it settles exactly as an interactive sign-in does.
+  Future<void> reloadSession() async {
+    final current = switch (state) {
+      AsyncData(:final value) => value,
+      _ => null,
+    };
+    if (current == null ||
+        current.user == null ||
+        current.status == AuthViewStatus.loadingSession) {
+      return;
+    }
+
+    state = AsyncData(
+      current.copyWith(
+        status: AuthViewStatus.loadingSession,
+        clearFailure: true,
+      ),
+    );
+    final loading = state.requireValue;
+    final sessionResult = await _loadSessionSafely(
+      ref.read(authRepositoryProvider),
+    );
+    if (!ref.mounted) {
+      return;
+    }
+    state = AsyncData(_settledWithSession(loading, sessionResult));
+  }
+
   void clearFailure() {
     state = AsyncData(state.requireValue.copyWith(clearFailure: true));
+  }
+
+  /// A session load must never throw into the view. An adapter that breaks its
+  /// contract becomes an ordinary unexpected failure.
+  static Future<AuthResult<MoloSession>> _loadSessionSafely(
+    AuthRepository repository,
+  ) async {
+    try {
+      return await repository.loadSession();
+    } on Object {
+      return const AuthError(AuthFailure(AuthFailureKind.unexpected));
+    }
+  }
+
+  static AuthViewState _settledWithSession(
+    AuthViewState base,
+    AuthResult<MoloSession> result,
+  ) {
+    return switch (result) {
+      AuthSuccess(:final value) => base.copyWith(
+        status: AuthViewStatus.signedIn,
+        session: value,
+        clearFailure: true,
+      ),
+      AuthError(:final failure) => base.copyWith(
+        status: AuthViewStatus.signedIn,
+        clearSession: true,
+        failure: failure,
+      ),
+    };
   }
 
   static bool _looksLikeEmail(String value) {
