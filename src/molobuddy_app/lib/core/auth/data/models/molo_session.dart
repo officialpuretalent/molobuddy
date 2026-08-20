@@ -9,6 +9,37 @@ final class PracticeRef {
     required this.accessStatus,
   });
 
+  /// Reads a practice reference out of the wire shape both `GET /v1/session`
+  /// and `POST /v1/onboarding:complete` return.
+  ///
+  /// One parser, because two would let a field be added to one response and
+  /// not the other. The server schema makes routeVersion required; inventing
+  /// route state is worse than dropping a practice that cannot be addressed,
+  /// so an absent or non-integer value rejects the reference.
+  static PracticeRef? fromWire(Map<String, dynamic> raw) {
+    final practiceId = raw['practiceId'];
+    final displayLabel = raw['displayLabel'];
+    final homeRegionKey = raw['homeRegionKey'];
+    final routeVersion = raw['routeVersion'];
+    if (practiceId is! String ||
+        displayLabel is! String ||
+        homeRegionKey is! String ||
+        routeVersion is! int) {
+      return null;
+    }
+    return PracticeRef(
+      practiceId: practiceId,
+      displayLabel: displayLabel,
+      homeRegionKey: homeRegionKey,
+      routeVersion: routeVersion,
+      accessStatus: switch (raw['accessStatus']) {
+        'active' => PracticeAccessStatus.active,
+        'invited' => PracticeAccessStatus.invited,
+        _ => PracticeAccessStatus.suspended,
+      },
+    );
+  }
+
   final String practiceId;
   final String displayLabel;
   final String homeRegionKey;

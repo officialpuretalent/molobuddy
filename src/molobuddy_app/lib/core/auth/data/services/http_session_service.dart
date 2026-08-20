@@ -86,37 +86,10 @@ final class HttpSessionService implements SessionService {
       practiceRefs: refs is List
           ? refs
                 .whereType<Map<String, dynamic>>()
-                .map(_parsePractice)
+                .map(PracticeRef.fromWire)
                 .nonNulls
                 .toList()
           : const [],
-    );
-  }
-
-  static PracticeRef? _parsePractice(Map<String, dynamic> raw) {
-    final practiceId = raw['practiceId'];
-    final displayLabel = raw['displayLabel'];
-    final homeRegionKey = raw['homeRegionKey'];
-    // The server schema makes routeVersion required. Inventing route state is
-    // worse than dropping a practice we cannot address, so an absent or
-    // non-integer value rejects the reference.
-    final routeVersion = raw['routeVersion'];
-    if (practiceId is! String ||
-        displayLabel is! String ||
-        homeRegionKey is! String ||
-        routeVersion is! int) {
-      return null;
-    }
-    return PracticeRef(
-      practiceId: practiceId,
-      displayLabel: displayLabel,
-      homeRegionKey: homeRegionKey,
-      routeVersion: routeVersion,
-      accessStatus: switch (raw['accessStatus']) {
-        'active' => PracticeAccessStatus.active,
-        'invited' => PracticeAccessStatus.invited,
-        _ => PracticeAccessStatus.suspended,
-      },
     );
   }
 

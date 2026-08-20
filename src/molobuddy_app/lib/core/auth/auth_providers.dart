@@ -9,6 +9,7 @@ import 'package:molobuddy_app/core/auth/data/services/http_session_service.dart'
 import 'package:molobuddy_app/core/auth/data/services/preview_session_service.dart';
 import 'package:molobuddy_app/core/auth/data/services/session_service.dart';
 import 'package:molobuddy_app/core/network/network_providers.dart';
+import 'package:molobuddy_app/core/onboarding/onboarding_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'auth_providers.g.dart';
@@ -50,7 +51,13 @@ AuthProviderCatalogueService authProviderCatalogue(Ref ref) {
 SessionService sessionService(Ref ref) {
   final environment = ref.watch(appEnvironmentProvider);
   if (environment.authMode == AuthRuntimeMode.preview) {
-    return PreviewSessionService(ref.watch(authServiceProvider));
+    // Preview's practice directory is whatever preview onboarding founded, so
+    // the session reports the same thing a real one would once setup is done.
+    final onboarding = ref.watch(previewOnboardingServiceProvider);
+    return PreviewSessionService(
+      ref.watch(authServiceProvider),
+      practices: () => onboarding.foundedPractices,
+    );
   }
   final baseUrl = environment.apiBaseUrl;
   if (environment.authMode != AuthRuntimeMode.firebase || baseUrl == null) {
