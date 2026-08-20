@@ -3,6 +3,7 @@ import type { VerifiedActor } from '../../../identity_access/index.js';
 import { normalisePracticeName } from '../../domain/practice.js';
 import type { PracticeRefRecord } from '../../domain/practice.js';
 import type { AuditEventSink } from '../ports/audit_event_sink.js';
+import type { FoundingOnboarding } from '../ports/practice_repository.js';
 import type { PracticeRepository } from '../ports/practice_repository.js';
 
 export type ProvisionPracticeInput = Readonly<{
@@ -10,6 +11,7 @@ export type ProvisionPracticeInput = Readonly<{
   displayName: unknown;
   idempotencyKey: string;
   correlationId: string;
+  founding?: FoundingOnboarding;
 }>;
 
 export type ProvisionPracticeResult =
@@ -41,6 +43,9 @@ export class ProvisionPractice {
     const practiceId = createOpaqueId('prc');
     const outcome = await this.repository.provision({
       idempotencyKey: input.idempotencyKey.trim(),
+      // exactOptionalPropertyTypes refuses an explicit undefined for an
+      // optional property, so this is spread rather than assigned.
+      ...(input.founding === undefined ? {} : { founding: input.founding }),
       practice: {
         practiceId,
         displayName,
