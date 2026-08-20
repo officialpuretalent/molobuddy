@@ -1,0 +1,207 @@
+import 'dart:math';
+
+import 'package:molobuddy_app/core/auth/data/models/molo_session.dart';
+import 'package:molobuddy_app/core/onboarding/data/models/onboarding_answers.dart';
+import 'package:molobuddy_app/core/onboarding/data/models/onboarding_failure.dart';
+import 'package:molobuddy_app/core/onboarding/data/models/onboarding_snapshot.dart';
+import 'package:molobuddy_app/core/onboarding/onboarding_providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'onboarding_view_model.g.dart';
+
+final class OnboardingViewState {
+  const OnboardingViewState({
+    required this.step,
+    required this.answers,
+    this.version,
+    this.busy = false,
+    this.failure,
+    this.completed = false,
+    this.practice,
+  });
+
+  final OnboardingStep step;
+  final OnboardingAnswers answers;
+
+  /// The concurrency token the next save must echo, straight from the server.
+  final String? version;
+
+  /// A request is in flight. Every mutating method refuses while this is set,
+  /// so a double tap cannot dispatch twice.
+  final bool busy;
+
+  final OnboardingFailure? failure;
+  final bool completed;
+  final PracticeRef? practice;
+
+  OnboardingViewState copyWith({
+    OnboardingStep? step,
+    OnboardingAnswers? answers,
+    String? version,
+    bool? busy,
+    OnboardingFailure? failure,
+    bool clearFailure = false,
+    bool? completed,
+    PracticeRef? practice,
+  }) {
+    return OnboardingViewState(
+      step: step ?? this.step,
+      answers: answers ?? this.answers,
+      version: version ?? this.version,
+      busy: busy ?? this.busy,
+      failure: clearFailure ? null : failure ?? this.failure,
+      completed: completed ?? this.completed,
+      practice: practice ?? this.practice,
+    );
+  }
+}
+
+/// Drives the part of signup that happens after the account exists.
+///
+/// Deliberately `keepAlive`. The idempotency key must outlive a widget
+/// rebuild: an auto-disposed model would mint a new one when the tree
+/// rebuilt, and a retry would then found a second practice.
+@Riverpod(keepAlive: true)
+class OnboardingViewModel extends _$OnboardingViewModel {
+  /// Minted once for the life of this wizard, so a retry after a timeout
+  /// carries the same key the timed-out attempt did. That is the entire reason
+  /// the server accepts a key at all.
+  final String _idempotencyKey = 'onb_${_randomToken()}';
+
+  @override
+  Future<OnboardingViewState> build() async {
+    return _stateFrom(await _load());
+  }
+
+  /// Saves one step's answers, then moves to wherever the server says next.
+  Future<void> saveAnswers(OnboardingAnswers answers) async {
+    final current = _current();
+    if (current == null || current.busy) {
+      return;
+    }
+    state = AsyncData(current.copyWith(busy: true, clearFailure: true));
+
+    final result = await ref
+        .read(onboardingServiceProvider)
+        .save(answers: answers, expectedVersion: current.version);
+    if (!ref.mounted) {
+      return;
+    }
+
+    switch (result) {
+      case OnboardingSuccess(:final value):
+        state = AsyncData(_stateFrom(value));
+      case OnboardingError(:final failure):
+        if (failure.kind == OnboardingFailureKind.versionConflict) {
+          // Someone else wrote first, most likely another tab. Retrying with
+          // the token we hold would fail identically forever, so reload and
+          // show what is actually stored.
+          await _reloadAfterConflict();
+          return;
+        }
+        state = AsyncData(current.copyWith(busy: false, failure: failure));
+    }
+  }
+
+  /// Moves back one step. Purely local: nothing is unsaved, so there is
+  /// nothing to tell the server.
+  void goBack() {
+    final current = _current();
+    if (current == null || current.busy) {
+      return;
+    }
+    final previous = switch (current.step) {
+      OnboardingStep.practice => OnboardingStep.practice,
+      OnboardingStep.priorities => OnboardingStep.practice,
+      OnboardingStep.startingPoint => OnboardingStep.priorities,
+      OnboardingStep.readyToComplete => OnboardingStep.startingPoint,
+    };
+    state = AsyncData(current.copyWith(step: previous, clearFailure: true));
+  }
+
+  /// Founds the practice, carrying the one key this wizard owns.
+  Future<void> completeOnboarding() async {
+    final current = _current();
+    if (current == null || current.busy || current.completed) {
+      return;
+    }
+    state = AsyncData(current.copyWith(busy: true, clearFailure: true));
+
+    final result = await ref
+        .read(onboardingServiceProvider)
+        .complete(idempotencyKey: _idempotencyKey);
+    if (!ref.mounted) {
+      return;
+    }
+
+    state = AsyncData(switch (result) {
+      OnboardingSuccess(:final value) => current.copyWith(
+        busy: false,
+        completed: true,
+        practice: value,
+        clearFailure: true,
+      ),
+      OnboardingError(:final failure) => current.copyWith(
+        busy: false,
+        failure: failure,
+      ),
+    });
+  }
+
+  Future<void> _reloadAfterConflict() async {
+    final reloaded = await _load();
+    if (!ref.mounted) {
+      return;
+    }
+    state = AsyncData(
+      _stateFrom(reloaded).copyWith(
+        failure: const OnboardingFailure(OnboardingFailureKind.versionConflict),
+      ),
+    );
+  }
+
+  Future<OnboardingSnapshot?> _load() async {
+    final result = await ref.read(onboardingServiceProvider).load();
+    return switch (result) {
+      OnboardingSuccess(:final value) => value,
+      OnboardingError() => null,
+    };
+  }
+
+  OnboardingViewState? _current() {
+    return switch (state) {
+      AsyncData(:final value) => value,
+      _ => null,
+    };
+  }
+
+  /// The step always comes from the server.
+  ///
+  /// Computing it here as well would be a second copy of one rule, and a
+  /// resumed wizard would open on a question the user already answered.
+  static OnboardingViewState _stateFrom(OnboardingSnapshot? snapshot) {
+    if (snapshot == null) {
+      // The read failed. Start at the first question rather than guessing a
+      // later one; the first save will tell us what the server actually holds.
+      return const OnboardingViewState(
+        step: OnboardingStep.practice,
+        answers: OnboardingAnswers(),
+        failure: OnboardingFailure(OnboardingFailureKind.unexpected),
+      );
+    }
+    return OnboardingViewState(
+      step: snapshot.nextStep ?? OnboardingStep.readyToComplete,
+      answers: snapshot.answers,
+      version: snapshot.version,
+      completed: snapshot.complete,
+    );
+  }
+
+  static String _randomToken() {
+    final random = Random.secure();
+    return List.generate(
+      16,
+      (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+    ).join();
+  }
+}
