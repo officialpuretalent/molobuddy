@@ -2,7 +2,7 @@
 
 - **Status:** Active
 - **Owner:** Engineering
-- **Last updated:** 19 August 2026
+- **Last updated:** 20 August 2026
 
 How to run the Flutter application and the control API against the shared
 development Firebase project. This is an operational runbook, not a design
@@ -89,13 +89,21 @@ cd src/molobuddy_server && npm run dev
 
 The server selects its token verifier from `AUTH_VERIFIER` in `.env.local`:
 
-- `local` — accepts one configured fake token pair. This is the default for
-  local development and the only mode in which the Flutter application can
-  currently reach `/v1/session`. Forbidden in production.
 - `firebase` — verifies real Firebase ID tokens and App Check tokens through
   the Admin SDK, using Application Default Credentials. Run
   `gcloud auth application-default login` once if `applicationDefault()` cannot
-  find credentials.
+  find credentials. **This is the only mode the Flutter application can use.**
+- `local` — compares the presented ID token against one hardcoded fake string
+  from `LOCAL_AUTH_ID_TOKEN`. Useful for curl and contract tests that present
+  that exact string. Forbidden in production.
+
+**Do not run the application against `AUTH_VERIFIER=local`.** The client sends
+a real Firebase ID token, the local verifier compares it against its fake, the
+strings never match, and every `/v1/session` request fails with
+`token_invalid` before App Check is even considered. The screen then reports
+that the session ended and invites a fresh sign-in, which cannot help, because
+nothing about the session expired. The two configurations are simply
+incompatible.
 
 ## App Check
 
@@ -124,10 +132,12 @@ which need no extra account.
 
 Local development does not need reCAPTCHA at all.
 
-1. Uncomment the `FIREBASE_APPCHECK_DEBUG_TOKEN` line in
-   `src/molobuddy_app/web/index.html`.
+1. Enable the `FIREBASE_APPCHECK_DEBUG_TOKEN` line in
+   `src/molobuddy_app/web/index.html`. It is already enabled in this
+   repository; a deployed build must comment it out again.
 2. Set `"MOLO_APP_CHECK_DEBUG": true` in `config/firebase.development.json`.
-3. Run the app and copy the debug token printed in the browser console.
+3. Run the app and copy the debug token printed in the browser console. Look
+   for the line beginning `App Check debug token:`.
 4. Safelist it in Firebase console under App Check → Apps → the Web app →
    Manage debug tokens.
 
@@ -142,16 +152,28 @@ App Check is registered against Identity Platform and Firestore but both are
 monitoring first and confirm that legitimate traffic is passing before
 enforcing, or valid clients get locked out.
 
-### Until attestation is configured
+### Order matters when setting this up
 
-`FirebaseAdminRequestTokenVerifier` rejects any request without an App Check
-token. Until a site key or debug token is in place, `AUTH_VERIFIER=firebase`
-answers every `/v1/session` request with `app_check_required`, even for a valid
-ID token, so local development stays on `AUTH_VERIFIER=local`.
+The two settings are dependent, so do them in this order:
 
-Do not "fix" that by weakening the verifier. The App Check requirement is a
-deliberate control, and App Check failures must stay distinguishable from
-authentication failures.
+1. Safelist the debug token first, and confirm the
+   `exchangeDebugToken` call stops returning 403. A token that is not
+   safelisted fails attestation, and no server setting compensates for that.
+2. Then set `AUTH_VERIFIER=firebase` and restart the server.
+
+Doing it the other way round only moves the error from `token_invalid` to
+`app_check_required`.
+
+Debug tokens are per browser profile. Each browser generates its own the first
+time it runs with the flag on, so every machine either safelists its own value
+or the team pins one shared UUID by assigning it directly:
+`self.FIREBASE_APPCHECK_DEBUG_TOKEN = '<uuid>'`. A debug token is an
+attestation bypass. It belongs only to `molobuddy-development` and must never
+reach a deployed build.
+
+Do not "fix" an attestation failure by weakening the verifier. The App Check
+requirement is a deliberate control, and App Check failures must stay
+distinguishable from authentication failures.
 
 ## Verification
 
