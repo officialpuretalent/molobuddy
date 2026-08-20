@@ -3,6 +3,8 @@ enum AuthFailureKind {
   networkUnavailable,
   providerUnavailable,
   configurationMissing,
+  attestationRequired,
+  sessionExpired,
   unexpected,
 }
 

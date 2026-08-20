@@ -635,6 +635,10 @@ class _AuthErrorBanner extends ConsumerWidget {
       AuthFailureKind.networkUnavailable => localisations.networkUnavailable,
       AuthFailureKind.providerUnavailable => localisations.authUnavailable,
       AuthFailureKind.configurationMissing => localisations.authUnavailable,
+      // TODO(task 7): give attestationRequired and sessionExpired their own
+      // copy instead of borrowing the generic unexpected-error message.
+      AuthFailureKind.attestationRequired ||
+      AuthFailureKind.sessionExpired ||
       AuthFailureKind.unexpected => localisations.unexpectedAuthError,
     };
     return Material(
