@@ -27,12 +27,36 @@ export class FirestorePracticeRepository implements PracticeRepository {
     );
 
     return runInTransaction(this.db, async (tx) => {
-      // Read first: Firestore requires every read in a transaction to precede
-      // its writes, and this read is what makes a replay return the original.
+      // Every read first. Firestore requires it, and these reads are what make
+      // a replay and a concurrent completion return the original rather than
+      // founding a second practice.
       const existing = (await tx.get(keyDoc)).data() as
         StoredIdempotencyKey | undefined;
       if (existing !== undefined) {
         return { practiceRef: existing.practiceRef, replayed: true };
+      }
+
+      const founding = write.founding;
+      const onboardingDoc =
+        founding === undefined
+          ? undefined
+          : this.db.doc(`users/${founding.uid}/onboarding/current`);
+
+      if (founding !== undefined && onboardingDoc !== undefined) {
+        const onboarding = (await tx.get(onboardingDoc)).data() as
+          | Readonly<{ status?: string; completedPracticeId?: string }>
+          | undefined;
+        const completedId = onboarding?.completedPracticeId;
+        if (onboarding?.status === 'complete' && completedId !== undefined) {
+          const alreadyFounded = (
+            await tx.get(
+              this.db.doc(`users/${founding.uid}/practiceRefs/${completedId}`),
+            )
+          ).data() as PracticeRefRecord | undefined;
+          if (alreadyFounded !== undefined) {
+            return { practiceRef: alreadyFounded, replayed: true };
+          }
+        }
       }
 
       const practiceId = write.practice.practiceId;
@@ -58,6 +82,26 @@ export class FirestorePracticeRepository implements PracticeRepository {
         practiceRef: write.practiceRef,
         createdAt: FieldValue.serverTimestamp(),
       });
+
+      if (founding !== undefined && onboardingDoc !== undefined) {
+        // A point-in-time survey of what the founder said. Never updated, so
+        // it carries no concurrency token.
+        tx.set(this.db.doc(`practices/${practiceId}/onboarding/founding`), {
+          foundedByUid: founding.uid,
+          answers: founding.answers,
+          recordedAt: FieldValue.serverTimestamp(),
+        });
+        tx.set(
+          onboardingDoc,
+          {
+            status: 'complete',
+            completedPracticeId: practiceId,
+            version: createResourceVersion(),
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        );
+      }
 
       return { practiceRef: write.practiceRef, replayed: false };
     });

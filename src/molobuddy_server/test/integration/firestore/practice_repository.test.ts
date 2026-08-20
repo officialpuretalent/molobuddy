@@ -153,4 +153,81 @@ describe('firestore practice repository', () => {
     assert.equal(b.replayed, false);
     assert.notEqual(a.practiceRef.practiceId, b.practiceRef.practiceId);
   });
+
+  it('records the founding answers and completes onboarding in the same write', async () => {
+    const db = getMoloFirestore(projectId);
+    const repository = new FirestorePracticeRepository(db);
+    const uid = `user_${randomUUID()}`;
+    const answers = {
+      practiceName: 'Mokoena Media Tax',
+      practiceSize: 'solo' as const,
+      priorities: ['deadlines' as const],
+      startingPoint: 'add_first_client' as const,
+    };
+    const write = {
+      ...writeFor(uid, 'founding-key'),
+      founding: { uid, answers },
+    };
+    await db
+      .doc(`users/${uid}/onboarding/current`)
+      .set({ uid, status: 'in_progress', answers, version: 'v-before' });
+
+    const outcome = await repository.provision(write);
+
+    const id = outcome.practiceRef.practiceId;
+    const recorded = await storedAt(db, `practices/${id}/onboarding/founding`);
+    assert.equal(recorded['foundedByUid'], uid);
+    assert.deepEqual(recorded['answers'], answers);
+    // A survey nothing updates carries no concurrency token.
+    assert.equal(recorded['version'], undefined);
+
+    const onboarding = await storedAt(db, `users/${uid}/onboarding/current`);
+    assert.equal(onboarding['status'], 'complete');
+    assert.equal(onboarding['completedPracticeId'], id);
+    assert.notEqual(onboarding['version'], 'v-before');
+  });
+
+  it('returns the first practice when onboarding completed concurrently', async () => {
+    const db = getMoloFirestore(projectId);
+    const repository = new FirestorePracticeRepository(db);
+    const uid = `user_${randomUUID()}`;
+    const answers = { practiceName: 'Mokoena Media Tax' };
+
+    const first = await repository.provision({
+      ...writeFor(uid, 'first-key'),
+      founding: { uid, answers },
+    });
+    // A different key, so the idempotency read cannot catch this. Only the
+    // completed onboarding record can, and it must, or a user who submits
+    // twice founds two practices.
+    const second = await repository.provision({
+      ...writeFor(uid, 'second-key'),
+      founding: { uid, answers },
+    });
+
+    assert.equal(second.replayed, true);
+    assert.equal(second.practiceRef.practiceId, first.practiceRef.practiceId);
+    assert.equal(
+      (await db.collection(`users/${uid}/practiceRefs`).get()).size,
+      1,
+    );
+  });
+
+  it('writes no founding record when a practice is created outside onboarding', async () => {
+    const db = getMoloFirestore(projectId);
+    const repository = new FirestorePracticeRepository(db);
+    const uid = `user_${randomUUID()}`;
+    const write = writeFor(uid, 'plain-key');
+
+    await repository.provision(write);
+
+    assert.equal(
+      (
+        await db
+          .doc(`practices/${write.practice.practiceId}/onboarding/founding`)
+          .get()
+      ).exists,
+      false,
+    );
+  });
 });
