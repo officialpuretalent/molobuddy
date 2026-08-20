@@ -55,3 +55,6 @@ Thumbs.db
 *.log
 coverage/
 tmp/
+
+# Subagent-driven development scratch (ledger, briefs, review packages)
+.superpowers/
