@@ -100,9 +100,12 @@ class AuthViewModel extends _$AuthViewModel {
             passwordTooShort: false,
           ),
         );
-        final afterSignIn = state.requireValue;
         final sessionResult = await _loadSessionSafely(repository);
         if (!ref.mounted) {
+          return;
+        }
+        final afterSignIn = _sessionLoadStillOwnsState();
+        if (afterSignIn == null) {
           return;
         }
         state = AsyncData(_settledWithSession(afterSignIn, sessionResult));
@@ -158,14 +161,40 @@ class AuthViewModel extends _$AuthViewModel {
         clearSessionFailure: true,
       ),
     );
-    final loading = state.requireValue;
     final sessionResult = await _loadSessionSafely(
       ref.read(authRepositoryProvider),
     );
     if (!ref.mounted) {
       return;
     }
+    final loading = _sessionLoadStillOwnsState();
+    if (loading == null) {
+      return;
+    }
     state = AsyncData(_settledWithSession(loading, sessionResult));
+  }
+
+  /// The state a finished session load is allowed to settle onto, or `null`
+  /// when it no longer owns the state and must abandon its answer.
+  ///
+  /// A load resolves into whatever the app has become in the meantime, so it
+  /// must re-read rather than settle onto the snapshot it captured before the
+  /// await. Sign out stays enabled while a session loads, and settling onto
+  /// the old snapshot rewrote state to signed in with the signed-out user
+  /// restored, after the router had already navigated away. Anything that is
+  /// no longer a session load for a present user, including a sign-out or a
+  /// newer load, means this answer is stale.
+  AuthViewState? _sessionLoadStillOwnsState() {
+    final current = switch (state) {
+      AsyncData(:final value) => value,
+      _ => null,
+    };
+    if (current == null ||
+        current.status != AuthViewStatus.loadingSession ||
+        current.user == null) {
+      return null;
+    }
+    return current;
   }
 
   void clearFailure() {

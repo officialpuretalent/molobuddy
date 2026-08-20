@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:molobuddy_app/core/auth/auth_providers.dart';
@@ -243,6 +245,45 @@ void main() {
     expect(state.status, AuthViewStatus.signedOut);
     expect(state.sessionFailure, isNull);
   });
+
+  test('a reload in flight cannot undo a sign-out that beat it', () async {
+    // Sign out stays enabled while a session loads, so Retry then Sign out
+    // leaves a reload running against a user who has gone. Settling it onto
+    // the snapshot taken before the await put that user back, signed in,
+    // after the router had already navigated to sign-in.
+    final repository = _FakeSessionRepository(
+      restoredUser: const AuthUser(id: 'user_1', email: 'person@example.com'),
+    );
+    final container = ProviderContainer(
+      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+    );
+    addTearDown(container.dispose);
+    await container.read(authViewModelProvider.future);
+    final notifier = container.read(authViewModelProvider.notifier);
+
+    final gate = Completer<void>();
+    repository.gate = gate;
+    final reload = notifier.reloadSession();
+    expect(
+      container.read(authViewModelProvider).requireValue.status,
+      AuthViewStatus.loadingSession,
+      reason: 'the reload must actually be in flight for this to be a race',
+    );
+
+    await notifier.signOut();
+    expect(
+      container.read(authViewModelProvider).requireValue.status,
+      AuthViewStatus.signedOut,
+    );
+
+    gate.complete();
+    await reload;
+
+    final state = container.read(authViewModelProvider).requireValue;
+    expect(state.status, AuthViewStatus.signedOut);
+    expect(state.user, isNull);
+    expect(state.session, isNull);
+  });
 }
 
 final class _FakeSessionRepository implements AuthRepository {
@@ -257,6 +298,9 @@ final class _FakeSessionRepository implements AuthRepository {
   /// The provider catalogue fails independently of the session, which is the
   /// whole point of keeping the two failures in separate slots.
   AuthResult<List<AuthMethodDescriptor>> methodsResult;
+
+  /// When set, a session load blocks until the test completes it.
+  Completer<void>? gate;
 
   /// Mutable, so a test can succeed once and then fail, which is the only way
   /// to prove a session is actually cleared rather than never set.
@@ -290,6 +334,8 @@ final class _FakeSessionRepository implements AuthRepository {
   @override
   Future<AuthResult<MoloSession>> loadSession() async {
     loadSessionCalls += 1;
+    // Holds the load open so a test can act while it is still in flight.
+    await gate?.future;
     return sessionResult;
   }
 }
