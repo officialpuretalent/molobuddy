@@ -84,7 +84,7 @@ Task 1 also includes a probe to settle it. The probe is written so it cannot cre
 **Interfaces:**
 - Produces: `AuthFailureKind.emailAlreadyRegistered`, `AuthFailureKind.passwordRejected`; `AuthService.createAccount({email, password, displayName})` and the same on `AuthRepository`, both returning `Future<AuthResult<AuthUser>>`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/unit/core/auth/preview_auth_service_test.dart`:
 
@@ -166,7 +166,7 @@ void main() {
 
 Add to `test/unit/core/auth/auth_repository_test.dart` a case asserting `DefaultAuthRepository.createAccount` delegates to the service with the values it was given, following whatever fake that file already defines.
 
-- [ ] **Step 2: Run the tests and watch them fail**
+- [x] **Step 2: Run the tests and watch them fail**
 
 ```bash
 cd src/molobuddy_app && flutter test test/unit/core/auth/preview_auth_service_test.dart
@@ -174,7 +174,7 @@ cd src/molobuddy_app && flutter test test/unit/core/auth/preview_auth_service_te
 
 Expected: FAIL. `createAccount` is not defined for `PreviewAuthService`.
 
-- [ ] **Step 3: Add the failure kinds**
+- [x] **Step 3: Add the failure kinds**
 
 In `auth_failure.dart`, add to `AuthFailureKind`:
 
@@ -189,7 +189,7 @@ In `auth_failure.dart`, add to `AuthFailureKind`:
   passwordRejected,
 ```
 
-- [ ] **Step 4: Add it to the contract**
+- [x] **Step 4: Add it to the contract**
 
 In `auth_service.dart`:
 
@@ -224,7 +224,7 @@ Add the same to `AuthRepository`, and delegate in `DefaultAuthRepository`:
   }
 ```
 
-- [ ] **Step 5: Implement it against Firebase**
+- [x] **Step 5: Implement it against Firebase**
 
 In `firebase_auth_service.dart`:
 
@@ -284,7 +284,7 @@ answer differently to the same situation:
   }
 ```
 
-- [ ] **Step 6: Implement it in preview**
+- [x] **Step 6: Implement it in preview**
 
 In `preview_auth_service.dart`, add a `_registered` map of lowercased email to `AuthUser`, and:
 
@@ -325,7 +325,7 @@ In `preview_auth_service.dart`, add a `_registered` map of lowercased email to `
   }
 ```
 
-- [ ] **Step 7: Run the tests and watch them pass**
+- [x] **Step 7: Run the tests and watch them pass**
 
 ```bash
 flutter analyze && flutter test
@@ -333,7 +333,7 @@ flutter analyze && flutter test
 
 Expected: PASS, 4 new tests plus the repository delegation case.
 
-- [ ] **Step 8: Settle the enumeration question**
+- [x] **Step 8: Settle the enumeration question**
 
 Optional, and it changes no code. Run it with an address you have **just confirmed already exists** in `molobuddy-development`, so the call can only fail:
 
@@ -345,7 +345,7 @@ If the response carries `EMAIL_EXISTS`, the provider does reveal it and Task 6 c
 
 **Do not run this with an address you have not confirmed exists** — that would create an account, which is the one thing this plan must not do casually.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/molobuddy_app/lib src/molobuddy_app/test
@@ -367,7 +367,7 @@ git commit -m "feat: create accounts through the Molo auth contract"
 **Interfaces:**
 - Produces: `MoloSession.onboardingComplete` (a `bool`).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `test/unit/core/auth/http_session_service_test.dart`:
 
@@ -410,7 +410,7 @@ Add to `test/unit/core/auth/http_session_service_test.dart`:
 
 Add to `test/unit/core/auth/preview_session_service_test.dart` a case asserting a preview session reports `onboardingComplete` as false until a preview practice exists, and true afterwards. Mirror whatever construction that file already uses.
 
-- [ ] **Step 2: Run the tests and watch them fail**
+- [x] **Step 2: Run the tests and watch them fail**
 
 ```bash
 flutter test test/unit/core/auth
@@ -418,7 +418,7 @@ flutter test test/unit/core/auth
 
 Expected: FAIL. `onboardingComplete` is not defined for `MoloSession`.
 
-- [ ] **Step 3: Add the field**
+- [x] **Step 3: Add the field**
 
 In `molo_session.dart`, add a required-with-default parameter and field:
 
@@ -435,7 +435,7 @@ In `molo_session.dart`, add a required-with-default parameter and field:
   final bool onboardingComplete;
 ```
 
-- [ ] **Step 4: Parse it**
+- [x] **Step 4: Parse it**
 
 In `http_session_service.dart`, inside `_parseSession`, before building the session:
 
@@ -452,7 +452,7 @@ Reading it as "anything that is not `in_progress` is complete" rather than
 "`complete` means complete" keeps an unknown future status from locking a user
 into the wizard.
 
-- [ ] **Step 5: Answer it in preview**
+- [x] **Step 5: Answer it in preview**
 
 In `preview_session_service.dart`, report the gate from whether preview has a
 practice yet. Preview's practice list is empty today, so pass
@@ -463,13 +463,13 @@ until then this reads from the same empty list and is therefore false.
 Add a comment saying preview mirrors the server's rule from spec section 3.3:
 having a practice settles it.
 
-- [ ] **Step 6: Run the tests and watch them pass**
+- [x] **Step 6: Run the tests and watch them pass**
 
 ```bash
 flutter analyze && flutter test
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/molobuddy_app/lib src/molobuddy_app/test
@@ -496,7 +496,7 @@ Models, the service contract, its HTTP and preview implementations, and the prov
 **Interfaces:**
 - Produces: `OnboardingAnswers`, `PracticeSize`, `OnboardingPriority`, `WorkspaceStartingPoint`, `OnboardingStep`, `OnboardingSnapshot`, `OnboardingFailure`, `OnboardingResult<T>`, `OnboardingService` with `load()`, `save(answers, expectedVersion)` and `complete(idempotencyKey)`, `HttpOnboardingService`, `PreviewOnboardingService`, `onboardingServiceProvider`.
 
-- [ ] **Step 1: Write the models**
+- [x] **Step 1: Write the models**
 
 Create `data/models/onboarding_answers.dart`. The three enumerations move here from `registration_view_model.dart`, because they are now part of a wire contract rather than local wizard state.
 
@@ -721,7 +721,7 @@ final class UnavailableOnboardingService implements OnboardingService {
 }
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Create `test/unit/core/onboarding/http_onboarding_service_test.dart`, following `test/unit/core/auth/http_session_service_test.dart` for how it stubs Dio with a fixed status and body. Assert:
 
@@ -765,7 +765,7 @@ Write each as a real test body. Case 4 written out, so the shape of the rest is 
   });
 ```
 
-- [ ] **Step 3: Run the tests and watch them fail**
+- [x] **Step 3: Run the tests and watch them fail**
 
 ```bash
 flutter test test/unit/core/onboarding
@@ -773,7 +773,7 @@ flutter test test/unit/core/onboarding
 
 Expected: FAIL, no such file `http_onboarding_service.dart`.
 
-- [ ] **Step 4: Write the HTTP service**
+- [x] **Step 4: Write the HTTP service**
 
 Create `data/services/http_onboarding_service.dart`. It mirrors `HttpSessionService`: `validateStatus: (_) => true`, explicit timeouts, and problem-code mapping rather than exceptions. Send only the answers that are present, so a `PATCH` never clears an answer the user did not touch:
 
@@ -836,11 +836,11 @@ extracting that parser into a shared function rather than writing a second one;
 two parsers for one wire shape is how a field gets added to one and not the
 other.
 
-- [ ] **Step 5: Write the preview service**
+- [x] **Step 5: Write the preview service**
 
 Create `data/services/preview_onboarding_service.dart`: an in-memory snapshot with a version counter that enforces the same `If-Match` rule, and a `complete()` that mints a `PracticeRef` with a `prc_preview_` prefix. Preview must fail a stale version too, or a bug that only appears against the real server survives every preview demonstration.
 
-- [ ] **Step 6: Wire the providers**
+- [x] **Step 6: Wire the providers**
 
 Create `onboarding_providers.dart`, following `sessionServiceProvider` in `lib/core/auth/auth_providers.dart` exactly: preview mode gets the preview service, a Firebase build with an API base URL gets the HTTP service over `authenticatedDioProvider`, anything else gets `UnavailableOnboardingService`.
 
@@ -848,13 +848,13 @@ Create `onboarding_providers.dart`, following `sessionServiceProvider` in `lib/c
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-- [ ] **Step 7: Run the tests and watch them pass**
+- [x] **Step 7: Run the tests and watch them pass**
 
 ```bash
 flutter analyze && flutter test
 ```
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/molobuddy_app/lib src/molobuddy_app/test
@@ -873,7 +873,7 @@ git commit -m "feat: read, save and complete onboarding from the client"
 - Consumes: `OnboardingService`, `AuthViewModel.reloadSession`.
 - Produces: `OnboardingViewModel` (an `AsyncNotifier` over `OnboardingViewState`) with `saveAnswers(...)`, `goBack()`, `completeOnboarding()`; `OnboardingViewState` carrying `step`, `answers`, `version`, `busy`, `failure`, `completed`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/unit/core/onboarding/onboarding_view_model_test.dart`. Assert, each as a real test body against a fake `OnboardingService`:
 
@@ -914,7 +914,7 @@ is wrong:
   });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 flutter test test/unit/core/onboarding/onboarding_view_model_test.dart
@@ -922,7 +922,7 @@ flutter test test/unit/core/onboarding/onboarding_view_model_test.dart
 
 Expected: FAIL, no such file.
 
-- [ ] **Step 3: Write the view model**
+- [x] **Step 3: Write the view model**
 
 Create `ui/view_models/onboarding_view_model.dart` as `@Riverpod(keepAlive: true)`. It is keepAlive because the idempotency key must outlive a rebuild: an auto-disposed model would mint a new key when the widget tree rebuilt, and a retry would then found a second practice.
 
@@ -959,14 +959,14 @@ A version conflict reloads rather than retrying:
 
 And every mutating method returns early while `busy`, so a double tap cannot dispatch twice.
 
-- [ ] **Step 4: Run the tests and watch them pass**
+- [x] **Step 4: Run the tests and watch them pass**
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 flutter analyze && flutter test
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/molobuddy_app/lib src/molobuddy_app/test
@@ -984,7 +984,7 @@ git commit -m "feat: drive onboarding from server-derived state"
 **Interfaces:**
 - Produces: `OnboardingRoute` at `/onboarding`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/widget/app/onboarding_gate_test.dart`, following `test/widget/app/not_found_test.dart` for how it pumps `MoloApp` in preview and navigates through `appRouterProvider`. Assert:
 
@@ -1002,7 +1002,7 @@ Create `test/widget/app/onboarding_gate_test.dart`, following `test/widget/app/n
 
 Case 5 matters: redirecting on incomplete information is what makes a signup flash through three screens on a slow connection.
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 flutter test test/widget/app/onboarding_gate_test.dart
@@ -1010,7 +1010,7 @@ flutter test test/widget/app/onboarding_gate_test.dart
 
 Expected: FAIL, `/onboarding` matches no route so the not-found page renders.
 
-- [ ] **Step 3: Add the route**
+- [x] **Step 3: Add the route**
 
 In `app_router.dart`:
 
@@ -1026,7 +1026,7 @@ class OnboardingRoute extends GoRouteData with $OnboardingRoute {
 }
 ```
 
-- [ ] **Step 4: Extend the redirect**
+- [x] **Step 4: Extend the redirect**
 
 Replace the redirect body:
 
@@ -1073,20 +1073,20 @@ The router must also re-evaluate when the session settles, or a user who signs i
   return router;
 ```
 
-- [ ] **Step 5: Expect an existing test to break, and let it**
+- [x] **Step 5: Expect an existing test to break, and let it**
 
 `sign_in_view_test.dart`'s "preview email sign-in reaches welcome and can sign out" signs in and expects `welcome_view`. From this task onward a preview user has no practice, so the gate correctly sends them to `/onboarding` instead. That test is now asserting the old behaviour.
 
 Change it to expect the onboarding view, and move the sign-out half into a case that first completes onboarding. Do not weaken the gate to keep the old assertion green — the redirect is the feature.
 
-- [ ] **Step 6: Run the tests and watch them pass**
+- [x] **Step 6: Run the tests and watch them pass**
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 flutter analyze && flutter test
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/molobuddy_app/lib src/molobuddy_app/test
@@ -1108,13 +1108,13 @@ The account step stays at `/sign-up` and now creates an account. The rest moves 
 - Test: `test/widget/core/auth/registration_view_test.dart`
 - Test: `test/widget/core/onboarding/onboarding_view_test.dart`
 
-- [ ] **Step 1: Extract the shell**
+- [x] **Step 1: Extract the shell**
 
 Move the progress panel, compact header, wordmark row and step-eyebrow widgets out of `registration_view.dart` into `wizard_shell.dart`, unchanged in behaviour. Both routes render the same shell, so the supporting-pane edge stays stable across the whole signup — which `sign_in_view_test.dart` already asserts for sign-in and registration and must keep asserting.
 
 Take the existing `registration_progress_panel` key with it.
 
-- [ ] **Step 2: Reduce the registration view model**
+- [x] **Step 2: Reduce the registration view model**
 
 `RegistrationViewModel` keeps only the account step: `displayName`, `email`, the four validation flags, and a `submitting` flag. Delete `practiceName`, `practiceSize`, `priorities`, `startingPoint`, `continueFromPractice`, `selectPracticeSize`, `updatePracticeNamePreview`, `togglePriority`, `continueFromPriorities`, `selectStartingPoint` and `completePreview`. `RegistrationStep` reduces to `account` alone and can go entirely.
 
@@ -1132,7 +1132,7 @@ Add:
 
 mapping `emailAlreadyRegistered` to an error on the email field, `passwordRejected` to the password field, and everything else to a form-level message.
 
-- [ ] **Step 3: Write the failing widget tests**
+- [x] **Step 3: Write the failing widget tests**
 
 In `test/widget/core/auth/registration_view_test.dart`, keep every existing test that still applies and add:
 
@@ -1160,23 +1160,23 @@ Create `test/widget/core/onboarding/onboarding_view_test.dart`:
 // 7.  The completion copy no longer offers to go to sign-in.
 ```
 
-- [ ] **Step 4: Run the tests and watch them fail**
+- [x] **Step 4: Run the tests and watch them fail**
 
 ```bash
 flutter test test/widget/core/onboarding test/widget/core/auth/registration_view_test.dart
 ```
 
-- [ ] **Step 5: Build the onboarding view**
+- [x] **Step 5: Build the onboarding view**
 
 Create `onboarding_view.dart` hosting the practice, priorities, starting-point and complete steps, moved from `registration_view.dart` with their existing keys preserved so no test loses its handle. Each step's continue button calls `saveAnswers`; the last calls `completeOnboarding`, then `reloadSession`, then navigates to `WelcomeRoute`.
 
-- [ ] **Step 6: Correct the completion copy**
+- [x] **Step 6: Correct the completion copy**
 
 `registrationCompleteSummary` currently reads "…are ready for the real account flow", and the complete step's button goes to sign-in. Replace the summary with copy that describes a workspace that now exists, and point the button at the workspace. Update both `.arb` files and run `flutter gen-l10n`.
 
 This is the contradiction flagged before the slice began: the screen claimed the workspace was ready and then sent the user to sign in. It is only allowed to claim it now because it is true.
 
-- [ ] **Step 7: Run everything**
+- [x] **Step 7: Run everything**
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
@@ -1184,7 +1184,7 @@ flutter gen-l10n
 flutter analyze && flutter test
 ```
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/molobuddy_app/lib src/molobuddy_app/test
@@ -1197,7 +1197,7 @@ git commit -m "feat: register an account and finish onboarding for real"
 
 Preview mode first, because it is autonomous. Then the real run, which is not.
 
-- [ ] **Step 1: Walk preview end to end**
+- [x] **Step 1: Walk preview end to end**
 
 ```bash
 cd src/molobuddy_app && flutter run -d web-server --web-hostname=127.0.0.1 --web-port=3000 --dart-define=MOLO_AUTH_MODE=preview
@@ -1205,11 +1205,11 @@ cd src/molobuddy_app && flutter run -d web-server --web-hostname=127.0.0.1 --web
 
 Create an account, answer all four screens, and land in the workspace with the practice you named. Then sign out, sign in again, and confirm you are not sent back to the wizard. Record what you saw.
 
-- [ ] **Step 2: Add the preview regression test**
+- [x] **Step 2: Add the preview regression test**
 
 Whatever preview surfaced, encode it. At minimum, a widget test that drives `MoloApp` in preview from the sign-in screen through account creation, all four steps and into `welcome_view`, asserting the practice name appears. Preview is a supported product surface, so it deserves a test that fails when it breaks.
 
-- [ ] **Step 3: Hand off the real run**
+- [x] **Step 3: Hand off the real run**
 
 **This step needs a person.** Claude cannot create accounts.
 
@@ -1223,7 +1223,7 @@ Start the server with `AUTH_VERIFIER=firebase` and the app with `--dart-define-f
 
 Step 3 is the one that matters most: it is the whole reason onboarding is persisted rather than held in memory, and no automated test in this repo can reach it.
 
-- [ ] **Step 4: Record the result**
+- [x] **Step 4: Record the result**
 
 Write what happened into the task report, including anything that differed from the plan. If step 3 resumed at the wrong step, that is a defect in the server's resume derivation, not in the wizard — check `resumeStepFor` before changing any client code.
 
@@ -1236,23 +1236,23 @@ Write what happened into the task report, including anything that differed from 
 - Modify: `docs/local_development.md`
 - Modify: `docs/backend_design/authentication.md`
 
-- [ ] **Step 1: Answer the open question**
+- [x] **Step 1: Answer the open question**
 
 Spec section 4.1 names the enumeration-protection question as open. Replace it with whatever Task 1 Step 8 observed, or state plainly that it was not run and the neutral copy stands.
 
-- [ ] **Step 2: Record the client shape**
+- [x] **Step 2: Record the client shape**
 
 Update spec section 8 to describe what was built: two routes, the shell they share, the keepAlive view model holding one idempotency key for the wizard's life, and the step always coming from the server rather than being computed twice.
 
-- [ ] **Step 3: Update the authentication design's status section**
+- [x] **Step 3: Update the authentication design's status section**
 
 `docs/backend_design/authentication.md` section 17 tracks what is implemented. Add that account creation now exists behind `AuthService`, and that a new account is signed in immediately and routed to onboarding rather than to the workspace.
 
-- [ ] **Step 4: Update the runbook**
+- [x] **Step 4: Update the runbook**
 
 In `docs/local_development.md`, state that preview mode completes the whole signup with no backend, and that a real registration run needs a genuinely new address because an existing one cannot be reused.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add docs
@@ -1260,6 +1260,36 @@ git commit -m "docs: record how registration and onboarding were wired"
 ```
 
 ---
+
+## Execution notes
+
+Recorded after the fact.
+
+- **Task 5 and Task 6 were swapped.** The route needs the view; the view's tests
+  do not need the route. Building the view first made each task independently
+  testable, which the stated order did not.
+- **The preview journey test earned its place immediately.** It caught a real
+  defect: `RegistrationViewModel` called the repository directly, so an account
+  was created and signed in at the provider while `AuthViewModel` still held a
+  signed-out state. Every screen reading the session then waited forever, and
+  `reloadSession` declined to help because it early-returns when it believes
+  there is no user. Account creation now goes through `AuthViewModel`.
+- **Both journey tests pump fixed frames rather than settling.** Founding
+  reloads the session, and that state renders an indeterminate progress
+  indicator, so `pumpAndSettle` waits on an animation that never ends. The
+  welcome tests already documented this trap.
+- **Three suites were asserting behaviour the gate correctly changed.**
+  `sign_in_view_test`'s welcome assertion split in two, and `not_found_test`
+  needed a session that says setup is finished. None were worked around.
+- **The enumeration probe was not run**, for the reason the spec now records.
+- **The browser walk was partial.** The account step renders correctly under the
+  new shell — step counter, readiness bar, field validation, the terms
+  requirement — but driving a Flutter canvas app through the automation browser
+  proved unreliable past that point. The two journey widget tests cover the same
+  path against the real widgets, so this is tooling friction rather than missing
+  verification.
+- **A live registration against Firebase is still outstanding**, and needs a
+  person: Claude cannot create accounts.
 
 ## Out of Scope
 

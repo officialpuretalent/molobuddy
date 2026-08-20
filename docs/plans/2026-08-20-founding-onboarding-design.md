@@ -1,6 +1,6 @@
 # Founding Onboarding Design
 
-- **Status:** Draft v0.2, server slice implemented; client slice planned
+- **Status:** Draft v0.3, both slices implemented; one real-account run outstanding
 - **Owner:** Product and engineering
 - **Last updated:** 20 August 2026
 - **Related contracts:** [identity and access data design](../data_design/identity_access.md), [practice provisioning design](2026-08-20-practice-provisioning-design.md), [client-first authentication](../backend_design/authentication.md), [identity and access API](../api_design/identity_access.md), [repository and source structure](../backend_design/repository_structure.md)
@@ -193,13 +193,19 @@ The user is signed in the moment the account exists. That is Firebase's
 behaviour and this design accepts it rather than fighting it — it is why
 onboarding state has to be server-side and why the router needs section 5.
 
-**Open question, to be answered before the client slice is planned.** This
-project has improved email-enumeration protection enabled. It is not established
-whether Firebase still answers `email-already-in-use` on sign-up under that
-setting or returns something generic. The answer decides whether "that address
-already has an account" can point at the email field or must be neutral copy.
-The first task of the client plan verifies this against the real project. No
-part of this design changes either way; only the copy and the error mapping do.
+**Still open, and deliberately not blocking.** This project has improved
+email-enumeration protection enabled, and it is not established whether Firebase
+still answers `email-already-in-use` on sign-up under that setting.
+
+The implementation handles both. A recognised `email-already-in-use` maps to
+`emailAlreadyRegistered` and the message appears on the email field; anything
+the provider declines to name falls through to neutral copy. So the answer
+changes which message a user sees and nothing else.
+
+The probe was **not run**. It is only safe against an address known to already
+exist, because an unknown address would create an account rather than fail, and
+the test account may since have been deleted. Whoever settles this should run
+it with an address they have just confirmed exists.
 
 ### 4.2 Saving answers
 
@@ -428,6 +434,21 @@ by two implementations happening to match.
 
 ## 8. Client
 
+Signup spans two routes. `RegistrationView` at `/sign-up` owns the account step
+and nothing else; `OnboardingView` at `/onboarding` owns the rest. Both render
+`MoloWizardShell`, which holds the chrome they share and takes a small
+`WizardProgress` rather than either view state — the panel needs three values,
+and coupling it to one half would have forced the other to fake them.
+
+`OnboardingViewModel` is `keepAlive`, because the idempotency key must outlive
+a widget rebuild. An auto-disposed model would mint a new key when the tree
+rebuilt, and a retry would then found a second practice.
+
+Each step holds its answer locally and saves when it advances, so the wizard
+does not write on every keystroke. The one exception is the practice name,
+which the model also keeps as an unsaved draft so the supporting panel can
+preview it live as it did when the whole wizard was in memory.
+
 The registration view model stops being a pure in-memory state machine and
 becomes an asynchronous one over the API.
 
@@ -440,6 +461,11 @@ becomes an asynchronous one over the API.
 - **On success** the client reloads the session, so `practiceRefs` is populated
   before `/home` renders, and the user never sees the no-practice state on the
   way in.
+- **Account creation goes through `AuthViewModel`**, not straight to the
+  repository. Creating an account signs that person in at the provider, and a
+  model that did not learn about it left the app holding a signed-out session
+  for a signed-in user — every screen reading the session then waited forever
+  for one that was never going to load. The preview journey test caught this.
 - **On open** the wizard fetches `GET /v1/onboarding` and starts at the derived
   step, whether that is a fresh signup or a resume from another device.
 

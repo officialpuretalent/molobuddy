@@ -200,6 +200,28 @@ reads `--test` as a filename.
 that touches real Firestore is either an emulator test or a deliberate manual
 check.
 
+## Signing up
+
+Preview mode completes the whole signup with no backend, including the
+onboarding steps and founding a practice, so the flow can be demonstrated
+without Firebase or the control API:
+
+```bash
+cd src/molobuddy_app && flutter run -d chrome --dart-define=MOLO_AUTH_MODE=preview
+```
+
+Against the real project, registering needs a **genuinely new address**. An
+existing one cannot be reused, and the app deliberately does not offer to sign
+you in instead — with email-enumeration protection enabled the provider may
+decline to say the address is taken at all, in which case the message is
+neutral rather than pointing at the email field.
+
+Signup spans two routes. `/sign-up` creates the account; `/onboarding` collects
+the rest and is where a returning user resumes. Answers are saved server-side as
+they are given, so closing the tab loses nothing: signing in again lands back on
+the first unanswered question. Until onboarding completes, every route redirects
+there.
+
 ## Verification
 
 ```bash

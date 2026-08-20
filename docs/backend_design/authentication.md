@@ -342,6 +342,7 @@ steps and configuration live in the
 | Area | State |
 |---|---|
 | Email/password sign-in, client side | Implemented behind `AuthService`; verified against the real project |
+| Account creation, client side | Implemented behind `AuthService`. A new account is signed in immediately, which is the provider's behaviour, and is routed to onboarding rather than to a workspace it does not yet have |
 | Failure mapping (section 15) | Implemented for the email/password subset; provider strings never surface raw |
 | Email-enumeration protection (section 11) | Enabled on the project |
 | ID-token and App Check verification (section 8, steps 1–4) | Implemented in `FirebaseAdminRequestTokenVerifier`; distinct failure codes covered by tests |
