@@ -362,6 +362,17 @@ void main() {
 /// Hands out a separate completer per session load, so a test can resolve two
 /// overlapping loads in whichever order it wants without leaning on timing.
 final class _QueuedSessionRepository implements AuthRepository {
+  @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    // Not part of what this fake exists to prove. Throwing keeps an accidental
+    // call visible rather than letting it quietly succeed.
+    throw UnimplementedError('createAccount');
+  }
+
   final List<Completer<AuthResult<MoloSession>>> pending = [];
   AuthUser? _currentUser;
 
@@ -397,6 +408,17 @@ final class _QueuedSessionRepository implements AuthRepository {
 }
 
 final class _FakeSessionRepository implements AuthRepository {
+  @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    // Not part of what this fake exists to prove. Throwing keeps an accidental
+    // call visible rather than letting it quietly succeed.
+    throw UnimplementedError('createAccount');
+  }
+
   _FakeSessionRepository({
     this.sessionResult = const AuthSuccess(
       MoloSession(uid: 'user_1', practiceRefs: []),

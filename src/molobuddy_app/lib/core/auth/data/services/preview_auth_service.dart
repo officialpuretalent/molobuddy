@@ -21,6 +21,10 @@ final class PreviewAuthService implements AuthService {
   final Duration delay;
   AuthUser? _currentUser;
 
+  /// Accounts this preview run has created, so a repeated address is refused
+  /// the way the real provider refuses one.
+  final Map<String, AuthUser> _registered = {};
+
   @override
   AuthUser? get currentUser => _currentUser;
 
@@ -44,6 +48,41 @@ final class PreviewAuthService implements AuthService {
       email: normalisedEmail,
       displayName: _displayNameFromEmail(normalisedEmail),
     );
+    _currentUser = user;
+    return AuthSuccess(user);
+  }
+
+  @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    if (!_debugAllowed) {
+      return const AuthError(AuthFailure(AuthFailureKind.configurationMissing));
+    }
+
+    await Future<void>.delayed(delay);
+    final normalisedEmail = email.trim().toLowerCase();
+    if (!_looksLikeEmail(normalisedEmail)) {
+      return const AuthError(AuthFailure(AuthFailureKind.invalidCredentials));
+    }
+    if (password.length < 8) {
+      return const AuthError(AuthFailure(AuthFailureKind.passwordRejected));
+    }
+    if (_registered.containsKey(normalisedEmail)) {
+      return const AuthError(
+        AuthFailure(AuthFailureKind.emailAlreadyRegistered),
+      );
+    }
+
+    final trimmedName = displayName.trim();
+    final user = AuthUser(
+      id: 'preview-${normalisedEmail.hashCode.abs()}',
+      email: normalisedEmail,
+      displayName: trimmedName.isEmpty ? null : trimmedName,
+    );
+    _registered[normalisedEmail] = user;
     _currentUser = user;
     return AuthSuccess(user);
   }

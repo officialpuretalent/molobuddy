@@ -77,6 +77,17 @@ void main() {
 }
 
 final class _StaticAuthService implements AuthService {
+  @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    // Not part of what this fake exists to prove. Throwing keeps an accidental
+    // call visible rather than letting it quietly succeed.
+    throw UnimplementedError('createAccount');
+  }
+
   const _StaticAuthService(this.currentUser);
 
   @override

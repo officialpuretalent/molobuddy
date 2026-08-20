@@ -5,6 +5,15 @@ enum AuthFailureKind {
   configurationMissing,
   attestationRequired,
   sessionExpired,
+
+  /// The address already has an account. Only reported when the provider says
+  /// so; email-enumeration protection may answer generically instead, which
+  /// falls through to [unexpected] and neutral copy.
+  emailAlreadyRegistered,
+
+  /// The provider refused the password. Molo's own minimum is checked before
+  /// this, so reaching it means the provider asked for more.
+  passwordRejected,
   unexpected,
 }
 

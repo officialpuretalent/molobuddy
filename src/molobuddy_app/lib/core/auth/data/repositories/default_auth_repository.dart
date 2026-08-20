@@ -38,6 +38,19 @@ final class DefaultAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) {
+    return _authService.createAccount(
+      email: email,
+      password: password,
+      displayName: displayName,
+    );
+  }
+
+  @override
   Future<AuthResult<void>> signOut() => _authService.signOut();
 
   @override

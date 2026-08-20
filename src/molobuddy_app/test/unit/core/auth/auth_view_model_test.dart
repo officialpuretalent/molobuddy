@@ -51,6 +51,17 @@ void main() {
 }
 
 final class _FakeAuthRepository implements AuthRepository {
+  @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    // Not part of what this fake exists to prove. Throwing keeps an accidental
+    // call visible rather than letting it quietly succeed.
+    throw UnimplementedError('createAccount');
+  }
+
   int signInCalls = 0;
   AuthUser? _currentUser;
 

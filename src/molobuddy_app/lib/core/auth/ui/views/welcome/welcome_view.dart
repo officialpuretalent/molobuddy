@@ -308,7 +308,13 @@ _SessionStatusNotice? _sessionStatusNotice(
         Icons.build_circle_outlined,
         true,
       ),
-      AuthFailureKind.invalidCredentials || AuthFailureKind.unexpected => (
+      // The last two belong to creating an account, not to loading a session.
+      // They are listed rather than defaulted so the exhaustiveness guard keeps
+      // working: a genuinely new session failure must still be given words.
+      AuthFailureKind.invalidCredentials ||
+      AuthFailureKind.emailAlreadyRegistered ||
+      AuthFailureKind.passwordRejected ||
+      AuthFailureKind.unexpected => (
         localisations.unexpectedAuthError,
         Icons.error_outline,
         true,

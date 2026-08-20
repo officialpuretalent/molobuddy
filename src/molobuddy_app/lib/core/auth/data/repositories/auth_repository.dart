@@ -13,6 +13,13 @@ abstract interface class AuthRepository {
     required String password,
   });
 
+  /// Creates an account and signs that person in.
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  });
+
   Future<AuthResult<void>> signOut();
 
   /// Reloads Molo's own session. Authentication does not imply authorisation,

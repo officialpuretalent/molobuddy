@@ -17,6 +17,15 @@ final class UnavailableAuthService implements AuthService {
   }
 
   @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    return const AuthError(AuthFailure(AuthFailureKind.configurationMissing));
+  }
+
+  @override
   Future<AuthResult<void>> signOut() async {
     return const AuthError(AuthFailure(AuthFailureKind.configurationMissing));
   }

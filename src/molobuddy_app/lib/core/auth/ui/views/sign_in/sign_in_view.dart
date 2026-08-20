@@ -638,6 +638,11 @@ class _AuthErrorBanner extends ConsumerWidget {
       AuthFailureKind.attestationRequired =>
         localisations.sessionAttestationRequired,
       AuthFailureKind.sessionExpired => localisations.sessionExpired,
+      // Neither can arise from signing in; they belong to creating an account.
+      // The switch stays exhaustive so a new kind must be given words, and the
+      // honest words here are the generic ones.
+      AuthFailureKind.emailAlreadyRegistered ||
+      AuthFailureKind.passwordRejected ||
       AuthFailureKind.unexpected => localisations.unexpectedAuthError,
     };
     return Material(

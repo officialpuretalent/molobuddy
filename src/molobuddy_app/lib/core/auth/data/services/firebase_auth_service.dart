@@ -65,6 +65,40 @@ final class FirebaseAuthService implements AuthService {
   }
 
   @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+      final created = credential.user;
+      if (created == null) {
+        return const AuthError(AuthFailure(AuthFailureKind.unexpected));
+      }
+
+      // Set the name before anyone reads it, and reload so currentUser carries
+      // it. Without the reload the first greeting after signup has no name and
+      // the app looks like it forgot what the user just typed.
+      await created.updateDisplayName(displayName.trim());
+      await created.reload();
+
+      final user = _mapUser(_auth.currentUser) ?? _mapUser(created);
+      if (user == null) {
+        return const AuthError(AuthFailure(AuthFailureKind.unexpected));
+      }
+      return AuthSuccess(user);
+    } on firebase.FirebaseAuthException catch (error) {
+      return AuthError(AuthFailure(_mapSignUpFailure(error.code)));
+    } on FirebaseException {
+      return const AuthError(AuthFailure(AuthFailureKind.providerUnavailable));
+    }
+  }
+
+  @override
   Future<AuthResult<void>> signOut() async {
     try {
       await _auth.signOut();
@@ -83,6 +117,23 @@ final class FirebaseAuthService implements AuthService {
       email: user.email!,
       displayName: user.displayName,
     );
+  }
+
+  /// Kept apart from [_mapFailure] because sign-up and sign-in answer
+  /// differently to the same situation.
+  static AuthFailureKind _mapSignUpFailure(String code) {
+    return switch (code) {
+      'email-already-in-use' => AuthFailureKind.emailAlreadyRegistered,
+      'weak-password' => AuthFailureKind.passwordRejected,
+      'invalid-email' => AuthFailureKind.invalidCredentials,
+      'network-request-failed' => AuthFailureKind.networkUnavailable,
+      'operation-not-allowed' ||
+      'too-many-requests' => AuthFailureKind.providerUnavailable,
+      // Email-enumeration protection may answer a taken address generically.
+      // Neutral copy is correct then: guessing would tell the user something
+      // the provider deliberately declined to.
+      _ => AuthFailureKind.unexpected,
+    };
   }
 
   static AuthFailureKind _mapFailure(String code) {

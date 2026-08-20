@@ -19,6 +19,55 @@ void main() {
 
     expect((result as AuthSuccess<MoloSession>).value.uid, 'user_1');
   });
+
+  test('the repository passes account creation through unchanged', () async {
+    final service = _RecordingAuthService();
+    final repository = DefaultAuthRepository(
+      service,
+      const BundledPreviewAuthProviderCatalogueService(),
+      _StubSessionService(),
+    );
+
+    await repository.createAccount(
+      email: 'thando@example.com',
+      password: 'safe-preview-password',
+      displayName: 'Thando Mokoena',
+    );
+
+    expect(service.calls, [
+      ('thando@example.com', 'safe-preview-password', 'Thando Mokoena'),
+    ]);
+  });
+}
+
+final class _RecordingAuthService implements AuthService {
+  final List<(String, String, String)> calls = [];
+
+  @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    calls.add((email, password, displayName));
+    return AuthSuccess(AuthUser(id: 'user_1', email: email));
+  }
+
+  @override
+  AuthUser? get currentUser => null;
+
+  @override
+  Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    throw UnimplementedError('signInWithEmailAndPassword');
+  }
+
+  @override
+  Future<AuthResult<void>> signOut() async {
+    throw UnimplementedError('signOut');
+  }
 }
 
 final class _StubSessionService implements SessionService {
@@ -29,6 +78,17 @@ final class _StubSessionService implements SessionService {
 }
 
 final class _StubAuthService implements AuthService {
+  @override
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    // Not part of what this fake exists to prove. Throwing keeps an accidental
+    // call visible rather than letting it quietly succeed.
+    throw UnimplementedError('createAccount');
+  }
+
   @override
   AuthUser? get currentUser => null;
 
