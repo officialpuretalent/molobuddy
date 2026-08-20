@@ -256,35 +256,51 @@ _SessionStatusNotice? _sessionStatusNotice(
     // Exhaustive on purpose. A kind that falls through here would render the
     // ordinary cards as if the session had loaded, which is how three of these
     // used to fail silently. A new kind must now be given words.
-    final (message, icon) = switch (failure.kind) {
+    //
+    // The third element says whether asking again could change the answer. An
+    // offer to retry that cannot work is worse than no offer: it invites the
+    // user to keep pressing a button that reproduces the same failure.
+    final (message, icon, retryable) = switch (failure.kind) {
       AuthFailureKind.attestationRequired => (
         localisations.sessionAttestationRequired,
         Icons.phonelink_lock_outlined,
+        true,
       ),
+      // The copy already asks for a fresh sign-in. Reloading cannot mint a
+      // token the server will accept.
       AuthFailureKind.sessionExpired => (
         localisations.sessionExpired,
         Icons.timer_off_outlined,
+        false,
       ),
       AuthFailureKind.networkUnavailable => (
         localisations.networkUnavailable,
         Icons.cloud_off_outlined,
+        true,
       ),
-      AuthFailureKind.configurationMissing ||
+      // How this build was compiled does not change between presses.
+      AuthFailureKind.configurationMissing => (
+        localisations.sessionUnavailable,
+        Icons.build_circle_outlined,
+        false,
+      ),
       AuthFailureKind.providerUnavailable => (
         localisations.sessionUnavailable,
         Icons.build_circle_outlined,
+        true,
       ),
       AuthFailureKind.invalidCredentials || AuthFailureKind.unexpected => (
         localisations.unexpectedAuthError,
         Icons.error_outline,
+        true,
       ),
     };
     return _SessionStatusNotice(
       message: message,
       icon: icon,
       tone: _SessionStatusTone.error,
-      onRetry: onRetry,
-      retryLabel: localisations.retrySessionLoad,
+      onRetry: retryable ? onRetry : null,
+      retryLabel: retryable ? localisations.retrySessionLoad : null,
     );
   }
   final session = viewState.session;

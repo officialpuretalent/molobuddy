@@ -283,6 +283,77 @@ void main() {
     expect(viewModel.reloadCalls, 1);
   });
 
+  testWidgets('a build with no session service offers no retry', (
+    tester,
+  ) async {
+    // Nothing about pressing a button changes how this build was compiled, so
+    // a retry here could only ever fail the same way.
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        failure: AuthFailure(AuthFailureKind.configurationMissing),
+      ),
+    );
+
+    expect(
+      find.text('Session details are not available in this build yet.'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('retry_session_button')), findsNothing);
+  });
+
+  testWidgets(
+    'an ended session offers no retry, only the sign-in it asks for',
+    (tester) async {
+      await _pumpWelcome(
+        tester,
+        const AuthViewState(
+          status: AuthViewStatus.signedIn,
+          methods: [],
+          user: _user,
+          failure: AuthFailure(AuthFailureKind.sessionExpired),
+        ),
+      );
+
+      expect(
+        find.text('Your session ended. Sign in again to continue.'),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('retry_session_button')), findsNothing);
+    },
+  );
+
+  testWidgets('a provider outage offers a retry', (tester) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        failure: AuthFailure(AuthFailureKind.providerUnavailable),
+      ),
+    );
+
+    expect(find.byKey(const Key('retry_session_button')), findsOneWidget);
+  });
+
+  testWidgets('an unexpected failure offers a retry', (tester) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        failure: AuthFailure(AuthFailureKind.unexpected),
+      ),
+    );
+
+    expect(find.byKey(const Key('retry_session_button')), findsOneWidget);
+  });
+
   testWidgets('offers the retry at expanded width without overflowing', (
     tester,
   ) async {

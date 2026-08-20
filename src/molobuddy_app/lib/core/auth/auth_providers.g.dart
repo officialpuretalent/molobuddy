@@ -194,33 +194,39 @@ String _$authProviderCatalogueHash() =>
 
 /// Loads Molo's own session over the authenticated transport.
 ///
-/// Falls back to [UnavailableSessionService] unless this build both runs a
-/// real Firebase identity and knows an API base URL. A preview build has no
-/// token broker and no attestation, so calling the control API could only ever
-/// return `authentication_required`, which the user cannot recover from by
-/// signing in again. Not calling is the honest answer.
+/// Only a build that runs a real Firebase identity and knows an API base URL
+/// calls the control API. A preview build has no token broker and no
+/// attestation, so calling could only ever return `authentication_required`,
+/// which the user cannot recover from by signing in again. Preview describes
+/// its own demo session instead, because preview is a supported way to show
+/// the product without a backend. Everything else has no session to describe
+/// and says so.
 
 @ProviderFor(sessionService)
 final sessionServiceProvider = SessionServiceProvider._();
 
 /// Loads Molo's own session over the authenticated transport.
 ///
-/// Falls back to [UnavailableSessionService] unless this build both runs a
-/// real Firebase identity and knows an API base URL. A preview build has no
-/// token broker and no attestation, so calling the control API could only ever
-/// return `authentication_required`, which the user cannot recover from by
-/// signing in again. Not calling is the honest answer.
+/// Only a build that runs a real Firebase identity and knows an API base URL
+/// calls the control API. A preview build has no token broker and no
+/// attestation, so calling could only ever return `authentication_required`,
+/// which the user cannot recover from by signing in again. Preview describes
+/// its own demo session instead, because preview is a supported way to show
+/// the product without a backend. Everything else has no session to describe
+/// and says so.
 
 final class SessionServiceProvider
     extends $FunctionalProvider<SessionService, SessionService, SessionService>
     with $Provider<SessionService> {
   /// Loads Molo's own session over the authenticated transport.
   ///
-  /// Falls back to [UnavailableSessionService] unless this build both runs a
-  /// real Firebase identity and knows an API base URL. A preview build has no
-  /// token broker and no attestation, so calling the control API could only ever
-  /// return `authentication_required`, which the user cannot recover from by
-  /// signing in again. Not calling is the honest answer.
+  /// Only a build that runs a real Firebase identity and knows an API base URL
+  /// calls the control API. A preview build has no token broker and no
+  /// attestation, so calling could only ever return `authentication_required`,
+  /// which the user cannot recover from by signing in again. Preview describes
+  /// its own demo session instead, because preview is a supported way to show
+  /// the product without a backend. Everything else has no session to describe
+  /// and says so.
   SessionServiceProvider._()
     : super(
         from: null,
@@ -254,7 +260,7 @@ final class SessionServiceProvider
   }
 }
 
-String _$sessionServiceHash() => r'5f5a3fc06c4b52caede516ad89eb7753ab620cfd';
+String _$sessionServiceHash() => r'748d33ee2ca74ccef5d6573deaf465742510d221';
 
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();

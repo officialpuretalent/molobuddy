@@ -197,7 +197,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('welcome_view')), findsOneWidget);
-    expect(find.text('thando.mokoena@example.com'), findsOneWidget);
+    // Preview now answers with a demo session in the shape the server
+    // returns, so the identity on screen is the masked address, never the one
+    // typed into the form.
+    expect(find.text('t***@example.com'), findsOneWidget);
+    expect(find.text('thando.mokoena@example.com'), findsNothing);
     expect(find.text('Welcome, Thando Mokoena'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('sign_out_button')));

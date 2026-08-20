@@ -6,7 +6,9 @@ import 'package:molobuddy_app/core/auth/data/models/firebase_public_configuratio
 import 'package:molobuddy_app/core/auth/data/services/app_check_gateway.dart';
 import 'package:molobuddy_app/core/auth/data/services/auth_token_broker.dart';
 import 'package:molobuddy_app/core/auth/data/services/http_session_service.dart';
+import 'package:molobuddy_app/core/auth/data/services/preview_session_service.dart';
 import 'package:molobuddy_app/core/auth/data/services/session_service.dart';
+import 'package:molobuddy_app/core/auth/data/services/unavailable_auth_service.dart';
 
 const _firebaseConfiguration = FirebasePublicConfiguration(
   apiKey: 'key',
@@ -30,7 +32,25 @@ void main() {
 
     expect(
       container.read(sessionServiceProvider),
-      isA<UnavailableSessionService>(),
+      isNot(isA<HttpSessionService>()),
+    );
+  });
+
+  test('a preview build answers with its own demo session', () {
+    // Preview exists to demo the product without a backend. Refusing to
+    // describe the session turns the welcome screen into an error the user
+    // cannot clear, so preview answers for itself instead.
+    final container = _containerFor(
+      const AppEnvironment(
+        authMode: AuthRuntimeMode.preview,
+        apiBaseUrl: 'http://localhost:8080',
+        firebaseConfiguration: null,
+      ),
+    );
+
+    expect(
+      container.read(sessionServiceProvider),
+      isA<PreviewSessionService>(),
     );
   });
 
@@ -81,6 +101,7 @@ ProviderContainer _containerFor(AppEnvironment environment) {
   final container = ProviderContainer(
     overrides: [
       appEnvironmentProvider.overrideWithValue(environment),
+      authServiceProvider.overrideWithValue(const UnavailableAuthService()),
       authTokenBrokerProvider.overrideWithValue(
         const UnavailableAuthTokenBroker(),
       ),

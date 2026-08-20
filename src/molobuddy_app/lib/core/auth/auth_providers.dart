@@ -6,6 +6,7 @@ import 'package:molobuddy_app/core/auth/data/services/auth_provider_catalogue_se
 import 'package:molobuddy_app/core/auth/data/services/auth_service.dart';
 import 'package:molobuddy_app/core/auth/data/services/auth_token_broker.dart';
 import 'package:molobuddy_app/core/auth/data/services/http_session_service.dart';
+import 'package:molobuddy_app/core/auth/data/services/preview_session_service.dart';
 import 'package:molobuddy_app/core/auth/data/services/session_service.dart';
 import 'package:molobuddy_app/core/network/network_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -38,14 +39,19 @@ AuthProviderCatalogueService authProviderCatalogue(Ref ref) {
 
 /// Loads Molo's own session over the authenticated transport.
 ///
-/// Falls back to [UnavailableSessionService] unless this build both runs a
-/// real Firebase identity and knows an API base URL. A preview build has no
-/// token broker and no attestation, so calling the control API could only ever
-/// return `authentication_required`, which the user cannot recover from by
-/// signing in again. Not calling is the honest answer.
+/// Only a build that runs a real Firebase identity and knows an API base URL
+/// calls the control API. A preview build has no token broker and no
+/// attestation, so calling could only ever return `authentication_required`,
+/// which the user cannot recover from by signing in again. Preview describes
+/// its own demo session instead, because preview is a supported way to show
+/// the product without a backend. Everything else has no session to describe
+/// and says so.
 @Riverpod(keepAlive: true)
 SessionService sessionService(Ref ref) {
   final environment = ref.watch(appEnvironmentProvider);
+  if (environment.authMode == AuthRuntimeMode.preview) {
+    return PreviewSessionService(ref.watch(authServiceProvider));
+  }
   final baseUrl = environment.apiBaseUrl;
   if (environment.authMode != AuthRuntimeMode.firebase || baseUrl == null) {
     return const UnavailableSessionService();
