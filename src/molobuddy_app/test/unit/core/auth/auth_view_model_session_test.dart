@@ -284,6 +284,116 @@ void main() {
     expect(state.user, isNull);
     expect(state.session, isNull);
   });
+
+  test('a stale load never lands on the next user who signs in', () async {
+    // The hard case: a hung load for one user resolving after somebody else
+    // has signed in and is loading their own session. "Some load is running
+    // for some user" is true at that moment, so a check on status alone lets
+    // the first user's uid, masked address and practice refs settle onto the
+    // second user's state, and then discards the second user's own answer.
+    final repository = _QueuedSessionRepository();
+    final container = ProviderContainer(
+      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+    );
+    addTearDown(container.dispose);
+    await container.read(authViewModelProvider.future);
+    final notifier = container.read(authViewModelProvider.notifier);
+
+    final signInA = notifier.signInWithEmailAndPassword(
+      email: 'anele@example.com',
+      password: 'safe-password',
+    );
+    await pumpEventQueue();
+    expect(repository.pending, hasLength(1), reason: "A's load is in flight");
+    expect(
+      container.read(authViewModelProvider).requireValue.user?.id,
+      'user_anele@example.com',
+    );
+
+    await notifier.signOut();
+
+    final signInB = notifier.signInWithEmailAndPassword(
+      email: 'buhle@example.com',
+      password: 'safe-password',
+    );
+    await pumpEventQueue();
+    expect(repository.pending, hasLength(2), reason: "B's load is in flight");
+    expect(
+      container.read(authViewModelProvider).requireValue.status,
+      AuthViewStatus.loadingSession,
+    );
+
+    // A's request finally comes back, while B is mid-load.
+    repository.pending[0].complete(
+      const AuthSuccess(
+        MoloSession(
+          uid: 'user_anele@example.com',
+          emailMasked: 'a***@example.com',
+          practiceRefs: [],
+        ),
+      ),
+    );
+    await pumpEventQueue();
+
+    // B's own answer must still be the one that settles.
+    repository.pending[1].complete(
+      const AuthSuccess(
+        MoloSession(
+          uid: 'user_buhle@example.com',
+          emailMasked: 'b***@example.com',
+          practiceRefs: [],
+        ),
+      ),
+    );
+    await signInA;
+    await signInB;
+
+    final state = container.read(authViewModelProvider).requireValue;
+    expect(state.status, AuthViewStatus.signedIn);
+    expect(state.user?.id, 'user_buhle@example.com');
+    expect(state.session?.uid, 'user_buhle@example.com');
+    expect(state.session?.emailMasked, 'b***@example.com');
+    // Nothing of A's may be on screen for B.
+    expect(state.session?.uid, isNot('user_anele@example.com'));
+    expect(state.session?.emailMasked, isNot('a***@example.com'));
+  });
+}
+
+/// Hands out a separate completer per session load, so a test can resolve two
+/// overlapping loads in whichever order it wants without leaning on timing.
+final class _QueuedSessionRepository implements AuthRepository {
+  final List<Completer<AuthResult<MoloSession>>> pending = [];
+  AuthUser? _currentUser;
+
+  @override
+  AuthUser? get currentUser => _currentUser;
+
+  @override
+  Future<AuthResult<List<AuthMethodDescriptor>>> loadMethods() async {
+    return const AuthSuccess(<AuthMethodDescriptor>[]);
+  }
+
+  @override
+  Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    _currentUser = AuthUser(id: 'user_$email', email: email);
+    return AuthSuccess(_currentUser!);
+  }
+
+  @override
+  Future<AuthResult<void>> signOut() async {
+    _currentUser = null;
+    return const AuthSuccess(null);
+  }
+
+  @override
+  Future<AuthResult<MoloSession>> loadSession() {
+    final completer = Completer<AuthResult<MoloSession>>();
+    pending.add(completer);
+    return completer.future;
+  }
 }
 
 final class _FakeSessionRepository implements AuthRepository {

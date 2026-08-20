@@ -9,6 +9,11 @@ part 'auth_view_model.g.dart';
 
 @Riverpod(keepAlive: true)
 class AuthViewModel extends _$AuthViewModel {
+  /// Identifies the newest session load. Every guarded load takes the next
+  /// number before it awaits, so a load that finishes can tell whether it is
+  /// still the one whose answer the app is waiting for.
+  int _sessionLoadGeneration = 0;
+
   @override
   Future<AuthViewState> build() async {
     final repository = ref.watch(authRepositoryProvider);
@@ -100,11 +105,12 @@ class AuthViewModel extends _$AuthViewModel {
             passwordTooShort: false,
           ),
         );
+        final generation = ++_sessionLoadGeneration;
         final sessionResult = await _loadSessionSafely(repository);
         if (!ref.mounted) {
           return;
         }
-        final afterSignIn = _sessionLoadStillOwnsState();
+        final afterSignIn = _sessionLoadStillOwnsState(generation);
         if (afterSignIn == null) {
           return;
         }
@@ -161,30 +167,41 @@ class AuthViewModel extends _$AuthViewModel {
         clearSessionFailure: true,
       ),
     );
+    final generation = ++_sessionLoadGeneration;
     final sessionResult = await _loadSessionSafely(
       ref.read(authRepositoryProvider),
     );
     if (!ref.mounted) {
       return;
     }
-    final loading = _sessionLoadStillOwnsState();
+    final loading = _sessionLoadStillOwnsState(generation);
     if (loading == null) {
       return;
     }
     state = AsyncData(_settledWithSession(loading, sessionResult));
   }
 
-  /// The state a finished session load is allowed to settle onto, or `null`
-  /// when it no longer owns the state and must abandon its answer.
+  /// The state the load numbered [generation] may settle onto, or `null` when
+  /// it must abandon its answer.
   ///
   /// A load resolves into whatever the app has become in the meantime, so it
-  /// must re-read rather than settle onto the snapshot it captured before the
-  /// await. Sign out stays enabled while a session loads, and settling onto
-  /// the old snapshot rewrote state to signed in with the signed-out user
-  /// restored, after the router had already navigated away. Anything that is
-  /// no longer a session load for a present user, including a sign-out or a
-  /// newer load, means this answer is stale.
-  AuthViewState? _sessionLoadStillOwnsState() {
+  /// re-reads rather than settling onto the snapshot it captured before the
+  /// await. Two separate things can have moved on, and both are checked:
+  ///
+  /// * A newer load has started. Sign out stays enabled while a session
+  ///   loads, so one user's load can still be hanging when the next user
+  ///   signs in and begins their own. Status alone cannot tell those apart,
+  ///   and letting the older one through wrote the first user's uid, masked
+  ///   address and practice refs onto the second user's state, then discarded
+  ///   the second user's own answer. Only the newest load may settle.
+  /// * The app is no longer loading a session for a present user at all,
+  ///   which is what a sign-out during a load leaves behind. Settling then
+  ///   put the signed-out user back, signed in, after the router had already
+  ///   navigated away.
+  AuthViewState? _sessionLoadStillOwnsState(int generation) {
+    if (generation != _sessionLoadGeneration) {
+      return null;
+    }
     final current = switch (state) {
       AsyncData(:final value) => value,
       _ => null,
