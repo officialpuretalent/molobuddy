@@ -41,6 +41,22 @@
   "authUnavailable": "Sign-in is not available in this build yet.",
   "unexpectedAuthError": "Something went wrong. Try again.",
   "dismissMessage": "Dismiss message",
+  "sessionLoading": "Checking what you can reach.",
+  "@sessionLoading": {
+    "description": "Shown while the Molo session (practice access) is being loaded after sign-in."
+  },
+  "sessionAttestationRequired": "This device could not be verified. Reload to try again.",
+  "@sessionAttestationRequired": {
+    "description": "Shown when App Check could not attest the device, blocking the session or sign-in request."
+  },
+  "sessionExpired": "Your session ended. Sign in again to continue.",
+  "@sessionExpired": {
+    "description": "Shown when the server reports the session has expired and needs a fresh sign-in."
+  },
+  "sessionNoPractices": "You are signed in. No practice has been connected to this account yet.",
+  "@sessionNoPractices": {
+    "description": "Shown on the welcome screen when the loaded session has no practices to work in."
+  },
   "welcomeHeading": "You''re in.",
   "welcomeName": "Welcome, {name}",
   "@welcomeName": {

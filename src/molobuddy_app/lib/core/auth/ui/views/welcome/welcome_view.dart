@@ -7,6 +7,7 @@ import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
 import 'package:molobuddy_app/app/localisation/generated/app_localizations.dart';
 import 'package:molobuddy_app/app/router/app_router.dart';
 import 'package:molobuddy_app/bootstrap/app_environment.dart';
+import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_model.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_state.dart';
 
@@ -44,6 +45,7 @@ class WelcomeView extends ConsumerWidget {
 
     final user = viewState.user!;
     final signingOut = viewState.status == AuthViewStatus.signingOut;
+    final sessionNotice = _sessionStatusNotice(localisations, viewState);
     return Title(
       title: localisations.welcomePageTitle,
       color: MoloColours.moloPlum,
@@ -144,67 +146,73 @@ class WelcomeView extends ConsumerWidget {
                             style: Theme.of(context).textTheme.displaySmall,
                           ),
                           const SizedBox(height: MoloSpacing.sm),
-                          Text(
-                            localisations.previewWorkspaceBody,
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(color: MoloColours.secondaryText),
-                          ),
-                          const SizedBox(height: MoloSpacing.xxl),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final expanded = constraints.maxWidth >= 760;
-                              final cards = [
-                                _WorkspaceCard(
-                                  icon: Icons.person_outline_rounded,
-                                  eyebrow: localisations.signedInAs,
-                                  title: user.email,
-                                  body: localisations.previewWorkspaceTitle,
-                                ),
-                                _WorkspaceCard(
-                                  icon: Icons.arrow_forward_rounded,
-                                  eyebrow: localisations.homeNextAction,
-                                  title: localisations.homeNextAction,
-                                  body: localisations.homeNextActionBody,
-                                  accent: true,
-                                ),
-                                _WorkspaceCard(
-                                  icon: Icons.lock_outline_rounded,
-                                  eyebrow: localisations.secureSession,
-                                  title: localisations.secureSession,
-                                  body: localisations.secureSessionBody,
-                                ),
-                              ];
-                              if (!expanded) {
-                                return Column(
+                          if (sessionNotice != null) ...[
+                            sessionNotice,
+                          ] else ...[
+                            Text(
+                              localisations.previewWorkspaceBody,
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(color: MoloColours.secondaryText),
+                            ),
+                            const SizedBox(height: MoloSpacing.xxl),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final expanded = constraints.maxWidth >= 760;
+                                final cards = [
+                                  _WorkspaceCard(
+                                    icon: Icons.person_outline_rounded,
+                                    eyebrow: localisations.signedInAs,
+                                    title: user.email,
+                                    body: localisations.previewWorkspaceTitle,
+                                  ),
+                                  _WorkspaceCard(
+                                    icon: Icons.arrow_forward_rounded,
+                                    eyebrow: localisations.homeNextAction,
+                                    title: localisations.homeNextAction,
+                                    body: localisations.homeNextActionBody,
+                                    accent: true,
+                                  ),
+                                  _WorkspaceCard(
+                                    icon: Icons.lock_outline_rounded,
+                                    eyebrow: localisations.secureSession,
+                                    title: localisations.secureSession,
+                                    body: localisations.secureSessionBody,
+                                  ),
+                                ];
+                                if (!expanded) {
+                                  return Column(
+                                    children: [
+                                      for (
+                                        var index = 0;
+                                        index < cards.length;
+                                        index++
+                                      ) ...[
+                                        cards[index],
+                                        if (index != cards.length - 1)
+                                          const SizedBox(
+                                            height: MoloSpacing.md,
+                                          ),
+                                      ],
+                                    ],
+                                  );
+                                }
+                                return Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     for (
                                       var index = 0;
                                       index < cards.length;
                                       index++
                                     ) ...[
-                                      cards[index],
+                                      Expanded(child: cards[index]),
                                       if (index != cards.length - 1)
-                                        const SizedBox(height: MoloSpacing.md),
+                                        const SizedBox(width: MoloSpacing.md),
                                     ],
                                   ],
                                 );
-                              }
-                              return Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  for (
-                                    var index = 0;
-                                    index < cards.length;
-                                    index++
-                                  ) ...[
-                                    Expanded(child: cards[index]),
-                                    if (index != cards.length - 1)
-                                      const SizedBox(width: MoloSpacing.md),
-                                  ],
-                                ],
-                              );
-                            },
-                          ),
+                              },
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -213,6 +221,112 @@ class WelcomeView extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Maps the auth view model's session status to what the welcome screen
+/// should show instead of the ordinary workspace cards, or `null` when the
+/// session is loaded and usable and the ordinary cards should show.
+_SessionStatusNotice? _sessionStatusNotice(
+  AppLocalizations localisations,
+  AuthViewState viewState,
+) {
+  if (viewState.status == AuthViewStatus.loadingSession) {
+    return _SessionStatusNotice(
+      message: localisations.sessionLoading,
+      tone: _SessionStatusTone.loading,
+    );
+  }
+  switch (viewState.failure?.kind) {
+    case AuthFailureKind.attestationRequired:
+      return _SessionStatusNotice(
+        message: localisations.sessionAttestationRequired,
+        icon: Icons.phonelink_lock_outlined,
+        tone: _SessionStatusTone.error,
+      );
+    case AuthFailureKind.sessionExpired:
+      return _SessionStatusNotice(
+        message: localisations.sessionExpired,
+        icon: Icons.timer_off_outlined,
+        tone: _SessionStatusTone.error,
+      );
+    default:
+      break;
+  }
+  final session = viewState.session;
+  if (session != null && !session.hasPractices) {
+    return _SessionStatusNotice(
+      message: localisations.sessionNoPractices,
+      icon: Icons.groups_outlined,
+      tone: _SessionStatusTone.info,
+    );
+  }
+  return null;
+}
+
+enum _SessionStatusTone { loading, info, error }
+
+/// Explains the state of the Molo session (as opposed to Firebase sign-in)
+/// with an icon paired with text, so the state is never carried by colour
+/// alone.
+class _SessionStatusNotice extends StatelessWidget {
+  const _SessionStatusNotice({
+    required this.message,
+    required this.tone,
+    this.icon,
+  });
+
+  final String message;
+  final IconData? icon;
+  final _SessionStatusTone tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final background = switch (tone) {
+      _SessionStatusTone.loading => MoloColours.surface,
+      _SessionStatusTone.info => MoloColours.pulseTint,
+      _SessionStatusTone.error => const Color(0xFFFFF1F0),
+    };
+    final iconColour = switch (tone) {
+      _SessionStatusTone.loading => MoloColours.secondaryText,
+      _SessionStatusTone.info => MoloColours.pulseText,
+      _SessionStatusTone.error => MoloColours.error,
+    };
+    final border = tone == _SessionStatusTone.loading
+        ? Border.all(color: MoloColours.border)
+        : null;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(MoloSpacing.cardRadius),
+        border: border,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(MoloSpacing.lg),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: icon == null
+                  ? CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: iconColour,
+                    )
+                  : Icon(icon, color: iconColour, size: 24),
+            ),
+            const SizedBox(width: MoloSpacing.md),
+            Expanded(
+              child: Text(
+                message,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ),
+          ],
         ),
       ),
     );

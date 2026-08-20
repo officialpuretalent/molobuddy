@@ -301,6 +301,30 @@ abstract class AppLocalizations {
   /// **'Dismiss message'**
   String get dismissMessage;
 
+  /// Shown while the Molo session (practice access) is being loaded after sign-in.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking what you can reach.'**
+  String get sessionLoading;
+
+  /// Shown when App Check could not attest the device, blocking the session or sign-in request.
+  ///
+  /// In en, this message translates to:
+  /// **'This device could not be verified. Reload to try again.'**
+  String get sessionAttestationRequired;
+
+  /// Shown when the server reports the session has expired and needs a fresh sign-in.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session ended. Sign in again to continue.'**
+  String get sessionExpired;
+
+  /// Shown on the welcome screen when the loaded session has no practices to work in.
+  ///
+  /// In en, this message translates to:
+  /// **'You are signed in. No practice has been connected to this account yet.'**
+  String get sessionNoPractices;
+
   /// No description provided for @welcomeHeading.
   ///
   /// In en, this message translates to:

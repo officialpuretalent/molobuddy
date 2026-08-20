@@ -118,6 +118,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dismissMessage => 'Dismiss message';
 
   @override
+  String get sessionLoading => 'Checking what you can reach.';
+
+  @override
+  String get sessionAttestationRequired =>
+      'This device could not be verified. Reload to try again.';
+
+  @override
+  String get sessionExpired => 'Your session ended. Sign in again to continue.';
+
+  @override
+  String get sessionNoPractices =>
+      'You are signed in. No practice has been connected to this account yet.';
+
+  @override
   String get welcomeHeading => 'You\'re in.';
 
   @override
@@ -540,6 +554,20 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
 
   @override
   String get dismissMessage => 'Dismiss message';
+
+  @override
+  String get sessionLoading => 'Checking what you can reach.';
+
+  @override
+  String get sessionAttestationRequired =>
+      'This device could not be verified. Reload to try again.';
+
+  @override
+  String get sessionExpired => 'Your session ended. Sign in again to continue.';
+
+  @override
+  String get sessionNoPractices =>
+      'You are signed in. No practice has been connected to this account yet.';
 
   @override
   String get welcomeHeading => 'You\'re in.';
