@@ -146,6 +146,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get welcomeNameless => 'Welcome back';
+
+  @override
   String get previewWorkspaceBody =>
       'This first slice proves the responsive sign-in journey. Practice work will appear here as we connect the next feature.';
 
@@ -174,6 +177,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get secureSessionBody =>
       'Firebase identity stays behind Molo\'s authentication boundary.';
+
+  @override
+  String get notFoundPageTitle => 'Page not found | Molo';
+
+  @override
+  String get notFoundHeading => 'We can\'t find that page.';
+
+  @override
+  String get notFoundBody =>
+      'The link may be out of date, or the page may have moved. Nothing in your workspace has changed.';
+
+  @override
+  String get notFoundAction => 'Go to your workspace';
 
   @override
   String get signUpPageTitle => 'Create account | Molo';
@@ -587,6 +603,9 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   }
 
   @override
+  String get welcomeNameless => 'Welcome back';
+
+  @override
   String get previewWorkspaceBody =>
       'This first slice proves the responsive sign-in journey. Practice work will appear here as we connect the next feature.';
 
@@ -615,6 +634,19 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   @override
   String get secureSessionBody =>
       'Firebase identity stays behind Molo\'s authentication boundary.';
+
+  @override
+  String get notFoundPageTitle => 'Page not found | Molo';
+
+  @override
+  String get notFoundHeading => 'We can\'t find that page.';
+
+  @override
+  String get notFoundBody =>
+      'The link may be out of date, or the page may have moved. Nothing in your workspace has changed.';
+
+  @override
+  String get notFoundAction => 'Go to your workspace';
 
   @override
   String get signUpPageTitle => 'Create account | Molo';

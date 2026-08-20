@@ -343,11 +343,17 @@ abstract class AppLocalizations {
   /// **'You\'\'re in.'**
   String get welcomeHeading;
 
-  /// Signed-in welcome using a safe display name or email.
+  /// Signed-in welcome using a display name. Never an email address: the address is shown separately and in masked form.
   ///
   /// In en, this message translates to:
   /// **'Welcome, {name}'**
   String welcomeName(String name);
+
+  /// Signed-in welcome for an account that has told us no name. Greeting someone by their email address is worse than not naming them.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get welcomeNameless;
 
   /// No description provided for @previewWorkspaceBody.
   ///
@@ -402,6 +408,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Firebase identity stays behind Molo\'\'s authentication boundary.'**
   String get secureSessionBody;
+
+  /// No description provided for @notFoundPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Page not found | Molo'**
+  String get notFoundPageTitle;
+
+  /// No description provided for @notFoundHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'We can\'\'t find that page.'**
+  String get notFoundHeading;
+
+  /// Shown when a location matches no route. Reassures the reader that a bad link is not a data problem.
+  ///
+  /// In en, this message translates to:
+  /// **'The link may be out of date, or the page may have moved. Nothing in your workspace has changed.'**
+  String get notFoundBody;
+
+  /// No description provided for @notFoundAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to your workspace'**
+  String get notFoundAction;
 
   /// No description provided for @signUpPageTitle.
   ///

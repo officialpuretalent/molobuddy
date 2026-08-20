@@ -68,10 +68,14 @@
   "welcomeHeading": "You''re in.",
   "welcomeName": "Welcome, {name}",
   "@welcomeName": {
-    "description": "Signed-in welcome using a safe display name or email.",
+    "description": "Signed-in welcome using a display name. Never an email address: the address is shown separately and in masked form.",
     "placeholders": {
       "name": {"type": "String"}
     }
+  },
+  "welcomeNameless": "Welcome back",
+  "@welcomeNameless": {
+    "description": "Signed-in welcome for an account that has told us no name. Greeting someone by their email address is worse than not naming them."
   },
   "previewWorkspaceBody": "This first slice proves the responsive sign-in journey. Practice work will appear here as we connect the next feature.",
   "signedInAs": "Signed in as",
@@ -82,6 +86,13 @@
   "homeNextActionBody": "Connect the real Firebase project, then load your authorised practices from the Molo API.",
   "secureSession": "Secure session",
   "secureSessionBody": "Firebase identity stays behind Molo''s authentication boundary.",
+  "notFoundPageTitle": "Page not found | Molo",
+  "notFoundHeading": "We can''t find that page.",
+  "notFoundBody": "The link may be out of date, or the page may have moved. Nothing in your workspace has changed.",
+  "@notFoundBody": {
+    "description": "Shown when a location matches no route. Reassures the reader that a bad link is not a data problem."
+  },
+  "notFoundAction": "Go to your workspace",
   "signUpPageTitle": "Create account | Molo",
   "newToMolo": "New to Molo?",
   "createAccount": "Create account",

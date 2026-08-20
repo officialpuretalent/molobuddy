@@ -8,6 +8,8 @@ import 'package:molobuddy_app/app/localisation/generated/app_localizations.dart'
 import 'package:molobuddy_app/app/router/app_router.dart';
 import 'package:molobuddy_app/bootstrap/app_environment.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
+import 'package:molobuddy_app/core/auth/data/models/auth_user.dart';
+import 'package:molobuddy_app/core/auth/data/models/molo_session.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_model.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_state.dart';
 
@@ -46,6 +48,7 @@ class WelcomeView extends ConsumerWidget {
     final user = viewState.user!;
     final session = viewState.session;
     final signingOut = viewState.status == AuthViewStatus.signingOut;
+    final greetingName = _greetingName(session, user);
     final sessionNotice = _sessionStatusNotice(
       localisations,
       viewState,
@@ -147,9 +150,9 @@ class WelcomeView extends ConsumerWidget {
                           ),
                           const SizedBox(height: MoloSpacing.lg),
                           Text(
-                            localisations.welcomeName(
-                              session?.displayName ?? user.greetingName,
-                            ),
+                            greetingName == null
+                                ? localisations.welcomeNameless
+                                : localisations.welcomeName(greetingName),
                             style: Theme.of(context).textTheme.displaySmall,
                           ),
                           const SizedBox(height: MoloSpacing.md),
@@ -235,6 +238,19 @@ class WelcomeView extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The name to greet this person by, or `null` when none is known.
+///
+/// Prefers the name the server returned, because that is the identity Molo
+/// holds, and falls back to the local one only until the server has answered.
+/// Neither is allowed to be an email address.
+String? _greetingName(MoloSession? session, AuthUser user) {
+  final fromSession = session?.displayName?.trim();
+  if (fromSession != null && fromSession.isNotEmpty) {
+    return fromSession;
+  }
+  return user.greetingName;
 }
 
 /// Maps the auth view model's session status to what the welcome screen

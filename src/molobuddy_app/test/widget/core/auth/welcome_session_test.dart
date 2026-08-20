@@ -163,7 +163,7 @@ void main() {
       size: const Size(1280, 900),
     );
 
-    expect(find.text('Welcome, person@example.com'), findsOneWidget);
+    expect(find.text('Welcome back'), findsOneWidget);
     // Named card content, so deleting the card block cannot pass this test.
     expect(find.text('Next up'), findsWidgets);
     expect(
@@ -181,6 +181,94 @@ void main() {
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('greets without a name rather than with an email address', (
+    tester,
+  ) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        session: MoloSession(
+          uid: 'user_1',
+          emailMasked: 'p***@example.com',
+          practiceRefs: [],
+        ),
+      ),
+    );
+
+    expect(find.text('Welcome back'), findsOneWidget);
+    // The display-size greeting used to fall back to the raw address, which
+    // put it on screen directly above the masked one the session produced.
+    expect(find.textContaining('person@example.com'), findsNothing);
+    expect(find.text('p***@example.com'), findsOneWidget);
+  });
+
+  testWidgets('greets by the name the server returned', (tester) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        session: MoloSession(
+          uid: 'user_1',
+          displayName: 'Thando Mokoena',
+          emailMasked: 'p***@example.com',
+          practiceRefs: [],
+        ),
+      ),
+    );
+
+    expect(find.text('Welcome, Thando Mokoena'), findsOneWidget);
+  });
+
+  testWidgets('greets by the local name before the server has answered', (
+    tester,
+  ) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.loadingSession,
+        methods: [],
+        user: AuthUser(
+          id: 'user_1',
+          email: 'person@example.com',
+          displayName: 'Thando Mokoena',
+        ),
+      ),
+    );
+
+    expect(find.text('Welcome, Thando Mokoena'), findsOneWidget);
+  });
+
+  testWidgets('ignores a blank name rather than greeting nobody', (
+    tester,
+  ) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: AuthUser(
+          id: 'user_1',
+          email: 'person@example.com',
+          displayName: '   ',
+        ),
+        session: MoloSession(
+          uid: 'user_1',
+          displayName: '  ',
+          emailMasked: 'p***@example.com',
+          practiceRefs: [],
+        ),
+      ),
+    );
+
+    expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.text('Welcome,    '), findsNothing);
   });
 
   testWidgets('shows the masked address the server returned', (tester) async {

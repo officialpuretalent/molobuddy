@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:molobuddy_app/app/design_system/motion/molo_motion.dart';
+import 'package:molobuddy_app/app/router/not_found_view.dart';
 import 'package:molobuddy_app/core/auth/auth_providers.dart';
 import 'package:molobuddy_app/core/auth/ui/views/registration/registration_view.dart';
 import 'package:molobuddy_app/core/auth/ui/views/sign_in/sign_in_view.dart';
@@ -69,6 +70,10 @@ GoRouter appRouter(Ref ref) {
   return GoRouter(
     initialLocation: const SignInRoute().location,
     routes: $appRoutes,
+    // A location matching no route is an ordinary thing a stale link does, so
+    // it gets a Molo page. go_router's own screen prints its exception, which
+    // tells the reader nothing and leaks the router into the product.
+    errorBuilder: (context, state) => const NotFoundView(),
     redirect: (context, state) {
       final signedIn = ref.read(authRepositoryProvider).currentUser != null;
       final onSignIn = state.matchedLocation == const SignInRoute().location;

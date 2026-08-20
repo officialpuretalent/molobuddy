@@ -5,9 +5,16 @@ final class AuthUser {
   final String email;
   final String? displayName;
 
-  String get greetingName {
+  /// The name to greet this person by, or `null` when they have told us none.
+  ///
+  /// Deliberately never falls back to [email]. An address is not a name, and
+  /// rendering one as a display-size greeting put the unmasked address on
+  /// screen directly above the masked address the session took care to
+  /// produce. A greeting with no name is better than a greeting with the
+  /// wrong thing in it.
+  String? get greetingName {
     final name = displayName?.trim();
-    return name == null || name.isEmpty ? email : name;
+    return name == null || name.isEmpty ? null : name;
   }
 
   @override
