@@ -43,10 +43,13 @@ class AuthViewModel extends _$AuthViewModel {
     // instead of propagating, and it never displaces an earlier failure.
     return switch (await _loadSessionSafely(repository)) {
       AuthSuccess(:final value) => restored.copyWith(session: value),
-      AuthError(:final failure) =>
-        restored.failure == null
-            ? restored.copyWith(failure: failure)
-            : restored,
+      // The session slot always records what the session did. The general
+      // slot still yields to an earlier catalogue failure, so the first thing
+      // that went wrong is the one the rest of the app reports.
+      AuthError(:final failure) => restored.copyWith(
+        sessionFailure: failure,
+        failure: restored.failure == null ? failure : null,
+      ),
     };
   }
 
@@ -125,6 +128,7 @@ class AuthViewModel extends _$AuthViewModel {
         clearUser: true,
         clearSession: true,
         clearFailure: true,
+        clearSessionFailure: true,
       ),
       AuthError(:final failure) => current.copyWith(
         status: AuthViewStatus.signedIn,
@@ -151,6 +155,7 @@ class AuthViewModel extends _$AuthViewModel {
       current.copyWith(
         status: AuthViewStatus.loadingSession,
         clearFailure: true,
+        clearSessionFailure: true,
       ),
     );
     final loading = state.requireValue;
@@ -188,11 +193,13 @@ class AuthViewModel extends _$AuthViewModel {
         status: AuthViewStatus.signedIn,
         session: value,
         clearFailure: true,
+        clearSessionFailure: true,
       ),
       AuthError(:final failure) => base.copyWith(
         status: AuthViewStatus.signedIn,
         clearSession: true,
         failure: failure,
+        sessionFailure: failure,
       ),
     };
   }

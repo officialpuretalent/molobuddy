@@ -251,7 +251,10 @@ _SessionStatusNotice? _sessionStatusNotice(
       tone: _SessionStatusTone.loading,
     );
   }
-  final failure = viewState.failure;
+  // The session slot, not the general one. A provider catalogue that failed
+  // is not a broken session, and reporting it as one replaced a reachable
+  // workspace with an error whose retry reloaded the wrong thing.
+  final failure = viewState.sessionFailure;
   if (failure != null) {
     // Exhaustive on purpose. A kind that falls through here would render the
     // ordinary cards as if the session had loaded, which is how three of these

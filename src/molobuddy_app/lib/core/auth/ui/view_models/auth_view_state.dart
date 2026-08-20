@@ -18,6 +18,7 @@ final class AuthViewState {
     this.user,
     this.session,
     this.failure,
+    this.sessionFailure,
     this.emailInvalid = false,
     this.passwordTooShort = false,
   });
@@ -29,13 +30,26 @@ final class AuthViewState {
     this.passwordTooShort = false,
   }) : status = AuthViewStatus.signedOut,
        user = null,
-       session = null;
+       session = null,
+       sessionFailure = null;
 
   final AuthViewStatus status;
   final List<AuthMethodDescriptor> methods;
   final AuthUser? user;
   final MoloSession? session;
+
+  /// Anything that went wrong in the authentication flow at large, including
+  /// the provider catalogue. Not every failure here concerns the session.
   final AuthFailure? failure;
+
+  /// Why the Molo session specifically did not load, and nothing else.
+  ///
+  /// Kept apart from [failure] so a provider catalogue that failed cannot
+  /// present itself as a broken session, hiding a workspace the user can
+  /// reach and offering a retry that reloads the wrong thing. Written only
+  /// where a session load result is settled.
+  final AuthFailure? sessionFailure;
+
   final bool emailInvalid;
   final bool passwordTooShort;
 
@@ -54,6 +68,8 @@ final class AuthViewState {
     bool clearSession = false,
     AuthFailure? failure,
     bool clearFailure = false,
+    AuthFailure? sessionFailure,
+    bool clearSessionFailure = false,
     bool? emailInvalid,
     bool? passwordTooShort,
   }) {
@@ -63,6 +79,9 @@ final class AuthViewState {
       user: clearUser ? null : user ?? this.user,
       session: clearSession ? null : session ?? this.session,
       failure: clearFailure ? null : failure ?? this.failure,
+      sessionFailure: clearSessionFailure
+          ? null
+          : sessionFailure ?? this.sessionFailure,
       emailInvalid: emailInvalid ?? this.emailInvalid,
       passwordTooShort: passwordTooShort ?? this.passwordTooShort,
     );

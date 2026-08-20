@@ -175,6 +175,73 @@ void main() {
     expect(state.status, AuthViewStatus.signedIn);
     expect(state.session?.uid, 'user_1');
     expect(state.failure, isNull);
+    expect(state.sessionFailure, isNull);
+  });
+
+  test('a provider catalogue failure is not a session failure', () async {
+    // The catalogue and the session fail independently. Reporting a good
+    // session as broken because the method list did not load hides a
+    // workspace the user can actually reach, and offers a retry that reloads
+    // the wrong thing.
+    final repository = _FakeSessionRepository(
+      restoredUser: const AuthUser(id: 'user_1', email: 'person@example.com'),
+      methodsResult: const AuthError(
+        AuthFailure(AuthFailureKind.providerUnavailable),
+      ),
+    );
+    final container = ProviderContainer(
+      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+    );
+    addTearDown(container.dispose);
+
+    final state = await container.read(authViewModelProvider.future);
+
+    expect(state.status, AuthViewStatus.signedIn);
+    expect(state.session?.uid, 'user_1');
+    expect(state.failure?.kind, AuthFailureKind.providerUnavailable);
+    expect(state.sessionFailure, isNull);
+  });
+
+  test('a session failure lands in the session slot', () async {
+    final repository = _FakeSessionRepository(
+      restoredUser: const AuthUser(id: 'user_1', email: 'person@example.com'),
+      sessionResult: const AuthError(
+        AuthFailure(AuthFailureKind.networkUnavailable),
+      ),
+    );
+    final container = ProviderContainer(
+      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+    );
+    addTearDown(container.dispose);
+
+    final state = await container.read(authViewModelProvider.future);
+
+    expect(state.sessionFailure?.kind, AuthFailureKind.networkUnavailable);
+  });
+
+  test('signing out clears the session failure it was showing', () async {
+    final repository = _FakeSessionRepository(
+      restoredUser: const AuthUser(id: 'user_1', email: 'person@example.com'),
+      sessionResult: const AuthError(
+        AuthFailure(AuthFailureKind.networkUnavailable),
+      ),
+    );
+    final container = ProviderContainer(
+      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+    );
+    addTearDown(container.dispose);
+    await container.read(authViewModelProvider.future);
+    expect(
+      container.read(authViewModelProvider).requireValue.sessionFailure,
+      isNotNull,
+      reason: 'the failure must actually be set before sign-out clears it',
+    );
+
+    await container.read(authViewModelProvider.notifier).signOut();
+
+    final state = container.read(authViewModelProvider).requireValue;
+    expect(state.status, AuthViewStatus.signedOut);
+    expect(state.sessionFailure, isNull);
   });
 }
 
@@ -183,8 +250,13 @@ final class _FakeSessionRepository implements AuthRepository {
     this.sessionResult = const AuthSuccess(
       MoloSession(uid: 'user_1', practiceRefs: []),
     ),
+    this.methodsResult = const AuthSuccess(<AuthMethodDescriptor>[]),
     AuthUser? restoredUser,
   }) : _currentUser = restoredUser;
+
+  /// The provider catalogue fails independently of the session, which is the
+  /// whole point of keeping the two failures in separate slots.
+  AuthResult<List<AuthMethodDescriptor>> methodsResult;
 
   /// Mutable, so a test can succeed once and then fail, which is the only way
   /// to prove a session is actually cleared rather than never set.
@@ -197,7 +269,7 @@ final class _FakeSessionRepository implements AuthRepository {
 
   @override
   Future<AuthResult<List<AuthMethodDescriptor>>> loadMethods() async {
-    return const AuthSuccess(<AuthMethodDescriptor>[]);
+    return methodsResult;
   }
 
   @override

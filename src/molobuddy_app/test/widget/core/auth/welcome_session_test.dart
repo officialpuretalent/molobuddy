@@ -53,7 +53,7 @@ void main() {
         status: AuthViewStatus.signedIn,
         methods: [],
         user: _user,
-        failure: AuthFailure(AuthFailureKind.attestationRequired),
+        sessionFailure: AuthFailure(AuthFailureKind.attestationRequired),
       ),
     );
 
@@ -69,7 +69,7 @@ void main() {
         status: AuthViewStatus.signedIn,
         methods: [],
         user: _user,
-        failure: AuthFailure(AuthFailureKind.sessionExpired),
+        sessionFailure: AuthFailure(AuthFailureKind.sessionExpired),
       ),
     );
 
@@ -129,7 +129,7 @@ void main() {
         status: AuthViewStatus.signedIn,
         methods: [],
         user: _user,
-        failure: AuthFailure(AuthFailureKind.attestationRequired),
+        sessionFailure: AuthFailure(AuthFailureKind.attestationRequired),
       ),
       size: const Size(1280, 900),
     );
@@ -229,7 +229,7 @@ void main() {
         status: AuthViewStatus.signedIn,
         methods: [],
         user: _user,
-        failure: AuthFailure(AuthFailureKind.networkUnavailable),
+        sessionFailure: AuthFailure(AuthFailureKind.networkUnavailable),
       ),
     );
 
@@ -249,7 +249,7 @@ void main() {
         status: AuthViewStatus.signedIn,
         methods: [],
         user: _user,
-        failure: AuthFailure(AuthFailureKind.configurationMissing),
+        sessionFailure: AuthFailure(AuthFailureKind.configurationMissing),
       ),
     );
 
@@ -265,7 +265,7 @@ void main() {
         status: AuthViewStatus.signedIn,
         methods: [],
         user: _user,
-        failure: AuthFailure(AuthFailureKind.networkUnavailable),
+        sessionFailure: AuthFailure(AuthFailureKind.networkUnavailable),
       ),
     );
     await _pumpWelcome(tester, null, viewModel: viewModel);
@@ -294,7 +294,7 @@ void main() {
         status: AuthViewStatus.signedIn,
         methods: [],
         user: _user,
-        failure: AuthFailure(AuthFailureKind.configurationMissing),
+        sessionFailure: AuthFailure(AuthFailureKind.configurationMissing),
       ),
     );
 
@@ -314,7 +314,7 @@ void main() {
           status: AuthViewStatus.signedIn,
           methods: [],
           user: _user,
-          failure: AuthFailure(AuthFailureKind.sessionExpired),
+          sessionFailure: AuthFailure(AuthFailureKind.sessionExpired),
         ),
       );
 
@@ -333,7 +333,7 @@ void main() {
         status: AuthViewStatus.signedIn,
         methods: [],
         user: _user,
-        failure: AuthFailure(AuthFailureKind.providerUnavailable),
+        sessionFailure: AuthFailure(AuthFailureKind.providerUnavailable),
       ),
     );
 
@@ -347,11 +347,50 @@ void main() {
         status: AuthViewStatus.signedIn,
         methods: [],
         user: _user,
-        failure: AuthFailure(AuthFailureKind.unexpected),
+        sessionFailure: AuthFailure(AuthFailureKind.unexpected),
       ),
     );
 
     expect(find.byKey(const Key('retry_session_button')), findsOneWidget);
+  });
+
+  testWidgets('a provider catalogue failure does not hide a good session', (
+    tester,
+  ) async {
+    // The general failure slot carries things like a failed provider
+    // catalogue. Treating it as a session failure replaced the workspace with
+    // a session error the user could not clear, and offered a retry that
+    // reloaded something that had not failed.
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        failure: AuthFailure(AuthFailureKind.providerUnavailable),
+        session: MoloSession(
+          uid: 'user_1',
+          practiceRefs: [
+            PracticeRef(
+              practiceId: 'practice_1',
+              displayLabel: 'Mokoena Tax Studio',
+              homeRegionKey: 'za',
+              routeVersion: 1,
+              accessStatus: PracticeAccessStatus.active,
+            ),
+          ],
+        ),
+      ),
+      size: const Size(1280, 900),
+    );
+
+    expect(find.text('Next up'), findsWidgets);
+    expect(find.text('Secure session'), findsWidgets);
+    expect(
+      find.text('Session details are not available in this build yet.'),
+      findsNothing,
+    );
+    expect(find.byKey(const Key('retry_session_button')), findsNothing);
   });
 
   testWidgets('offers the retry at expanded width without overflowing', (
@@ -363,7 +402,7 @@ void main() {
         status: AuthViewStatus.signedIn,
         methods: [],
         user: _user,
-        failure: AuthFailure(AuthFailureKind.attestationRequired),
+        sessionFailure: AuthFailure(AuthFailureKind.attestationRequired),
       ),
       size: const Size(1280, 900),
     );
