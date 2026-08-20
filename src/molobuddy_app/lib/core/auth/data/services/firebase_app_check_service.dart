@@ -48,9 +48,9 @@ final class FirebaseAppCheckGateway implements AppCheckGateway {
   }
 
   @override
-  Future<String?> token() async {
+  Future<String?> token({bool forceRefresh = false}) async {
     try {
-      return await _appCheck.getToken();
+      return await _appCheck.getToken(forceRefresh);
     } on Object {
       // Attestation is best effort. Surfacing the provider error here would
       // leak vendor detail and turn a recoverable state into a hard failure.

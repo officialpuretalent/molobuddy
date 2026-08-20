@@ -25,6 +25,9 @@ Dio authenticatedDio(Ref ref) {
     MoloAuthenticatedTransport(
       tokenBroker: ref.watch(authTokenBrokerProvider),
       appCheckGateway: ref.watch(appCheckGatewayProvider),
+      // The same client, so a retry goes back through the interceptor chain
+      // and is subject to every rule the first attempt was.
+      resend: dio.fetch,
     ),
   );
   return dio;
