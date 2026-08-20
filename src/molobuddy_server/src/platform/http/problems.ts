@@ -119,7 +119,16 @@ export function registerProblemHandlers(app: FastifyInstance): void {
         return sendProblem(reply, request, 'invalid_json');
       }
       if (error.validation !== undefined) {
-        return sendProblem(reply, request, 'invalid_query');
+        // A rejected query field and a rejected body are different mistakes
+        // and the API contract gives them different codes. Neither names the
+        // offending value, so nothing the caller submitted is echoed back.
+        return sendProblem(
+          reply,
+          request,
+          error.validationContext === 'body'
+            ? 'validation_error'
+            : 'invalid_query',
+        );
       }
 
       request.log.error(

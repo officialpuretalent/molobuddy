@@ -2,8 +2,12 @@ import cors from '@fastify/cors';
 import Fastify, { LogController, type FastifyInstance } from 'fastify';
 
 import type { ServerConfig } from './config.js';
-import { createControlApiContainer } from './container.js';
+import {
+  createControlApiContainer,
+  type ControlApiDependencies,
+} from './container.js';
 import { registerIdentityAccessRoutes } from '../contexts/identity_access/adapters/inbound/http/identity_access_routes.js';
+import { registerPracticeRoutes } from '../contexts/practice_management/adapters/inbound/http/practice_routes.js';
 import { createOpaqueId } from '../platform/http/identifiers.js';
 import { registerHealthRoute } from '../platform/http/health_route.js';
 import { registerProblemHandlers } from '../platform/http/problems.js';
@@ -11,6 +15,7 @@ import { registerRequestContext } from '../platform/http/request_context.js';
 
 export async function buildControlApi(
   config: ServerConfig,
+  dependencies: ControlApiDependencies = {},
 ): Promise<FastifyInstance> {
   const app = Fastify({
     ajv: {
@@ -46,13 +51,14 @@ export async function buildControlApi(
         ? false
         : [...config.corsAllowedOrigins],
     credentials: false,
-    methods: ['GET', 'OPTIONS'],
+    methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: [
       'Accept',
       'Content-Type',
       'Authorization',
       'X-Firebase-AppCheck',
       'X-Correlation-Id',
+      'Idempotency-Key',
     ],
     exposedHeaders: ['X-Request-Id', 'X-Correlation-Id'],
     maxAge: 600,
@@ -62,9 +68,10 @@ export async function buildControlApi(
   registerRequestContext(app);
   registerProblemHandlers(app);
 
-  const container = createControlApiContainer(config);
+  const container = createControlApiContainer(config, dependencies);
   registerHealthRoute(app, config);
   registerIdentityAccessRoutes(app, container);
+  registerPracticeRoutes(app, container);
 
   await app.ready();
   return app;

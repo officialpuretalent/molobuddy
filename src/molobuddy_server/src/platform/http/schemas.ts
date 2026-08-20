@@ -123,6 +123,51 @@ export const authProvidersResponseSchema = {
   },
 } as const;
 
+/**
+ * The routing projection.
+ *
+ * One definition serves both the session list and the practice creation
+ * response. The stored record has the same shape deliberately, so a second
+ * declaration here would be the seam the two contracts drift apart at.
+ */
+export const practiceRefSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'practiceId',
+    'displayLabel',
+    'homeRegionKey',
+    'routeVersion',
+    'accessStatus',
+  ],
+  properties: {
+    practiceId: { type: 'string', minLength: 1, maxLength: 128 },
+    displayLabel: { type: 'string', minLength: 1, maxLength: 200 },
+    homeRegionKey: { type: 'string', minLength: 1, maxLength: 64 },
+    routeVersion: { type: 'integer', minimum: 1 },
+    accessStatus: { enum: ['active', 'invited', 'suspended'] },
+  },
+} as const;
+
+export const createPracticeBodySchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['displayName'],
+  properties: {
+    displayName: { type: 'string', minLength: 1, maxLength: 120 },
+  },
+} as const;
+
+export const createPracticeResponseSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['data', 'meta'],
+  properties: {
+    data: practiceRefSchema,
+    meta: responseMetaSchema,
+  },
+} as const;
+
 export const sessionResponseSchema = {
   type: 'object',
   additionalProperties: false,
@@ -147,24 +192,7 @@ export const sessionResponseSchema = {
         practiceRefs: {
           type: 'array',
           maxItems: 500,
-          items: {
-            type: 'object',
-            additionalProperties: false,
-            required: [
-              'practiceId',
-              'displayLabel',
-              'homeRegionKey',
-              'routeVersion',
-              'accessStatus',
-            ],
-            properties: {
-              practiceId: { type: 'string', minLength: 1, maxLength: 128 },
-              displayLabel: { type: 'string', minLength: 1, maxLength: 200 },
-              homeRegionKey: { type: 'string', minLength: 1, maxLength: 64 },
-              routeVersion: { type: 'integer', minimum: 1 },
-              accessStatus: { enum: ['active', 'invited', 'suspended'] },
-            },
-          },
+          items: practiceRefSchema,
         },
       },
     },
