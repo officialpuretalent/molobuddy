@@ -7,16 +7,17 @@ import type {
 
 import { createOpaqueId } from './identifiers.js';
 
-type ProblemCode =
+export type ProblemCode =
   | 'invalid_json'
   | 'invalid_query'
+  | 'validation_error'
   | 'authentication_required'
   | 'token_invalid'
   | 'app_check_required'
   | 'resource_not_found'
   | 'internal_error';
 
-type ProblemInput = Readonly<{
+export type ProblemInput = Readonly<{
   status: number;
   code: ProblemCode;
   title: string;
@@ -35,6 +36,12 @@ const problems: Readonly<Record<ProblemCode, ProblemInput>> = {
     code: 'invalid_query',
     title: 'The query is not valid.',
     detail: 'Check the supported query fields and try again.',
+  },
+  validation_error: {
+    status: 400,
+    code: 'validation_error',
+    title: 'The request is not valid.',
+    detail: 'Check the highlighted fields and try again.',
   },
   authentication_required: {
     status: 401,
@@ -67,6 +74,15 @@ const problems: Readonly<Record<ProblemCode, ProblemInput>> = {
     detail: 'Try again later.',
   },
 };
+
+/**
+ * The catalogue entry for a code.
+ *
+ * Exported so the catalogue itself is testable without an HTTP round trip.
+ */
+export function problemForCode(code: ProblemCode): ProblemInput {
+  return problems[code];
+}
 
 export function sendProblem(
   reply: FastifyReply,
