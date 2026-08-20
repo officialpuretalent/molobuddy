@@ -15,6 +15,10 @@ Dio authenticatedDio(Ref ref) {
     BaseOptions(
       headers: const {'accept': 'application/json'},
       connectTimeout: const Duration(seconds: 5),
+      // Start-up waits on /v1/session, so a server that accepts the
+      // connection and then says nothing would stall the app forever. Callers
+      // that want a tighter bound set their own on the request.
+      receiveTimeout: const Duration(seconds: 10),
     ),
   );
   dio.interceptors.add(
