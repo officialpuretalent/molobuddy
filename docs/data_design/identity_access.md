@@ -208,6 +208,65 @@ The server treats a missing `validFrom` as immediately valid and a missing
 background job for denial. A grant may only name one taxpayer and its evidence
 must be stored as protected document references, never copied into the grant.
 
+### 3.4 Founding onboarding
+
+Before a user has any practice, their setup progress lives in the control
+plane beside their routing projections:
+
+```text
+/users/{uid}/onboarding/current
+```
+
+```ts
+type OnboardingRecord = {
+  uid: string;
+  status: 'in_progress' | 'complete';
+  answers: {
+    practiceName?: string;
+    practiceSize?: 'solo' | 'small_team' | 'growing_team';
+    priorities?: Array<
+      'deadlines' | 'documents' | 'teamwork' | 'visibility'
+    >;
+    startingPoint?:
+      | 'import_clients'
+      | 'add_first_client'
+      | 'sample_workspace';
+  };
+  completedPracticeId?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  version: string;
+};
+```
+
+It stores **answers, not a step**. The resume point is derived per request
+from which answers are present. A stored step enum would weld this record to
+the sign-up wizard's current shape, so reordering two screens would need a
+migration of every in-flight record.
+
+This path is read by an adapter in `identity_access`, to answer the session
+gate, and by one in `practice_management`, which owns the record. Neither may
+import the other, so the path is recorded here as the single source both are
+checked against.
+
+**Onboarding is complete when the record says so, or when the user has at
+least one `practiceRef`.** The second condition does two jobs: every user who
+already had a practice before this record existed is complete without a
+migration, and a user who later joins someone else's practice by invitation
+completes onboarding without ever founding one. The stored `status` is kept as
+well, so losing access to a practice never pushes someone who already onboarded
+back into a wizard.
+
+On completion the answers are copied to a record the practice owns:
+
+```text
+/practices/{practiceId}/onboarding/founding
+```
+
+holding the four answers, the founder's `uid` and `recordedAt`. It is a
+point-in-time survey, never updated, and therefore carries no `version` for
+the reason section 3.0 gives below.
+
 ## 4. Capability catalogue and default role bundles
 
 Capability codes are stable, namespaced server constants. An endpoint declares
@@ -361,7 +420,20 @@ control without a separately documented exception and evidence.
 ## 9. API and application behaviour
 
 Regional endpoint specifications must declare their required capability and
-scope in the endpoint summary. A missing declaration is a design failure. The
+scope in the endpoint summary. A missing declaration is a design failure.
+
+**The onboarding redirect is user experience, not access control.** A client
+that finds `onboarding.status` is `in_progress` on the session sends the user
+to the sign-up wizard rather than the workspace. That is presentation. A user
+mid-onboarding has no practice, and every regional endpoint requires an active
+`PracticeMember`, so the deny-by-default model in section 2 already refuses
+them the entire application without a single additional check. The redirect
+exists so they meet a wizard instead of an empty screen.
+
+This is written down so a reader who assumes the client is enforcing something
+does not remove a server check that never existed. The one thing the server
+does enforce is that onboarding cannot be marked complete while a required
+answer is missing. The
 authorisation library accepts a typed policy such as:
 
 ```ts

@@ -1,6 +1,6 @@
 # Founding Onboarding Design
 
-- **Status:** Draft v0.1, approved in brainstorming, awaiting review
+- **Status:** Draft v0.2, server slice implemented; client slice planned
 - **Owner:** Product and engineering
 - **Last updated:** 20 August 2026
 - **Related contracts:** [identity and access data design](../data_design/identity_access.md), [practice provisioning design](2026-08-20-practice-provisioning-design.md), [client-first authentication](../backend_design/authentication.md), [identity and access API](../api_design/identity_access.md), [repository and source structure](../backend_design/repository_structure.md)
@@ -254,14 +254,27 @@ is invited rather than founding.
 ```ts
 onboarding: {
   status: 'in_progress' | 'complete';
-  nextStep?: 'practice' | 'priorities' | 'starting_point' | 'ready_to_complete';
 };
 ```
 
-`nextStep` is present only while `status` is `in_progress`. The client already
-calls `/v1/session` on every start, so the gate costs no additional round trip,
-and an onboarded user carries two extra fields rather than a draft they no
-longer care about.
+**One field, not two.** This section originally carried a derived `nextStep`
+as well. Computing it needs `resumeStepFor`, which is `practice_management`
+domain logic, and `identity_access` owns the session while
+`practice_management` already imports `VerifiedActor` from it. Putting the step
+on the session would therefore either close a dependency cycle or duplicate the
+derivation and drift from it.
+
+Neither is necessary. The only client that needs the step is the wizard, and
+the wizard fetches `GET /v1/onboarding` when it opens regardless. The session
+answers the gate question; the onboarding resource answers everything else.
+
+The client already calls `/v1/session` on every start, so the gate costs no
+additional round trip, and an onboarded user carries one extra field rather
+than a draft they no longer care about.
+
+`GetSession` checks for a practice before consulting the record, per section
+3.3. An onboarded user therefore costs no second read on the hottest endpoint
+in the system.
 
 The router sends a signed-in user whose onboarding is incomplete to
 `/onboarding`, from wherever they tried to go.
@@ -402,9 +415,12 @@ contexts/practice_management/
 `GET /v1/session` lives in `identity_access` and must not import
 `practice_management`. It reads the gate through a port in its own context —
 `OnboardingStatusReader`, mirroring how `PracticeRefReader` already works — whose
-adapter reads the same collection. The status computation is small enough that
-duplicating the two-line rule across the boundary is cheaper than coupling two
-contexts.
+adapter reads the same collection.
+
+That port answers a single boolean, so nothing is duplicated except the
+collection path. `users/{uid}/onboarding/current` is therefore read by an
+adapter in each of the two contexts and belongs to the data design rather than
+to either context's private business. It is recorded there for that reason.
 
 Deriving the resume point is domain logic and lives in `domain/onboarding`, so
 both the session gate and the completion check agree by construction rather than

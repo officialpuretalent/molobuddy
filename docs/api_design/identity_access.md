@@ -23,6 +23,21 @@ type Session = {
     routeVersion: number;
     accessStatus: 'active' | 'invited' | 'suspended';
   }>;
+  onboarding: {
+    status: 'in_progress' | 'complete';
+  };
+};
+
+type Onboarding = {
+  status: 'in_progress' | 'complete';
+  nextStep?: 'practice' | 'priorities' | 'starting_point' | 'ready_to_complete';
+  answers: {
+    practiceName?: string;
+    practiceSize?: 'solo' | 'small_team' | 'growing_team';
+    priorities?: Array<'deadlines' | 'documents' | 'teamwork' | 'visibility'>;
+    startingPoint?: 'import_clients' | 'add_first_client' | 'sample_workspace';
+  };
+  version?: string;
 };
 
 type PracticeRoute = {
@@ -83,6 +98,9 @@ server-owned derived projection that no client updates, so there is no
 | `GET` | `/v1/session` | Global | Authenticated user | — |
 | `POST` | `/v1/session:resolve-practice` | Global | Authorised practice reference | — |
 | `POST` | `/v1/practices` | Global | Authenticated user; no capability | Idempotency key |
+| `GET` | `/v1/onboarding` | Global | Authenticated user; own record only | — |
+| `PATCH` | `/v1/onboarding` | Global | Authenticated user; own record only | `If-Match` required |
+| `POST` | `/v1/onboarding:complete` | Global | Authenticated user; no capability | Idempotency key |
 | `GET` | `/v1/practices/{practiceId}/members` | Regional | `members.read` | — |
 | `POST` | `/v1/practices/{practiceId}/invitations` | Regional | `members.invite` | Idempotency key |
 | `POST` | `/v1/invitations:accept` | Global edge | Valid invite + authenticated user | Idempotency key |
@@ -216,6 +234,92 @@ without a routing entry cannot exist.
 | Anything else | 500 | `internal_error` |
 
 No error detail echoes a submitted value.
+
+## `GET /v1/onboarding`
+
+Returns the caller's own setup progress and the concurrency token the next
+save must echo. A user who has answered nothing receives a not-started shape
+with empty answers and no `version`; nothing is written.
+
+`nextStep` is derived per request from which answers are present, never
+stored. That is what lets the sign-up wizard change shape without migrating
+in-flight records. It is absent once `status` is `complete`.
+
+**Response:** `200 OK` with `Onboarding`.
+
+**Errors:** `401 authentication_required`, `401 token_invalid`,
+`403 app_check_required`.
+
+## `PATCH /v1/onboarding`
+
+```http
+PATCH /v1/onboarding
+If-Match: "<version>"
+Content-Type: application/json
+
+{ "answers": { "practiceName": "Mokoena Media Tax", "practiceSize": "solo" } }
+```
+
+Every answer is optional and merges into the stored set, so the wizard's back
+button and a changed mind need no separate path. Unknown fields are refused
+rather than dropped. Each value is validated against its enumeration;
+client-supplied values are untrusted.
+
+`If-Match` is omitted only on the first write, when no record exists. A write
+that finds a record already present and carries no version is a lost update
+and answers `428`.
+
+**Response:** `200 OK` with `Onboarding` and a fresh `version`.
+
+**Errors:**
+
+| Condition | Status | Code |
+|---|---|---|
+| Missing or unparseable body | 400 | `invalid_json` |
+| Unknown field, bad enumeration, empty `priorities`, `practiceName` empty or over 120 characters | 400 | `validation_error` |
+| No ID token | 401 | `authentication_required` |
+| Bad ID token | 401 | `token_invalid` |
+| Missing or bad App Check token | 403 | `app_check_required` |
+| Onboarding already complete | 409 | `onboarding_already_complete` |
+| `If-Match` does not match the stored version | 412 | `version_mismatch` |
+| Record exists and `If-Match` was not sent | 428 | `version_required` |
+
+## `POST /v1/onboarding:complete`
+
+```http
+POST /v1/onboarding:complete
+Idempotency-Key: <client-generated opaque key>
+```
+
+No body. Every input is already stored; accepting them again here would create
+two sources of truth and a way to finish with answers that were never saved.
+
+Creates the practice, the founding owner membership, the routing projection,
+the founding-answers record and the audit event, and marks onboarding
+complete — all in one transaction. A practice whose onboarding still says it is
+outstanding therefore cannot exist.
+
+**Response:** `201 Created` with the new `PracticeRef`, or `200 OK` for a
+replayed key or an onboarding that was already complete.
+
+**Errors:**
+
+| Condition | Status | Code |
+|---|---|---|
+| Missing `Idempotency-Key` | 400 | `validation_error` |
+| No ID token | 401 | `authentication_required` |
+| Bad ID token | 401 | `token_invalid` |
+| Missing or bad App Check token | 403 | `app_check_required` |
+| A required answer is missing | 409 | `onboarding_incomplete` |
+| Anything else | 500 | `internal_error` |
+
+`onboarding_incomplete` names each missing answer through the problem's
+`errors[].pointer`. No error detail ever echoes a submitted value.
+
+`version_mismatch` and `version_required` are the concurrency mechanism
+section 7 of the [API design README](README.md) describes. The onboarding
+record is the first resource in Molo a client updates, so this is their first
+use.
 
 ## `POST /v1/session:resolve-practice`
 

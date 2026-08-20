@@ -78,7 +78,7 @@ Four codes the API design names and nothing has ever implemented, plus the `erro
 **Interfaces:**
 - Produces: `ProblemCode` gains `onboarding_incomplete`, `onboarding_already_complete`, `version_mismatch`, `version_required`. `sendProblem` gains a fourth parameter `errors: readonly ProblemPointer[]`. `problemResponses` gains 409, 412 and 428.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `test/unit/problems.test.ts`:
 
@@ -106,7 +106,7 @@ describe('concurrency and onboarding problems', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 cd src/molobuddy_server && npm run test:unit
@@ -114,7 +114,7 @@ cd src/molobuddy_server && npm run test:unit
 
 Expected: FAIL. `'version_mismatch'` is not assignable to `ProblemCode`.
 
-- [ ] **Step 3: Add the codes**
+- [x] **Step 3: Add the codes**
 
 In `src/platform/http/problems.ts`, extend the union after `resource_not_found`:
 
@@ -155,7 +155,7 @@ and add these entries to the `problems` record, after `resource_not_found`:
   },
 ```
 
-- [ ] **Step 4: Let a problem carry pointers**
+- [x] **Step 4: Let a problem carry pointers**
 
 Still in `problems.ts`, add the type and widen `sendProblem`:
 
@@ -188,7 +188,7 @@ and inside the sent object, after `correlationId`:
       ...(errors.length === 0 ? {} : { errors }),
 ```
 
-- [ ] **Step 5: Let the new statuses through the response schemas**
+- [x] **Step 5: Let the new statuses through the response schemas**
 
 In `src/platform/http/schemas.ts`, add to `problemResponses`:
 
@@ -200,7 +200,7 @@ In `src/platform/http/schemas.ts`, add to `problemResponses`:
 
 A status with no schema is serialised unvalidated, which would defeat the allowlist the contract test in `auth_contract.test.ts` relies on.
 
-- [ ] **Step 6: Run the tests and watch them pass**
+- [x] **Step 6: Run the tests and watch them pass**
 
 ```bash
 npm run test:unit
@@ -208,7 +208,7 @@ npm run test:unit
 
 Expected: PASS, 2 new tests.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 npm run check
@@ -230,7 +230,7 @@ Answers, their enumerations, the resume derivation and the completion invariant.
 - Consumes: `normalisePracticeName` from `./practice.js`.
 - Produces: `OnboardingAnswers`, `OnboardingStep`, `PracticeSize`, `OnboardingPriority`, `StartingPoint`, `practiceSizes`, `onboardingPriorities`, `startingPoints`, `resumeStepFor(answers)`, `missingAnswerPointers(answers)`, `parseAnswerPatch(value)`, `mergeAnswers(stored, patch)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/unit/onboarding_domain.test.ts`:
 
@@ -380,7 +380,7 @@ describe('merge', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 npm run test:unit
@@ -388,7 +388,7 @@ npm run test:unit
 
 Expected: FAIL, cannot resolve `onboarding.js`.
 
-- [ ] **Step 3: Write the domain**
+- [x] **Step 3: Write the domain**
 
 Create `src/contexts/practice_management/domain/onboarding.ts`:
 
@@ -576,7 +576,7 @@ function isMember<T extends string>(
 }
 ```
 
-- [ ] **Step 4: Run the tests and watch them pass**
+- [x] **Step 4: Run the tests and watch them pass**
 
 ```bash
 npm run test:unit
@@ -584,11 +584,11 @@ npm run test:unit
 
 Expected: PASS, 18 new tests.
 
-- [ ] **Step 5: Confirm the containment guard still bites**
+- [x] **Step 5: Confirm the containment guard still bites**
 
 Temporarily add `import type { Timestamp } from 'firebase-admin/firestore';` to `domain/onboarding.ts` plus a type that uses it, run `npm run test:unit`, watch `vendor_containment.test.ts` fail naming the new file, then remove both. An unused import fails the build instead, which is a different guard proving a different thing.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 npm run check
@@ -611,7 +611,7 @@ The port and its Firestore adapter, including `If-Match`. This is where the conc
 - Consumes: `OnboardingAnswers`, `mergeAnswers`, `runInTransaction`, `createResourceVersion`.
 - Produces: `StoredOnboarding`, `SaveAnswersOutcome`, `OnboardingRepository` with `find(uid)` and `save(uid, patch, expectedVersion)`; `FirestoreOnboardingRepository`; `onboardingPath(uid)`.
 
-- [ ] **Step 1: Write the port**
+- [x] **Step 1: Write the port**
 
 Create `application/ports/onboarding_repository.ts`:
 
@@ -651,7 +651,7 @@ export interface OnboardingRepository {
 }
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Create `test/integration/firestore/onboarding_repository.test.ts`:
 
@@ -795,7 +795,7 @@ describe('firestore onboarding repository', () => {
 });
 ```
 
-- [ ] **Step 3: Run the test and watch it fail**
+- [x] **Step 3: Run the test and watch it fail**
 
 ```bash
 npm run test:firestore
@@ -803,7 +803,7 @@ npm run test:firestore
 
 Expected: FAIL, cannot resolve `firestore_onboarding_repository.js`.
 
-- [ ] **Step 4: Write the adapter**
+- [x] **Step 4: Write the adapter**
 
 Create `adapters/outbound/persistence/firestore_onboarding_repository.ts`:
 
@@ -907,7 +907,7 @@ export class FirestoreOnboardingRepository implements OnboardingRepository {
 }
 ```
 
-- [ ] **Step 5: Run the test and watch it pass**
+- [x] **Step 5: Run the test and watch it pass**
 
 ```bash
 npm run test:firestore
@@ -915,7 +915,7 @@ npm run test:firestore
 
 Expected: PASS, 8 new tests. The racing test relies on Firestore aborting and retrying one transaction, which then re-reads and finds the version has moved. Do not add a sleep.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 npm run check
@@ -938,7 +938,7 @@ Two small application services over the port. No HTTP yet.
 - Consumes: `OnboardingRepository`, `parseAnswerPatch`, `resumeStepFor`.
 - Produces: `OnboardingView = { status, nextStep?, answers, version? }`; `GetOnboarding.execute(uid)`; `SaveOnboardingAnswers.execute({uid, answers, expectedVersion})` returning `SaveOnboardingResult`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/unit/onboarding_commands.test.ts`:
 
@@ -1095,7 +1095,7 @@ describe('save onboarding answers', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 npm run test:unit
@@ -1103,7 +1103,7 @@ npm run test:unit
 
 Expected: FAIL, cannot resolve `get_onboarding.js`.
 
-- [ ] **Step 3: Write the query**
+- [x] **Step 3: Write the query**
 
 Create `application/queries/get_onboarding.ts`:
 
@@ -1151,7 +1151,7 @@ export class GetOnboarding {
 }
 ```
 
-- [ ] **Step 4: Write the command**
+- [x] **Step 4: Write the command**
 
 Create `application/commands/save_onboarding_answers.ts`:
 
@@ -1214,7 +1214,7 @@ export class SaveOnboardingAnswers {
 }
 ```
 
-- [ ] **Step 5: Run the tests and watch them pass**
+- [x] **Step 5: Run the tests and watch them pass**
 
 ```bash
 npm run test:unit
@@ -1222,7 +1222,7 @@ npm run test:unit
 
 Expected: PASS, 7 new tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 npm run check
@@ -1244,7 +1244,7 @@ Extends the provisioning write with an optional founding block, so completion ad
 **Interfaces:**
 - Produces: `FoundingOnboarding = { uid, answers }`; `ProvisionPracticeWrite` gains `founding?: FoundingOnboarding`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `test/integration/firestore/practice_repository.test.ts`, keeping every existing test unchanged:
 
@@ -1324,7 +1324,7 @@ Add to `test/integration/firestore/practice_repository.test.ts`, keeping every e
   });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 npm run test:firestore
@@ -1332,7 +1332,7 @@ npm run test:firestore
 
 Expected: FAIL. `founding` is not a property of `ProvisionPracticeWrite`.
 
-- [ ] **Step 3: Extend the port**
+- [x] **Step 3: Extend the port**
 
 In `application/ports/practice_repository.ts`, add the import and the type:
 
@@ -1359,7 +1359,7 @@ and add to `ProvisionPracticeWrite`:
   founding?: FoundingOnboarding;
 ```
 
-- [ ] **Step 4: Extend the adapter**
+- [x] **Step 4: Extend the adapter**
 
 In `firestore_practice_repository.ts`, replace the transaction body so every read precedes every write:
 
@@ -1448,7 +1448,7 @@ In `firestore_practice_repository.ts`, replace the transaction body so every rea
 
 `PracticeRefRecord` is already imported in this file. `createResourceVersion` is too.
 
-- [ ] **Step 5: Run the tests and watch them pass**
+- [x] **Step 5: Run the tests and watch them pass**
 
 ```bash
 npm run test:firestore
@@ -1456,7 +1456,7 @@ npm run test:firestore
 
 Expected: PASS, 8 tests in this file, 19 across the emulator suite.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 npm run check
@@ -1478,7 +1478,7 @@ git commit -m "feat: complete onboarding in the transaction that founds the prac
 - Consumes: `OnboardingRepository`, `ProvisionPractice`, `missingAnswerPointers`, `VerifiedActor`.
 - Produces: `CompleteOnboarding.execute({actor, idempotencyKey, correlationId})` returning `{ok: true, practiceRef, replayed}`, `{ok: false, code: 'validation_error', pointer}` or `{ok: false, code: 'onboarding_incomplete', missing}`. `ProvisionPracticeInput` gains `founding?: FoundingOnboarding`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/unit/complete_onboarding.test.ts`:
 
@@ -1661,7 +1661,7 @@ describe('complete onboarding', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 npm run test:unit
@@ -1669,7 +1669,7 @@ npm run test:unit
 
 Expected: FAIL, cannot resolve `complete_onboarding.js`.
 
-- [ ] **Step 3: Let the provisioning command carry the founding block**
+- [x] **Step 3: Let the provisioning command carry the founding block**
 
 In `application/commands/provision_practice.ts`, add the import:
 
@@ -1691,7 +1691,7 @@ and inside the `this.repository.provision({...})` call, after `idempotencyKey`:
 
 The conditional spread is required: `exactOptionalPropertyTypes` refuses an explicit `undefined` for an optional property.
 
-- [ ] **Step 4: Write the command**
+- [x] **Step 4: Write the command**
 
 Create `application/commands/complete_onboarding.ts`:
 
@@ -1767,7 +1767,7 @@ export class CompleteOnboarding {
 }
 ```
 
-- [ ] **Step 5: Extend the import surface**
+- [x] **Step 5: Extend the import surface**
 
 In `src/contexts/practice_management/index.ts`, add:
 
@@ -1780,7 +1780,7 @@ export type { OnboardingView } from './application/queries/get_onboarding.js';
 export type { OnboardingRepository } from './application/ports/onboarding_repository.js';
 ```
 
-- [ ] **Step 6: Run the tests and watch them pass**
+- [x] **Step 6: Run the tests and watch them pass**
 
 ```bash
 npm run test:unit && npm run test:firestore
@@ -1788,7 +1788,7 @@ npm run test:unit && npm run test:firestore
 
 Expected: PASS, 6 new unit tests, emulator suite unchanged and green.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 npm run check
@@ -1811,7 +1811,7 @@ git commit -m "feat: found a practice from stored onboarding answers"
 - Consumes: `GetOnboarding`, `SaveOnboardingAnswers`, `CompleteOnboarding`, `RequestTokenVerifier`, `sendProblem`, `ProblemPointer`, `responseMeta`.
 - Produces: `registerOnboardingRoutes(app, container)`; `ControlApiContainer` gains `getOnboarding`, `saveOnboardingAnswers`, `completeOnboarding`; `ControlApiDependencies` gains `onboardingRepository`.
 
-- [ ] **Step 1: Add the schemas**
+- [x] **Step 1: Add the schemas**
 
 In `src/platform/http/schemas.ts`, add before `practiceRefSchema`:
 
@@ -1872,7 +1872,7 @@ export const onboardingResponseSchema = {
 
 The body schema repeats the domain's enumerations on purpose: Fastify rejects the obvious cases before a handler runs, and `parseAnswerPatch` is what actually decides, because the schema is a convenience and the domain is the contract. Task 8 adds a test that the two lists agree.
 
-- [ ] **Step 2: Write the failing contract test**
+- [x] **Step 2: Write the failing contract test**
 
 Create `test/contract/onboarding.test.ts`, following `practice_provisioning.test.ts` for how it builds the app and presents the local verifier's token pair. Inject an in-memory `OnboardingRepository` and `PracticeRepository` through the container, so the contract test needs no emulator. The in-memory onboarding repository must implement the same `If-Match` rules as the Firestore one; copy the branch order from Task 3's adapter rather than inventing a second set of rules.
 
@@ -1928,7 +1928,7 @@ Case 7 written out, so the shape of the other thirteen is not left to taste:
 `ProblemResponse` needs an optional `errors` array added to the local type this
 file declares; `practice_provisioning.test.ts` declares one without it.
 
-- [ ] **Step 3: Run the test and watch it fail**
+- [x] **Step 3: Run the test and watch it fail**
 
 ```bash
 npm run test:contract
@@ -1936,7 +1936,7 @@ npm run test:contract
 
 Expected: FAIL. The routes do not exist, so every case returns 404.
 
-- [ ] **Step 4: Write the routes**
+- [x] **Step 4: Write the routes**
 
 Create `adapters/inbound/http/onboarding_routes.ts`:
 
@@ -2109,7 +2109,7 @@ function readTokens(request: FastifyRequest): Readonly<{
 }
 ```
 
-- [ ] **Step 5: Wire the container and the app**
+- [x] **Step 5: Wire the container and the app**
 
 In `src/bootstrap/container.ts`:
 
@@ -2145,7 +2145,7 @@ In `src/bootstrap/container.ts`:
 
 In `src/bootstrap/build_control_api.ts`, call `registerOnboardingRoutes(app, container)` beside the existing registrations, add `'PATCH'` to the CORS `methods` list, and add `'If-Match'` to `allowedHeaders`. Without both, the browser this endpoint exists for cannot call it.
 
-- [ ] **Step 6: Run the tests and watch them pass**
+- [x] **Step 6: Run the tests and watch them pass**
 
 ```bash
 npm run test:contract && npm run check
@@ -2153,7 +2153,7 @@ npm run test:contract && npm run check
 
 Expected: PASS, 14 new contract tests, everything else green.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/molobuddy_server/src src/molobuddy_server/test/contract/onboarding.test.ts
@@ -2178,7 +2178,7 @@ git commit -m "feat: read, save and complete onboarding over the control API"
 **Interfaces:**
 - Produces: `OnboardingStatusReader` with `isComplete(uid: string): Promise<boolean>`; `Session` gains `onboarding: { status: 'in_progress' | 'complete' }`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `test/unit/get_session.test.ts`, reusing its existing fixtures and adding a `readerReturning` helper and an `aPractice` fixture mirroring the ones in `test/integration/control_api.test.ts`:
 
@@ -2264,7 +2264,7 @@ describe('onboarding enumerations', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests and watch them fail**
+- [x] **Step 2: Run the tests and watch them fail**
 
 ```bash
 npm run test:unit
@@ -2272,7 +2272,7 @@ npm run test:unit
 
 Expected: FAIL. `GetSession` takes two constructor arguments, and `onboarding_status_reader.js` does not resolve.
 
-- [ ] **Step 3: Write the port**
+- [x] **Step 3: Write the port**
 
 Create `application/ports/onboarding_status_reader.ts`:
 
@@ -2290,7 +2290,7 @@ export interface OnboardingStatusReader {
 }
 ```
 
-- [ ] **Step 4: Use it in the query**
+- [x] **Step 4: Use it in the query**
 
 In `get_session.ts`, add the import, the gate type, the third constructor argument, and the computation:
 
@@ -2324,7 +2324,7 @@ and after the practices are loaded:
 
 then return `onboarding: { status: onboardingComplete ? 'complete' : 'in_progress' }` in the session.
 
-- [ ] **Step 5: Write the adapter**
+- [x] **Step 5: Write the adapter**
 
 Create `adapters/outbound/persistence/firestore_onboarding_status_reader.ts`:
 
@@ -2347,7 +2347,7 @@ export class FirestoreOnboardingStatusReader implements OnboardingStatusReader {
 
 The path is repeated from `practice_management`'s adapter rather than imported across the context boundary. Two adapters agreeing on one collection path is a smaller cost than a dependency cycle, and Task 9 records the path in the data design so both have one source to be checked against.
 
-- [ ] **Step 6: Add the response schema and wire it**
+- [x] **Step 6: Add the response schema and wire it**
 
 In `sessionResponseSchema`, add `'onboarding'` to `data.required` and this to `data.properties`:
 
@@ -2364,7 +2364,7 @@ In `identity_access/index.ts`, export the `OnboardingStatusReader` type alongsid
 
 In `container.ts`, add `onboardingStatusReader?: OnboardingStatusReader` to `ControlApiDependencies` and pass `dependencies.onboardingStatusReader ?? new FirestoreOnboardingStatusReader(database())` as `GetSession`'s third argument.
 
-- [ ] **Step 7: Keep the existing suites honest**
+- [x] **Step 7: Keep the existing suites honest**
 
 Two existing suites assert an exact session object and will fail the moment `Session` gains a field. Both must be updated, and neither is optional.
 
@@ -2378,7 +2378,7 @@ Two existing suites assert an exact session object and will fail the moment `Ses
 
 The existing session test has no practices, so it expects `onboarding: { status: 'in_progress' }`. The test that returns a practice expects `complete`.
 
-- [ ] **Step 8: Run everything**
+- [x] **Step 8: Run everything**
 
 ```bash
 npm run check && npm run test:firestore
@@ -2386,7 +2386,7 @@ npm run check && npm run test:firestore
 
 Expected: PASS. Confirm the session integration test still runs in single-digit milliseconds; a jump to over a second means a reader reached the real project.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/molobuddy_server/src src/molobuddy_server/test
@@ -2402,35 +2402,35 @@ git commit -m "feat: report whether onboarding is outstanding from the session"
 - Modify: `docs/data_design/identity_access.md`
 - Modify: `docs/api_design/identity_access.md`
 
-- [ ] **Step 1: Correct the spec's session contract**
+- [x] **Step 1: Correct the spec's session contract**
 
 Section 5 gives the session a `nextStep`. The implementation does not, because computing it would either create a cycle between `identity_access` and `practice_management` or duplicate the derivation. Rewrite section 5's block as `onboarding: { status: 'in_progress' | 'complete' }`, state the cycle as the reason, and note that the wizard learns its step from `GET /v1/onboarding`, which it already calls when it opens.
 
-- [ ] **Step 2: Record the collection path as shared**
+- [x] **Step 2: Record the collection path as shared**
 
 Add to spec section 7 that `users/{uid}/onboarding/current` is read by an adapter in each of the two contexts, and that the path is therefore part of the data design rather than either context's private business.
 
-- [ ] **Step 3: Add the records to the data design**
+- [x] **Step 3: Add the records to the data design**
 
 In `docs/data_design/identity_access.md` section 3, beside the routing projection, add the `OnboardingRecord` shape from spec section 3 and the founding-answers record from section 3.4. State that the founding record carries no `version` and why, consistent with section 3.0.
 
-- [ ] **Step 4: State the completion rule**
+- [x] **Step 4: State the completion rule**
 
 In the same section, state that onboarding is complete when the record says so or the user has at least one `practiceRef`, and that the second disjunct is what makes every pre-existing user complete without a migration and what will let an accepted invitation complete onboarding without founding anything.
 
-- [ ] **Step 5: State that the gate is not enforcement**
+- [x] **Step 5: State that the gate is not enforcement**
 
 In `docs/data_design/identity_access.md` section 9, state that the onboarding redirect is user experience. A user mid-onboarding has no practice and every regional endpoint requires an active membership, so deny-by-default already refuses them; the redirect exists so they meet a wizard instead of an empty screen. Say it explicitly, so a reader who assumes the client enforces it does not remove a server check that never existed.
 
-- [ ] **Step 6: Document the endpoints**
+- [x] **Step 6: Document the endpoints**
 
 In `docs/api_design/identity_access.md`, add `GET /v1/onboarding`, `PATCH /v1/onboarding` and `POST /v1/onboarding:complete` with their request shapes, responses and full error tables from spec section 6. Add all three to the endpoint summary, with concurrency `—`, `If-Match required` and `Idempotency key`. Add `onboarding` to the `Session` resource.
 
-- [ ] **Step 7: Document the new problem codes**
+- [x] **Step 7: Document the new problem codes**
 
 Add `onboarding_incomplete`, `onboarding_already_complete`, `version_mismatch` and `version_required` wherever the API design catalogues problem codes, noting that the last two are the concurrency mechanism section 7 of the API design README describes and that this is their first use.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add docs
@@ -2438,6 +2438,33 @@ git commit -m "docs: fold the onboarding server decisions into the design contra
 ```
 
 ---
+
+## Execution notes
+
+Recorded after the fact, because the plan did not predict them.
+
+- **Schema rejections now carry field pointers too.** The body schema refuses
+  an out-of-range enumeration before any handler runs, so the domain's pointer
+  never fired and a caller learned which endpoint refused them but not which
+  field. The error handler derives pointers from the validator's own errors,
+  which gives every endpoint in the API field-level detail rather than only the
+  two written here. Only the path is taken; the message is Molo's own, because
+  a validator's wording is not a contract and some keywords quote the value
+  back.
+- **This project has no eslint `varsIgnorePattern`**, so destructure-to-omit
+  (`const { x: _omitted, ...rest }`) counts as an unused variable. Build the
+  partial fixture explicitly instead — and from literals, because
+  `exactOptionalPropertyTypes` also refuses a copied optional.
+- **`= undefined` on a constructor parameter is a lint error**
+  (`no-useless-default-assignment`). Use `?` instead.
+- **An empty async method is a lint error.** A no-op fake needs a comment in
+  its body.
+- **`app.inject` refuses an explicit `undefined` payload** under
+  `exactOptionalPropertyTypes`. Spread the key in rather than assigning it.
+- **The prediction about the integration suite was right.** Wiring the gate
+  without injecting a reader took the session test from 1 ms to 1397 ms — a
+  live call to the real development project, green only for someone holding
+  Google credentials.
 
 ## Out of Scope
 
