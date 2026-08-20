@@ -1,10 +1,10 @@
 # Client-First Authentication Design
 
-- **Status:** Draft v0.2, first slice implemented (see section 17)
+- **Status:** Draft v0.3, authenticated session loop closed (see section 17)
 - **Identity service:** Firebase Authentication with Identity Platform
 - **Development project:** `molobuddy-development`
 - **Client:** Flutter
-- **Last updated:** 19 August 2026
+- **Last updated:** 20 August 2026
 
 ## 1. Decision
 
@@ -346,19 +346,21 @@ steps and configuration live in the
 | Email-enumeration protection (section 11) | Enabled on the project |
 | ID-token and App Check verification (section 8, steps 1–4) | Implemented in `FirebaseAdminRequestTokenVerifier`; distinct failure codes covered by tests |
 | Federation adapters (section 4) | Not built. Google renders as a disabled `coming_soon` preview |
-| App Check client (section 13) | Plumbed behind `AppCheckGateway`; inactive until a site key or debug token is configured |
+| App Check client (section 13) | Implemented behind `AppCheckGateway`. Debug attestation verified end to end against `molobuddy-development`; reCAPTCHA still required for any deployed build |
 | Token broker and transport (section 7) | Implemented; a test asserts features cannot import a vendor SDK or read raw tokens |
 | MFA (section 12) | Not built; disabled on the project |
 | Membership, region routing (section 8, steps 5–10) | Not built; no regional data yet |
 
-**One consequence is worth stating plainly.** The server requires an App Check
-token, and the Flutter application does not send one. With
-`AUTH_VERIFIER=firebase`, an application request to `/v1/session` therefore
-fails with `app_check_required` even when the ID token is valid, so local
-development runs the `local` verifier instead. Acceptance criterion 8 below
-keeps the two failures distinct, and that distinction must survive whatever
-closes this gap. Adding App Check to the client is the fix; relaxing the
-verifier is not.
+**The loop is closed.** With `AUTH_VERIFIER=firebase` and a safelisted debug
+token, the client presents a Firebase ID token and an App Check token, the
+Admin SDK verifies both, and `GET /v1/session` returns 200. The welcome screen
+renders the server's masked email, which is the observable proof the data came
+from the session endpoint rather than the sign-in form.
+
+Two limits remain. `practiceRefs` is still hardcoded empty server-side, so
+every user reaches the no-practice state. And attestation currently depends on
+a debug token, which is a development-only bypass: a deployed build needs a
+real reCAPTCHA provider before enforcement is switched on.
 
 ## 18. Acceptance criteria
 
