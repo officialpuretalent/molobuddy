@@ -27,6 +27,7 @@ final class MoloSession {
     this.displayName,
     this.emailMasked,
     this.preferredLocale,
+    this.onboardingComplete = true,
   });
 
   final String uid;
@@ -34,6 +35,13 @@ final class MoloSession {
   final String? displayName;
   final String? emailMasked;
   final String? preferredLocale;
+
+  /// Whether the server considers this account finished setting up.
+  ///
+  /// Defaults to true so an older server, or any response without the block,
+  /// never traps a user in a wizard. The field only ever adds a redirect, so
+  /// the safe default is the one that adds none.
+  final bool onboardingComplete;
 
   bool get hasPractices => practiceRefs.isNotEmpty;
 

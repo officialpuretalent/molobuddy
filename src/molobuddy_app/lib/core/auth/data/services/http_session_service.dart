@@ -69,8 +69,16 @@ final class HttpSessionService implements SessionService {
       return null;
     }
 
+    // Anything that is not in_progress reads as complete, so an unknown future
+    // status can never lock a user into the wizard.
+    final onboarding = data['onboarding'];
+    final onboardingComplete =
+        onboarding is! Map<String, dynamic> ||
+        onboarding['status'] != 'in_progress';
+
     final refs = data['practiceRefs'];
     return MoloSession(
+      onboardingComplete: onboardingComplete,
       uid: uid,
       displayName: _optionalString(user['displayName']),
       emailMasked: _optionalString(user['emailMasked']),

@@ -7,7 +7,7 @@ import 'package:molobuddy_app/core/auth/data/services/preview_session_service.da
 
 void main() {
   test('a preview session describes the signed-in preview user', () async {
-    const service = PreviewSessionService(
+    final service = PreviewSessionService(
       _StaticAuthService(
         AuthUser(
           id: 'preview-1',
@@ -63,7 +63,7 @@ void main() {
   test(
     'a preview build with nobody signed in has no session to show',
     () async {
-      const service = PreviewSessionService(_StaticAuthService(null));
+      final service = PreviewSessionService(_StaticAuthService(null));
 
       final result = await service.loadSession();
 
@@ -74,6 +74,44 @@ void main() {
       );
     },
   );
+
+  test('preview reports setup outstanding until a practice exists', () async {
+    final service = PreviewSessionService(
+      _StaticAuthService(
+        const AuthUser(id: 'user_1', email: 'thando@example.com'),
+      ),
+    );
+
+    final result = await service.loadSession();
+
+    expect(
+      (result as AuthSuccess<MoloSession>).value.onboardingComplete,
+      isFalse,
+    );
+  });
+
+  test('preview reports setup finished once onboarding founded one', () async {
+    // Preview mirrors the server rule: having a practice settles the gate.
+    const practice = PracticeRef(
+      practiceId: 'prc_preview_1',
+      displayLabel: 'Mokoena Media Tax',
+      homeRegionKey: 'za1',
+      routeVersion: 1,
+      accessStatus: PracticeAccessStatus.active,
+    );
+    final service = PreviewSessionService(
+      _StaticAuthService(
+        const AuthUser(id: 'user_1', email: 'thando@example.com'),
+      ),
+      practices: () => const [practice],
+    );
+
+    final session =
+        (await service.loadSession() as AuthSuccess<MoloSession>).value;
+
+    expect(session.onboardingComplete, isTrue);
+    expect(session.practiceRefs.single.displayLabel, 'Mokoena Media Tax');
+  });
 }
 
 final class _StaticAuthService implements AuthService {

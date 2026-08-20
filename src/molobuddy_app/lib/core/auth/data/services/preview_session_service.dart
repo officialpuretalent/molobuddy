@@ -13,9 +13,21 @@ import 'package:molobuddy_app/core/auth/data/services/session_service.dart';
 /// user had no way to clear. So preview answers from the user it signed in,
 /// in the same shape the server would have returned.
 final class PreviewSessionService implements SessionService {
-  const PreviewSessionService(this._authService);
+  PreviewSessionService(
+    this._authService, {
+    List<PracticeRef> Function()? practices,
+  }) : _practices = practices ?? _none;
 
   final AuthService _authService;
+
+  /// Whatever preview onboarding has founded in this run.
+  ///
+  /// Read through a function rather than held here, so this service stays a
+  /// reader and preview onboarding stays the one place a preview practice
+  /// comes into existence.
+  final List<PracticeRef> Function() _practices;
+
+  static List<PracticeRef> _none() => const [];
 
   @override
   Future<AuthResult<MoloSession>> loadSession() async {
@@ -23,14 +35,17 @@ final class PreviewSessionService implements SessionService {
     if (user == null) {
       return const AuthError(AuthFailure(AuthFailureKind.configurationMissing));
     }
+    final practices = _practices();
     return AuthSuccess(
       MoloSession(
         uid: user.id,
+        // Preview mirrors the server's rule from the data design: having a
+        // practice settles it. Preview founds one only through onboarding, so
+        // until then setup is genuinely outstanding.
+        onboardingComplete: practices.isNotEmpty,
         displayName: user.displayName,
         emailMasked: maskEmail(user.email),
-        // Preview has no practice directory to read, and inventing one would
-        // put fictional practice names on screen.
-        practiceRefs: const [],
+        practiceRefs: practices,
       ),
     );
   }

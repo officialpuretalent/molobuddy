@@ -83,6 +83,41 @@ void main() {
       AuthFailureKind.unexpected,
     );
   });
+
+  test('reads whether onboarding is still outstanding', () async {
+    final service = _serviceReturning(200, '''
+{"data":{"user":{"uid":"user_1"},"practiceRefs":[],
+"onboarding":{"status":"in_progress"}}}''');
+
+    final session =
+        (await service.loadSession() as AuthSuccess<MoloSession>).value;
+
+    expect(session.onboardingComplete, isFalse);
+  });
+
+  test('reads a finished onboarding', () async {
+    final service = _serviceReturning(200, '''
+{"data":{"user":{"uid":"user_1"},"practiceRefs":[],
+"onboarding":{"status":"complete"}}}''');
+
+    final session =
+        (await service.loadSession() as AuthSuccess<MoloSession>).value;
+
+    expect(session.onboardingComplete, isTrue);
+  });
+
+  test('treats an absent onboarding block as finished', () async {
+    // A server that has not shipped the gate yet must not trap every user in a
+    // wizard. Absence means nothing outstanding, which is the safe reading for
+    // a field that only ever adds a redirect.
+    final service = _serviceReturning(200, '''
+{"data":{"user":{"uid":"user_1"},"practiceRefs":[]}}''');
+
+    final session =
+        (await service.loadSession() as AuthSuccess<MoloSession>).value;
+
+    expect(session.onboardingComplete, isTrue);
+  });
 }
 
 HttpSessionService _serviceReturning(int status, String body) {
