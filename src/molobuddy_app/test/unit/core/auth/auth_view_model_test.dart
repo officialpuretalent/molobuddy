@@ -4,6 +4,7 @@ import 'package:molobuddy_app/core/auth/auth_providers.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_method_descriptor.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_user.dart';
+import 'package:molobuddy_app/core/auth/data/models/molo_session.dart';
 import 'package:molobuddy_app/core/auth/data/repositories/auth_repository.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_model.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_state.dart';
@@ -78,5 +79,10 @@ final class _FakeAuthRepository implements AuthRepository {
   Future<AuthResult<void>> signOut() async {
     _currentUser = null;
     return const AuthSuccess(null);
+  }
+
+  @override
+  Future<AuthResult<MoloSession>> loadSession() async {
+    return const AuthError(AuthFailure(AuthFailureKind.unexpected));
   }
 }

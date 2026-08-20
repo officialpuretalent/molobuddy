@@ -1,6 +1,7 @@
 import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_method_descriptor.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_user.dart';
+import 'package:molobuddy_app/core/auth/data/models/molo_session.dart';
 
 abstract interface class AuthRepository {
   AuthUser? get currentUser;
@@ -13,4 +14,8 @@ abstract interface class AuthRepository {
   });
 
   Future<AuthResult<void>> signOut();
+
+  /// Reloads Molo's own session. Authentication does not imply authorisation,
+  /// so this runs even when Firebase restored the user from persistence.
+  Future<AuthResult<MoloSession>> loadSession();
 }

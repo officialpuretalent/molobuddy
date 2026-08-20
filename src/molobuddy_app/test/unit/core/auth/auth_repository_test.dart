@@ -3,6 +3,7 @@ import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
 import 'package:molobuddy_app/core/auth/data/repositories/default_auth_repository.dart';
 import 'package:molobuddy_app/core/auth/data/services/auth_provider_catalogue_service.dart';
 import 'package:molobuddy_app/core/auth/data/services/preview_auth_service.dart';
+import 'package:molobuddy_app/core/auth/data/services/session_service.dart';
 
 void main() {
   test(
@@ -12,6 +13,7 @@ void main() {
       final repository = DefaultAuthRepository(
         service,
         const BundledPreviewAuthProviderCatalogueService(),
+        const UnavailableSessionService(),
       );
 
       final signIn = await repository.signInWithEmailAndPassword(

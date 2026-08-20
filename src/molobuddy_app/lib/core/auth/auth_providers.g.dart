@@ -192,6 +192,58 @@ final class AuthProviderCatalogueProvider
 String _$authProviderCatalogueHash() =>
     r'24b56fd680ca0ce6500db9920eae1b897c93d3fd';
 
+/// Loads Molo's own session over the authenticated transport. Falls back to
+/// [UnavailableSessionService] when no API base URL is configured, such as
+/// preview builds.
+
+@ProviderFor(sessionService)
+final sessionServiceProvider = SessionServiceProvider._();
+
+/// Loads Molo's own session over the authenticated transport. Falls back to
+/// [UnavailableSessionService] when no API base URL is configured, such as
+/// preview builds.
+
+final class SessionServiceProvider
+    extends $FunctionalProvider<SessionService, SessionService, SessionService>
+    with $Provider<SessionService> {
+  /// Loads Molo's own session over the authenticated transport. Falls back to
+  /// [UnavailableSessionService] when no API base URL is configured, such as
+  /// preview builds.
+  SessionServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'sessionServiceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$sessionServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<SessionService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SessionService create(Ref ref) {
+    return sessionService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SessionService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SessionService>(value),
+    );
+  }
+}
+
+String _$sessionServiceHash() => r'0465ae605635715b1ab0f40ebafd70fbf085285f';
+
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();
 
@@ -231,4 +283,4 @@ final class AuthRepositoryProvider
   }
 }
 
-String _$authRepositoryHash() => r'bdc5106097e8b4b1a508e45b674731724a35dd90';
+String _$authRepositoryHash() => r'c193a887a6733b3ccd63668cf412c3662d911369';
