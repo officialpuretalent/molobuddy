@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:molobuddy_app/app/design_system/motion/molo_motion.dart';
 import 'package:molobuddy_app/app/router/not_found_view.dart';
 import 'package:molobuddy_app/core/auth/auth_providers.dart';
+import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_model.dart';
 import 'package:molobuddy_app/core/auth/ui/views/registration/registration_view.dart';
 import 'package:molobuddy_app/core/auth/ui/views/sign_in/sign_in_view.dart';
 import 'package:molobuddy_app/core/auth/ui/views/welcome/welcome_view.dart';
@@ -78,7 +79,7 @@ Page<void> _moloPage(
 
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: const SignInRoute().location,
     routes: $appRoutes,
     // A location matching no route is an ordinary thing a stale link does, so
@@ -87,17 +88,38 @@ GoRouter appRouter(Ref ref) {
     errorBuilder: (context, state) => const NotFoundView(),
     redirect: (context, state) {
       final signedIn = ref.read(authRepositoryProvider).currentUser != null;
-      final onSignIn = state.matchedLocation == const SignInRoute().location;
-      final onRegistration =
-          state.matchedLocation == const RegistrationRoute().location;
+      final location = state.matchedLocation;
+      final onSignIn = location == const SignInRoute().location;
+      final onRegistration = location == const RegistrationRoute().location;
+      final onOnboarding = location == const OnboardingRoute().location;
       final onPublicAuthRoute = onSignIn || onRegistration;
-      if (!signedIn && !onPublicAuthRoute) {
-        return const SignInRoute().location;
+
+      if (!signedIn) {
+        return onPublicAuthRoute ? null : const SignInRoute().location;
       }
-      if (signedIn && onPublicAuthRoute) {
-        return const WelcomeRoute().location;
+
+      // Being signed in does not say whether setup is finished; the session
+      // does. Until it has answered, redirect nowhere — guessing is what makes
+      // a signup flash through three screens on a slow connection.
+      final session = switch (ref.read(authViewModelProvider)) {
+        AsyncData(:final value) => value.session,
+        _ => null,
+      };
+      if (session == null) {
+        return null;
       }
-      return null;
+
+      if (!session.onboardingComplete) {
+        return onOnboarding ? null : const OnboardingRoute().location;
+      }
+      return onPublicAuthRoute || onOnboarding
+          ? const WelcomeRoute().location
+          : null;
     },
   );
+
+  // The redirect above declines to guess while the session is loading, so
+  // something has to ask it again once the answer arrives.
+  ref.listen(authViewModelProvider, (_, _) => router.refresh());
+  return router;
 }

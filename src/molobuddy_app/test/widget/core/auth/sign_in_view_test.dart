@@ -7,8 +7,11 @@ import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
 import 'package:molobuddy_app/app/molo_app.dart';
 import 'package:molobuddy_app/bootstrap/app_environment.dart';
 import 'package:molobuddy_app/core/auth/auth_providers.dart';
+import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
+import 'package:molobuddy_app/core/auth/data/models/molo_session.dart';
 import 'package:molobuddy_app/core/auth/data/services/auth_provider_catalogue_service.dart';
 import 'package:molobuddy_app/core/auth/data/services/preview_auth_service.dart';
+import 'package:molobuddy_app/core/auth/data/services/session_service.dart';
 
 void main() {
   testWidgets('compact layout shows the form and disabled Google stub', (
@@ -179,27 +182,31 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('signing in with setup unfinished lands in the wizard', (
+    tester,
+  ) async {
+    // A preview account has founded no practice, so the gate correctly sends
+    // it to finish setting up rather than to a workspace it does not have.
+    await _setViewport(tester, const Size(390, 900));
+    await _pumpPreviewApp(tester);
+
+    await _signIn(tester);
+
+    expect(find.byKey(const Key('registration_practice_step')), findsOneWidget);
+  });
+
   testWidgets('preview email sign-in reaches welcome and can sign out', (
     tester,
   ) async {
     await _setViewport(tester, const Size(390, 844));
-    await _pumpPreviewApp(tester);
+    await _pumpPreviewApp(tester, finishedSetup: true);
 
-    await tester.enterText(
-      find.byKey(const Key('email_field')),
-      'thando.mokoena@example.com',
-    );
-    await tester.enterText(
-      find.byKey(const Key('password_field')),
-      'safe-preview-password',
-    );
-    await tester.tap(find.byKey(const Key('sign_in_button')));
-    await tester.pumpAndSettle();
+    await _signIn(tester);
 
     expect(find.byKey(const Key('welcome_view')), findsOneWidget);
-    // Preview now answers with a demo session in the shape the server
-    // returns, so the identity on screen is the masked address, never the one
-    // typed into the form.
+    // Preview answers with a demo session in the shape the server returns, so
+    // the identity on screen is the masked address, never the one typed into
+    // the form.
     expect(find.text('t***@example.com'), findsOneWidget);
     expect(find.text('thando.mokoena@example.com'), findsNothing);
     expect(find.text('Welcome, Thando Mokoena'), findsOneWidget);
@@ -209,6 +216,37 @@ void main() {
 
     expect(find.byKey(const Key('sign_in_form')), findsOneWidget);
   });
+}
+
+/// A session for an account that has finished setting up, so the onboarding
+/// gate lets it reach the workspace.
+final class _FinishedSession implements SessionService {
+  const _FinishedSession();
+
+  @override
+  Future<AuthResult<MoloSession>> loadSession() async {
+    return const AuthSuccess(
+      MoloSession(
+        uid: 'user_preview',
+        displayName: 'Thando Mokoena',
+        emailMasked: 't***@example.com',
+        practiceRefs: [],
+      ),
+    );
+  }
+}
+
+Future<void> _signIn(WidgetTester tester) async {
+  await tester.enterText(
+    find.byKey(const Key('email_field')),
+    'thando.mokoena@example.com',
+  );
+  await tester.enterText(
+    find.byKey(const Key('password_field')),
+    'safe-preview-password',
+  );
+  await tester.tap(find.byKey(const Key('sign_in_button')));
+  await tester.pumpAndSettle();
 }
 
 List<String> _semanticsLabelsContaining(WidgetTester tester, String needle) {
@@ -240,7 +278,10 @@ Future<void> _setViewport(WidgetTester tester, Size size) async {
   addTearDown(tester.view.resetPhysicalSize);
 }
 
-Future<void> _pumpPreviewApp(WidgetTester tester) async {
+Future<void> _pumpPreviewApp(
+  WidgetTester tester, {
+  bool finishedSetup = false,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -257,6 +298,8 @@ Future<void> _pumpPreviewApp(WidgetTester tester) async {
         authProviderCatalogueProvider.overrideWithValue(
           const BundledPreviewAuthProviderCatalogueService(),
         ),
+        if (finishedSetup)
+          sessionServiceProvider.overrideWithValue(const _FinishedSession()),
       ],
       child: const MoloApp(),
     ),

@@ -11,41 +11,74 @@ import 'package:molobuddy_app/core/auth/data/services/auth_provider_catalogue_se
 import 'package:molobuddy_app/core/auth/data/services/preview_auth_service.dart';
 import 'package:molobuddy_app/core/auth/data/services/session_service.dart';
 
+/// A session that says what the gate needs to decide, without going through
+/// preview's practice directory.
+final class _SessionSaying implements SessionService {
+  const _SessionSaying({required this.onboardingComplete});
+
+  final bool onboardingComplete;
+
+  @override
+  Future<AuthResult<MoloSession>> loadSession() async {
+    return AuthSuccess(
+      MoloSession(
+        uid: 'user_preview',
+        emailMasked: 't***@example.com',
+        practiceRefs: const [],
+        onboardingComplete: onboardingComplete,
+      ),
+    );
+  }
+}
+
 void main() {
-  testWidgets('an unknown location shows a Molo page, not a router exception', (
-    tester,
-  ) async {
-    await _pumpSignedIn(tester);
-
-    await _goTo(tester, '/nowhere');
-
-    expect(find.byKey(const Key('not_found_view')), findsOneWidget);
-    // What the router says to itself is not what the reader should be told.
-    expect(find.textContaining('GoException'), findsNothing);
-    expect(find.textContaining('no routes for location'), findsNothing);
-  });
-
-  testWidgets('the unknown location leads back to the workspace', (
-    tester,
-  ) async {
-    await _pumpSignedIn(tester);
-    await _goTo(tester, '/nowhere');
-
-    await tester.tap(find.byKey(const Key('not_found_home_button')));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('welcome_view')), findsOneWidget);
-  });
-
-  testWidgets('a signed-out visitor is sent to sign-in, not to an error', (
+  testWidgets('a signed-out visitor at /onboarding is sent to sign-in', (
     tester,
   ) async {
     await _pumpPreviewApp(tester);
 
-    await _goTo(tester, '/nowhere');
+    await _goTo(tester, '/onboarding');
 
     expect(find.byKey(const Key('sign_in_form')), findsOneWidget);
+  });
+
+  testWidgets('an unfinished account is routed to onboarding from anywhere', (
+    tester,
+  ) async {
+    await _pumpSignedIn(tester);
+
+    for (final location in ['/home', '/sign-in', '/nowhere']) {
+      await _goTo(tester, location);
+
+      expect(
+        find.byKey(const Key('registration_practice_step')),
+        findsOneWidget,
+        reason: '$location should have led back to onboarding',
+      );
+    }
+  });
+
+  testWidgets('an unknown route does not show the not-found page mid-setup', (
+    tester,
+  ) async {
+    await _pumpSignedIn(tester);
+
+    await _goTo(tester, '/nowhere');
+
     expect(find.byKey(const Key('not_found_view')), findsNothing);
+  });
+
+  testWidgets('a finished account at /onboarding is sent to the workspace', (
+    tester,
+  ) async {
+    await _pumpSignedIn(
+      tester,
+      session: const _SessionSaying(onboardingComplete: true),
+    );
+
+    await _goTo(tester, '/onboarding');
+
+    expect(find.byKey(const Key('welcome_view')), findsOneWidget);
   });
 }
 
@@ -58,26 +91,11 @@ Future<void> _goTo(WidgetTester tester, String location) async {
   await tester.pumpAndSettle();
 }
 
-/// Setup finished, so the onboarding gate lets this user reach an ordinary
-/// unknown route rather than intercepting it. A user still mid-setup is sent
-/// to the wizard instead, which onboarding_gate_test covers.
-final class _FinishedSession implements SessionService {
-  const _FinishedSession();
-
-  @override
-  Future<AuthResult<MoloSession>> loadSession() async {
-    return const AuthSuccess(
-      MoloSession(
-        uid: 'user_preview',
-        emailMasked: 't***@example.com',
-        practiceRefs: [],
-      ),
-    );
-  }
-}
-
-Future<void> _pumpSignedIn(WidgetTester tester) async {
-  await _pumpPreviewApp(tester, finishedSetup: true);
+Future<void> _pumpSignedIn(
+  WidgetTester tester, {
+  SessionService? session,
+}) async {
+  await _pumpPreviewApp(tester, session: session);
   await tester.enterText(
     find.byKey(const Key('email_field')),
     'thando.mokoena@example.com',
@@ -88,15 +106,14 @@ Future<void> _pumpSignedIn(WidgetTester tester) async {
   );
   await tester.tap(find.byKey(const Key('sign_in_button')));
   await tester.pumpAndSettle();
-  expect(find.byKey(const Key('welcome_view')), findsOneWidget);
 }
 
 Future<void> _pumpPreviewApp(
   WidgetTester tester, {
-  bool finishedSetup = false,
+  SessionService? session,
 }) async {
   tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = const Size(390, 844);
+  tester.view.physicalSize = const Size(390, 900);
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
 
@@ -116,8 +133,7 @@ Future<void> _pumpPreviewApp(
         authProviderCatalogueProvider.overrideWithValue(
           const BundledPreviewAuthProviderCatalogueService(),
         ),
-        if (finishedSetup)
-          sessionServiceProvider.overrideWithValue(const _FinishedSession()),
+        if (session != null) sessionServiceProvider.overrideWithValue(session),
       ],
       child: const MoloApp(),
     ),
