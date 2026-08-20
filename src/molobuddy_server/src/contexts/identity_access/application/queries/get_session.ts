@@ -1,3 +1,4 @@
+import type { PracticeRefReader } from '../ports/practice_ref_reader.js';
 import type {
   PresentedRequestTokens,
   RequestTokenVerifier,
@@ -24,7 +25,10 @@ export type GetSessionResult =
   Readonly<{ ok: true; session: Session }> | TokenVerificationFailure;
 
 export class GetSession {
-  constructor(private readonly verifier: RequestTokenVerifier) {}
+  constructor(
+    private readonly verifier: RequestTokenVerifier,
+    private readonly practiceRefs: PracticeRefReader,
+  ) {}
 
   async execute(tokens: PresentedRequestTokens): Promise<GetSessionResult> {
     const verification = await this.verifier.verify(tokens);
@@ -35,6 +39,9 @@ export class GetSession {
     const actor = verification.actor;
     const emailMasked =
       actor.email === undefined ? undefined : maskEmail(actor.email);
+    // The uid comes from the verified token, never from the request, so one
+    // user cannot read another's list.
+    const practiceRefs = await this.practiceRefs.listForUser(actor.uid);
 
     return {
       ok: true,
@@ -49,7 +56,7 @@ export class GetSession {
             ? {}
             : { preferredLocale: actor.preferredLocale }),
         },
-        practiceRefs: [],
+        practiceRefs,
       },
     };
   }

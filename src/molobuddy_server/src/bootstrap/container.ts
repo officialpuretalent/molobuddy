@@ -1,9 +1,11 @@
 import type { Firestore } from 'firebase-admin/firestore';
 
 import type { ServerConfig } from './config.js';
+import { FirestorePracticeRefReader } from '../contexts/identity_access/adapters/outbound/persistence/firestore_practice_ref_reader.js';
 import {
   GetSession,
   ListAuthProviders,
+  type PracticeRefReader,
   type RequestTokenVerifier,
 } from '../contexts/identity_access/index.js';
 import {
@@ -36,6 +38,7 @@ export type ControlApiContainer = Readonly<{
 export type ControlApiDependencies = Readonly<{
   practiceRepository?: PracticeRepository;
   auditEventSink?: AuditEventSink;
+  practiceRefReader?: PracticeRefReader;
 }>;
 
 export function createControlApiContainer(
@@ -60,7 +63,11 @@ export function createControlApiContainer(
     ));
 
   return {
-    getSession: new GetSession(verifier),
+    getSession: new GetSession(
+      verifier,
+      dependencies.practiceRefReader ??
+        new FirestorePracticeRefReader(database()),
+    ),
     listAuthProviders: new ListAuthProviders(),
     verifier,
     provisionPractice: new ProvisionPractice(
