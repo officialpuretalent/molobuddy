@@ -83,6 +83,6 @@ final class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<AuthResult<MoloSession>> loadSession() async {
-    return const AuthError(AuthFailure(AuthFailureKind.unexpected));
+    return const AuthSuccess(MoloSession(uid: 'user-1', practiceRefs: []));
   }
 }

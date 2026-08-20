@@ -60,25 +60,47 @@ class AuthViewModel extends _$AuthViewModel {
       ),
     );
 
-    final result = await ref
-        .read(authRepositoryProvider)
-        .signInWithEmailAndPassword(email: normalisedEmail, password: password);
+    final repository = ref.read(authRepositoryProvider);
+    final result = await repository.signInWithEmailAndPassword(
+      email: normalisedEmail,
+      password: password,
+    );
     if (!ref.mounted) {
       return;
     }
-    state = AsyncData(switch (result) {
-      AuthSuccess(:final value) => current.copyWith(
-        status: AuthViewStatus.signedIn,
-        user: value,
-        clearFailure: true,
-        emailInvalid: false,
-        passwordTooShort: false,
-      ),
-      AuthError(:final failure) => current.copyWith(
-        status: AuthViewStatus.signedOut,
-        failure: failure,
-      ),
-    });
+    switch (result) {
+      case AuthSuccess(:final value):
+        state = AsyncData(
+          current.copyWith(
+            status: AuthViewStatus.loadingSession,
+            user: value,
+            clearFailure: true,
+            emailInvalid: false,
+            passwordTooShort: false,
+          ),
+        );
+        final afterSignIn = state.requireValue;
+        final sessionResult = await repository.loadSession();
+        if (!ref.mounted) {
+          return;
+        }
+        state = AsyncData(switch (sessionResult) {
+          AuthSuccess(:final value) => afterSignIn.copyWith(
+            status: AuthViewStatus.signedIn,
+            session: value,
+            clearFailure: true,
+          ),
+          AuthError(:final failure) => afterSignIn.copyWith(
+            status: AuthViewStatus.signedIn,
+            clearSession: true,
+            failure: failure,
+          ),
+        });
+      case AuthError(:final failure):
+        state = AsyncData(
+          current.copyWith(status: AuthViewStatus.signedOut, failure: failure),
+        );
+    }
   }
 
   Future<void> signOut() async {
@@ -94,6 +116,7 @@ class AuthViewModel extends _$AuthViewModel {
       AuthSuccess() => current.copyWith(
         status: AuthViewStatus.signedOut,
         clearUser: true,
+        clearSession: true,
         clearFailure: true,
       ),
       AuthError(:final failure) => current.copyWith(
