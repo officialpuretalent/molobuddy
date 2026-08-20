@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Molo clients never reach Firestore directly. Every write comes from the
+    // Admin SDK, which bypasses these rules. A total denial is the backstop if
+    // a client SDK is ever added without an architecture decision.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
