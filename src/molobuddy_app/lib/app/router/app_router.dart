@@ -101,12 +101,20 @@ GoRouter appRouter(Ref ref) {
       // Being signed in does not say whether setup is finished; the session
       // does. Until it has answered, redirect nowhere — guessing is what makes
       // a signup flash through three screens on a slow connection.
-      final session = switch (ref.read(authViewModelProvider)) {
-        AsyncData(:final value) => value.session,
+      final auth = switch (ref.read(authViewModelProvider)) {
+        AsyncData(:final value) => value,
         _ => null,
       };
+      final session = auth?.session;
       if (session == null) {
-        return null;
+        // A session that failed is an answer, just not one the gate can act
+        // on. Leaving a signed-in person on a sign-in form says nothing about
+        // why; the welcome screen names the failure and offers to try again.
+        // Everywhere else they are left alone, because a screen they chose is
+        // better than one chosen for them.
+        return auth?.sessionFailure != null && onPublicAuthRoute
+            ? const WelcomeRoute().location
+            : null;
       }
 
       if (!session.onboardingComplete) {

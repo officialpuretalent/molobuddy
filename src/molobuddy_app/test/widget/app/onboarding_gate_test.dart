@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,6 +30,16 @@ final class _SessionSaying implements SessionService {
         onboardingComplete: onboardingComplete,
       ),
     );
+  }
+}
+
+/// A session load that fails the way a lapsed App Check token does.
+final class _SessionThatFails implements SessionService {
+  const _SessionThatFails();
+
+  @override
+  Future<AuthResult<MoloSession>> loadSession() async {
+    return const AuthError(AuthFailure(AuthFailureKind.attestationRequired));
   }
 }
 
@@ -68,6 +80,43 @@ void main() {
     expect(find.byKey(const Key('not_found_view')), findsNothing);
   });
 
+  testWidgets('a failed session is not left sitting on the sign-in form', (
+    tester,
+  ) async {
+    // Nothing about the session is known, so the gate cannot say whether
+    // setup is finished. Leaving the user on a form they have already
+    // completed says nothing at all; the welcome screen names the failure
+    // and offers to try again.
+    await _pumpSignedIn(tester, session: const _SessionThatFails());
+
+    await _goTo(tester, '/sign-in');
+
+    expect(find.byKey(const Key('sign_in_form')), findsNothing);
+    expect(find.byKey(const Key('welcome_view')), findsOneWidget);
+  });
+
+  testWidgets('a session still loading does not move anybody', (tester) async {
+    // The gate must keep declining to guess while an answer is on its way,
+    // or a slow connection flashes the user through three screens. Pumped a
+    // fixed number of frames rather than settled: the loading state spins
+    // forever by design, so there is nothing to settle into.
+    await _pumpPreviewApp(tester, session: const _SessionThatNeverAnswers());
+    await tester.enterText(
+      find.byKey(const Key('email_field')),
+      'thando.mokoena@example.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('password_field')),
+      'safe-preview-password',
+    );
+    await tester.tap(find.byKey(const Key('sign_in_button')));
+    for (var frame = 0; frame < 10; frame++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    expect(find.byKey(const Key('welcome_view')), findsNothing);
+  });
+
   testWidgets('a finished account at /onboarding is sent to the workspace', (
     tester,
   ) async {
@@ -89,6 +138,16 @@ Future<void> _goTo(WidgetTester tester, String location) async {
     tester.element(find.byType(MoloApp)),
   ).read(appRouterProvider).go(location);
   await tester.pumpAndSettle();
+}
+
+/// Never settles, which is what a slow network looks like to the gate.
+final class _SessionThatNeverAnswers implements SessionService {
+  const _SessionThatNeverAnswers();
+
+  @override
+  Future<AuthResult<MoloSession>> loadSession() {
+    return Completer<AuthResult<MoloSession>>().future;
+  }
 }
 
 Future<void> _pumpSignedIn(
