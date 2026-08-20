@@ -205,6 +205,9 @@ export const problemResponses = {
   401: problemSchema,
   403: problemSchema,
   404: problemSchema,
+  409: problemSchema,
+  412: problemSchema,
   426: problemSchema,
+  428: problemSchema,
   500: problemSchema,
 } as const;

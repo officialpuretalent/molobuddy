@@ -15,6 +15,10 @@ export type ProblemCode =
   | 'token_invalid'
   | 'app_check_required'
   | 'resource_not_found'
+  | 'onboarding_incomplete'
+  | 'onboarding_already_complete'
+  | 'version_mismatch'
+  | 'version_required'
   | 'internal_error';
 
 export type ProblemInput = Readonly<{
@@ -67,6 +71,30 @@ const problems: Readonly<Record<ProblemCode, ProblemInput>> = {
     title: 'The resource was not found.',
     detail: 'Check the request and try again.',
   },
+  onboarding_incomplete: {
+    status: 409,
+    code: 'onboarding_incomplete',
+    title: 'Setup is not finished.',
+    detail: 'Answer the remaining questions and try again.',
+  },
+  onboarding_already_complete: {
+    status: 409,
+    code: 'onboarding_already_complete',
+    title: 'Setup is already finished.',
+    detail: 'This account has already been set up.',
+  },
+  version_mismatch: {
+    status: 412,
+    code: 'version_mismatch',
+    title: 'Someone changed this first.',
+    detail: 'Reload to get the current version, then try again.',
+  },
+  version_required: {
+    status: 428,
+    code: 'version_required',
+    title: 'The current version is required.',
+    detail: 'Send the current version with this request and try again.',
+  },
   internal_error: {
     status: 500,
     code: 'internal_error',
@@ -84,10 +112,23 @@ export function problemForCode(code: ProblemCode): ProblemInput {
   return problems[code];
 }
 
+/**
+ * One field-level reason a request was refused.
+ *
+ * `pointer` is a JSON pointer at the offending field. It names the field and
+ * never the value, so nothing the caller submitted is echoed back.
+ */
+export type ProblemPointer = Readonly<{
+  pointer: string;
+  code: string;
+  message: string;
+}>;
+
 export function sendProblem(
   reply: FastifyReply,
   request: FastifyRequest,
   code: ProblemCode,
+  errors: readonly ProblemPointer[] = [],
 ): FastifyReply {
   const definition = problems[code];
   return reply
@@ -101,6 +142,7 @@ export function sendProblem(
       instance: `/v1/problems/${createOpaqueId('prb')}`,
       code: definition.code,
       correlationId: request.correlationId,
+      ...(errors.length === 0 ? {} : { errors }),
     });
 }
 

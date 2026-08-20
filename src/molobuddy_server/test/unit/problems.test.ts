@@ -39,3 +39,25 @@ describe('resource version', () => {
     assert.match(createResourceVersion(), /^[a-f0-9]{32}$/);
   });
 });
+
+describe('concurrency and onboarding problems', () => {
+  it('maps each new code to the status the API design names', () => {
+    assert.equal(problemForCode('version_mismatch').status, 412);
+    assert.equal(problemForCode('version_required').status, 428);
+    assert.equal(problemForCode('onboarding_incomplete').status, 409);
+    assert.equal(problemForCode('onboarding_already_complete').status, 409);
+  });
+
+  it('gives every code a title and a detail that says what to do', () => {
+    for (const code of [
+      'version_mismatch',
+      'version_required',
+      'onboarding_incomplete',
+      'onboarding_already_complete',
+    ] as const) {
+      const problem = problemForCode(code);
+      assert.ok(problem.title.length > 0, `${code} has no title`);
+      assert.ok(problem.detail.length > 0, `${code} has no detail`);
+    }
+  });
+});
