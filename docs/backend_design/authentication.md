@@ -211,6 +211,7 @@ Rules:
 - allow the Firebase SDK to own refresh-token persistence;
 - coalesce simultaneous refresh requests;
 - retry one request after a forced token refresh on a token-expiry response;
+- retry one request after a forced attestation refresh on `403 app_check_required`, and once only: an App Check token is cached for roughly half an hour, so one that lapses mid-session keeps being presented until something insists on a new one, and every request from that point is refused for a reason no screen can explain;
 - do not retry authorisation failures as authentication failures;
 - cancel or isolate in-flight practice requests during sign-out/practice switch;
 - clear all regional caches on user change.
@@ -348,7 +349,7 @@ steps and configuration live in the
 | ID-token and App Check verification (section 8, steps 1–4) | Implemented in `FirebaseAdminRequestTokenVerifier`; distinct failure codes covered by tests |
 | Federation adapters (section 4) | Not built. Google renders as a disabled `coming_soon` preview |
 | App Check client (section 13) | Implemented behind `AppCheckGateway`. Debug attestation verified end to end against `molobuddy-development`; reCAPTCHA still required for any deployed build |
-| Token broker and transport (section 7) | Implemented; a test asserts features cannot import a vendor SDK or read raw tokens |
+| Token broker and transport (section 7) | Implemented; a test asserts features cannot import a vendor SDK or read raw tokens. A `403 app_check_required` is retried once with a forced attestation refresh, on both the response and the error path, since callers differ on `validateStatus` |
 | MFA (section 12) | Not built; disabled on the project |
 | Membership, region routing (section 8, steps 5–10) | Not built; no regional data yet |
 
@@ -358,10 +359,9 @@ Admin SDK verifies both, and `GET /v1/session` returns 200. The welcome screen
 renders the server's masked email, which is the observable proof the data came
 from the session endpoint rather than the sign-in form.
 
-Two limits remain. `practiceRefs` is still hardcoded empty server-side, so
-every user reaches the no-practice state. And attestation currently depends on
-a debug token, which is a development-only bypass: a deployed build needs a
-real reCAPTCHA provider before enforcement is switched on.
+One limit remains: attestation currently depends on a debug token, which is a
+development-only bypass. A deployed build needs a real reCAPTCHA provider
+before enforcement is switched on.
 
 ## 18. Acceptance criteria
 

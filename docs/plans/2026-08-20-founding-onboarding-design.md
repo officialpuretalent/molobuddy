@@ -285,6 +285,15 @@ in the system.
 The router sends a signed-in user whose onboarding is incomplete to
 `/onboarding`, from wherever they tried to go.
 
+While the session is still loading the gate redirects nowhere, because
+guessing is what makes a signup flash through three screens on a slow
+connection. A session that *failed* is different: it is an answer, just not one
+the gate can act on. There the gate moves the user off `/sign-in` and `/sign-up`
+to `/home`, which is the one screen that names the failure and offers to try
+again — a signed-in person left sitting on a sign-in form is told nothing at
+all. Anywhere else they are left where they are, because a screen they chose
+beats one chosen for them.
+
 ### 5.1 This gate is user experience, not access control
 
 It must not be described as enforcement, because it is not, and pretending
@@ -468,6 +477,19 @@ becomes an asynchronous one over the API.
   for one that was never going to load. The preview journey test caught this.
 - **On open** the wizard fetches `GET /v1/onboarding` and starts at the derived
   step, whether that is a fresh signup or a resume from another device.
+- **A read that fails shows no wizard.** `OnboardingViewState` keeps
+  `loadFailure` apart from `failure`: a refused answer leaves a wizard to
+  correct, a refused read leaves nothing to answer. The view then renders the
+  reason and a retry, with no progress panel, because the step number and
+  readiness figure are derived from answers nobody has.
+
+  The first cut instead invented an empty step 1 on a failed read. That was
+  worse than it looks: it hid the answers a returning user had already given,
+  and their next save carried no version, so the server refused it as a blind
+  write and the wizard could not be escaped. The failure kind travels with it,
+  because "this device could not be verified" and "something went wrong" send a
+  person looking in completely different places — a lapsed App Check token
+  presented as the latter cost an afternoon.
 
 Preview mode keeps working without a backend: the preview services answer with
 an in-memory onboarding record and a demo practice, exactly as
