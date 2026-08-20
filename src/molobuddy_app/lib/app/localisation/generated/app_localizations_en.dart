@@ -121,15 +121,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionLoading => 'Checking what you can reach.';
 
   @override
-  String get sessionAttestationRequired =>
-      'This device could not be verified. Reload to try again.';
+  String get sessionAttestationRequired => 'This device could not be verified.';
 
   @override
   String get sessionExpired => 'Your session ended. Sign in again to continue.';
 
   @override
+  String get sessionUnavailable =>
+      'Session details are not available in this build yet.';
+
+  @override
   String get sessionNoPractices =>
       'You are signed in. No practice has been connected to this account yet.';
+
+  @override
+  String get retrySessionLoad => 'Try again';
 
   @override
   String get welcomeHeading => 'You\'re in.';
@@ -138,9 +144,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String welcomeName(String name) {
     return 'Welcome, $name';
   }
-
-  @override
-  String get previewWorkspaceTitle => 'Your Molo workspace is ready';
 
   @override
   String get previewWorkspaceBody =>
@@ -559,15 +562,21 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get sessionLoading => 'Checking what you can reach.';
 
   @override
-  String get sessionAttestationRequired =>
-      'This device could not be verified. Reload to try again.';
+  String get sessionAttestationRequired => 'This device could not be verified.';
 
   @override
   String get sessionExpired => 'Your session ended. Sign in again to continue.';
 
   @override
+  String get sessionUnavailable =>
+      'Session details are not available in this build yet.';
+
+  @override
   String get sessionNoPractices =>
       'You are signed in. No practice has been connected to this account yet.';
+
+  @override
+  String get retrySessionLoad => 'Try again';
 
   @override
   String get welcomeHeading => 'You\'re in.';
@@ -576,9 +585,6 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String welcomeName(String name) {
     return 'Welcome, $name';
   }
-
-  @override
-  String get previewWorkspaceTitle => 'Your Molo workspace is ready';
 
   @override
   String get previewWorkspaceBody =>

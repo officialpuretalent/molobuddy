@@ -44,8 +44,13 @@ class WelcomeView extends ConsumerWidget {
     }
 
     final user = viewState.user!;
+    final session = viewState.session;
     final signingOut = viewState.status == AuthViewStatus.signingOut;
-    final sessionNotice = _sessionStatusNotice(localisations, viewState);
+    final sessionNotice = _sessionStatusNotice(
+      localisations,
+      viewState,
+      onRetry: () => ref.read(authViewModelProvider.notifier).reloadSession(),
+    );
     return Title(
       title: localisations.welcomePageTitle,
       color: MoloColours.moloPlum,
@@ -142,10 +147,21 @@ class WelcomeView extends ConsumerWidget {
                           ),
                           const SizedBox(height: MoloSpacing.lg),
                           Text(
-                            localisations.welcomeName(user.greetingName),
+                            localisations.welcomeName(
+                              session?.displayName ?? user.greetingName,
+                            ),
                             style: Theme.of(context).textTheme.displaySmall,
                           ),
-                          const SizedBox(height: MoloSpacing.sm),
+                          const SizedBox(height: MoloSpacing.md),
+                          // Above the split, so the identity the server
+                          // returned is visible in every session state. The
+                          // masked address is what proves the data came from
+                          // /v1/session rather than the sign-in form.
+                          _SessionIdentity(
+                            label: localisations.signedInAs,
+                            value: session?.emailMasked ?? user.email,
+                          ),
+                          const SizedBox(height: MoloSpacing.lg),
                           if (sessionNotice != null) ...[
                             sessionNotice,
                           ] else ...[
@@ -159,12 +175,6 @@ class WelcomeView extends ConsumerWidget {
                               builder: (context, constraints) {
                                 final expanded = constraints.maxWidth >= 760;
                                 final cards = [
-                                  _WorkspaceCard(
-                                    icon: Icons.person_outline_rounded,
-                                    eyebrow: localisations.signedInAs,
-                                    title: user.email,
-                                    body: localisations.previewWorkspaceTitle,
-                                  ),
                                   _WorkspaceCard(
                                     icon: Icons.arrow_forward_rounded,
                                     eyebrow: localisations.homeNextAction,
@@ -232,29 +242,50 @@ class WelcomeView extends ConsumerWidget {
 /// session is loaded and usable and the ordinary cards should show.
 _SessionStatusNotice? _sessionStatusNotice(
   AppLocalizations localisations,
-  AuthViewState viewState,
-) {
+  AuthViewState viewState, {
+  required VoidCallback onRetry,
+}) {
   if (viewState.status == AuthViewStatus.loadingSession) {
     return _SessionStatusNotice(
       message: localisations.sessionLoading,
       tone: _SessionStatusTone.loading,
     );
   }
-  switch (viewState.failure?.kind) {
-    case AuthFailureKind.attestationRequired:
-      return _SessionStatusNotice(
-        message: localisations.sessionAttestationRequired,
-        icon: Icons.phonelink_lock_outlined,
-        tone: _SessionStatusTone.error,
-      );
-    case AuthFailureKind.sessionExpired:
-      return _SessionStatusNotice(
-        message: localisations.sessionExpired,
-        icon: Icons.timer_off_outlined,
-        tone: _SessionStatusTone.error,
-      );
-    default:
-      break;
+  final failure = viewState.failure;
+  if (failure != null) {
+    // Exhaustive on purpose. A kind that falls through here would render the
+    // ordinary cards as if the session had loaded, which is how three of these
+    // used to fail silently. A new kind must now be given words.
+    final (message, icon) = switch (failure.kind) {
+      AuthFailureKind.attestationRequired => (
+        localisations.sessionAttestationRequired,
+        Icons.phonelink_lock_outlined,
+      ),
+      AuthFailureKind.sessionExpired => (
+        localisations.sessionExpired,
+        Icons.timer_off_outlined,
+      ),
+      AuthFailureKind.networkUnavailable => (
+        localisations.networkUnavailable,
+        Icons.cloud_off_outlined,
+      ),
+      AuthFailureKind.configurationMissing ||
+      AuthFailureKind.providerUnavailable => (
+        localisations.sessionUnavailable,
+        Icons.build_circle_outlined,
+      ),
+      AuthFailureKind.invalidCredentials || AuthFailureKind.unexpected => (
+        localisations.unexpectedAuthError,
+        Icons.error_outline,
+      ),
+    };
+    return _SessionStatusNotice(
+      message: message,
+      icon: icon,
+      tone: _SessionStatusTone.error,
+      onRetry: onRetry,
+      retryLabel: localisations.retrySessionLoad,
+    );
   }
   final session = viewState.session;
   if (session != null && !session.hasPractices) {
@@ -277,18 +308,25 @@ class _SessionStatusNotice extends StatelessWidget {
     required this.message,
     required this.tone,
     this.icon,
+    this.onRetry,
+    this.retryLabel,
   });
 
   final String message;
   final IconData? icon;
   final _SessionStatusTone tone;
 
+  /// Recovery for a session that did not load. Without it the only way out of
+  /// a failed load is signing out, which is not a recovery.
+  final VoidCallback? onRetry;
+  final String? retryLabel;
+
   @override
   Widget build(BuildContext context) {
     final background = switch (tone) {
       _SessionStatusTone.loading => MoloColours.surface,
       _SessionStatusTone.info => MoloColours.pulseTint,
-      _SessionStatusTone.error => const Color(0xFFFFF1F0),
+      _SessionStatusTone.error => MoloColours.errorTint,
     };
     final iconColour = switch (tone) {
       _SessionStatusTone.loading => MoloColours.secondaryText,
@@ -298,6 +336,11 @@ class _SessionStatusNotice extends StatelessWidget {
     final border = tone == _SessionStatusTone.loading
         ? Border.all(color: MoloColours.border)
         : null;
+    final retryAction = onRetry;
+    final retryText = retryLabel;
+    final retry = retryAction == null || retryText == null
+        ? null
+        : _RetryButton(label: retryText, onPressed: retryAction);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: background,
@@ -307,7 +350,9 @@ class _SessionStatusNotice extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(MoloSpacing.lg),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: retry == null
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.start,
           children: [
             SizedBox(
               width: 24,
@@ -321,14 +366,121 @@ class _SessionStatusNotice extends StatelessWidget {
             ),
             const SizedBox(width: MoloSpacing.md),
             Expanded(
-              child: Text(
-                message,
-                style: Theme.of(context).textTheme.bodyLarge,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(message, style: Theme.of(context).textTheme.bodyLarge),
+                  if (retry != null) ...[
+                    const SizedBox(height: MoloSpacing.md),
+                    Align(alignment: Alignment.centerLeft, child: retry),
+                  ],
+                ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Asks for the session again. Sized past the 48x48 target, and its keyboard
+/// focus is a two pixel border rather than the hover wash, so the two states
+/// never read the same.
+class _RetryButton extends StatelessWidget {
+  const _RetryButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      key: const Key('retry_session_button'),
+      onPressed: onPressed,
+      icon: const Icon(Icons.refresh_rounded, size: 20),
+      label: Text(label),
+      style: ButtonStyle(
+        minimumSize: const WidgetStatePropertyAll(Size(96, 48)),
+        padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: MoloSpacing.md),
+        ),
+        foregroundColor: const WidgetStatePropertyAll(MoloColours.moloPlum),
+        backgroundColor: const WidgetStatePropertyAll(MoloColours.surface),
+        overlayColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.focused) ||
+              states.contains(WidgetState.pressed)) {
+            return MoloColours.pulseTint;
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return MoloColours.softBlush;
+          }
+          return Colors.transparent;
+        }),
+        side: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.focused)) {
+            return const BorderSide(color: MoloColours.pulseText, width: 2);
+          }
+          return const BorderSide(color: MoloColours.controlBorder);
+        }),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(MoloSpacing.controlRadius),
+          ),
+        ),
+        textStyle: WidgetStatePropertyAll(
+          Theme.of(context).textTheme.labelLarge,
+        ),
+      ),
+    );
+  }
+}
+
+/// The identity the server returned for this session, or the local sign-in
+/// address until the server has answered.
+class _SessionIdentity extends StatelessWidget {
+  const _SessionIdentity({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 2),
+          child: Icon(
+            Icons.person_outline_rounded,
+            size: 20,
+            color: MoloColours.secondaryText,
+          ),
+        ),
+        const SizedBox(width: MoloSpacing.xs),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: textTheme.labelMedium?.copyWith(
+                  color: MoloColours.secondaryText,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: MoloSpacing.xxs),
+              Text(
+                value,
+                style: textTheme.titleMedium?.copyWith(
+                  color: MoloColours.moloPlum,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

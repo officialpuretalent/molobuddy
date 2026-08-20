@@ -307,10 +307,10 @@ abstract class AppLocalizations {
   /// **'Checking what you can reach.'**
   String get sessionLoading;
 
-  /// Shown when App Check could not attest the device, blocking the session or sign-in request.
+  /// Shown when App Check could not attest the device, blocking the session or sign-in request. The recovery action is a button, so the sentence does not name one.
   ///
   /// In en, this message translates to:
-  /// **'This device could not be verified. Reload to try again.'**
+  /// **'This device could not be verified.'**
   String get sessionAttestationRequired;
 
   /// Shown when the server reports the session has expired and needs a fresh sign-in.
@@ -319,11 +319,23 @@ abstract class AppLocalizations {
   /// **'Your session ended. Sign in again to continue.'**
   String get sessionExpired;
 
+  /// Shown to a signed-in user when this build cannot reach the session service at all, such as a preview build.
+  ///
+  /// In en, this message translates to:
+  /// **'Session details are not available in this build yet.'**
+  String get sessionUnavailable;
+
   /// Shown on the welcome screen when the loaded session has no practices to work in.
   ///
   /// In en, this message translates to:
   /// **'You are signed in. No practice has been connected to this account yet.'**
   String get sessionNoPractices;
+
+  /// Button that asks the server for the session again after it failed to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retrySessionLoad;
 
   /// No description provided for @welcomeHeading.
   ///
@@ -336,12 +348,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Welcome, {name}'**
   String welcomeName(String name);
-
-  /// No description provided for @previewWorkspaceTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your Molo workspace is ready'**
-  String get previewWorkspaceTitle;
 
   /// No description provided for @previewWorkspaceBody.
   ///

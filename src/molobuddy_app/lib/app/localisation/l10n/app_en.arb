@@ -45,17 +45,25 @@
   "@sessionLoading": {
     "description": "Shown while the Molo session (practice access) is being loaded after sign-in."
   },
-  "sessionAttestationRequired": "This device could not be verified. Reload to try again.",
+  "sessionAttestationRequired": "This device could not be verified.",
   "@sessionAttestationRequired": {
-    "description": "Shown when App Check could not attest the device, blocking the session or sign-in request."
+    "description": "Shown when App Check could not attest the device, blocking the session or sign-in request. The recovery action is a button, so the sentence does not name one."
   },
   "sessionExpired": "Your session ended. Sign in again to continue.",
   "@sessionExpired": {
     "description": "Shown when the server reports the session has expired and needs a fresh sign-in."
   },
+  "sessionUnavailable": "Session details are not available in this build yet.",
+  "@sessionUnavailable": {
+    "description": "Shown to a signed-in user when this build cannot reach the session service at all, such as a preview build."
+  },
   "sessionNoPractices": "You are signed in. No practice has been connected to this account yet.",
   "@sessionNoPractices": {
     "description": "Shown on the welcome screen when the loaded session has no practices to work in."
+  },
+  "retrySessionLoad": "Try again",
+  "@retrySessionLoad": {
+    "description": "Button that asks the server for the session again after it failed to load."
   },
   "welcomeHeading": "You''re in.",
   "welcomeName": "Welcome, {name}",
@@ -65,7 +73,6 @@
       "name": {"type": "String"}
     }
   },
-  "previewWorkspaceTitle": "Your Molo workspace is ready",
   "previewWorkspaceBody": "This first slice proves the responsive sign-in journey. Practice work will appear here as we connect the next feature.",
   "signedInAs": "Signed in as",
   "previewModeLabel": "Preview mode",

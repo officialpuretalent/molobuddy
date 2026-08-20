@@ -14,5 +14,10 @@ abstract final class MoloColours {
   static const success = Color(0xFF087A55);
   static const warning = Color(0xFFA85D00);
   static const error = Color(0xFFC2382B);
+
+  /// Quiet backdrop behind error copy. Pairs with [error] for the icon and
+  /// with the default body colour for the text, which keeps the text contrast
+  /// well above 4.5:1.
+  static const errorTint = Color(0xFFFFF1F0);
   static const information = Color(0xFF3459D4);
 }

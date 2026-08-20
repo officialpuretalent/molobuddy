@@ -641,7 +641,7 @@ class _AuthErrorBanner extends ConsumerWidget {
       AuthFailureKind.unexpected => localisations.unexpectedAuthError,
     };
     return Material(
-      color: const Color(0xFFFFF1F0),
+      color: MoloColours.errorTint,
       borderRadius: BorderRadius.circular(MoloSpacing.controlRadius),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(

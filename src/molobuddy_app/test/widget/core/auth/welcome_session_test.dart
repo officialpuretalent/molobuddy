@@ -57,10 +57,7 @@ void main() {
       ),
     );
 
-    expect(
-      find.text('This device could not be verified. Reload to try again.'),
-      findsOneWidget,
-    );
+    expect(find.text('This device could not be verified.'), findsOneWidget);
     expect(find.textContaining('app_check'), findsNothing);
     expect(find.textContaining('FirebaseException'), findsNothing);
   });
@@ -137,10 +134,7 @@ void main() {
       size: const Size(1280, 900),
     );
 
-    expect(
-      find.text('This device could not be verified. Reload to try again.'),
-      findsOneWidget,
-    );
+    expect(find.text('This device could not be verified.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -170,15 +164,151 @@ void main() {
     );
 
     expect(find.text('Welcome, person@example.com'), findsOneWidget);
+    // Named card content, so deleting the card block cannot pass this test.
+    expect(find.text('Next up'), findsWidgets);
+    expect(
+      find.text(
+        'Connect the real Firebase project, then load your authorised '
+        'practices from the Molo API.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Secure session'), findsWidgets);
+    expect(
+      find.text(
+        "Firebase identity stays behind Molo's authentication boundary.",
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('shows the masked address the server returned', (tester) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        session: MoloSession(
+          uid: 'user_1',
+          emailMasked: 't***@example.com',
+          practiceRefs: [],
+        ),
+      ),
+    );
+
+    expect(find.text('Signed in as'), findsOneWidget);
+    expect(find.text('t***@example.com'), findsOneWidget);
+    // The address typed into the sign-in form must not be what is shown.
+    expect(find.text('person@example.com'), findsNothing);
+  });
+
+  testWidgets('falls back to the local address before a session', (
+    tester,
+  ) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.loadingSession,
+        methods: [],
+        user: _user,
+      ),
+    );
+
+    expect(find.text('Signed in as'), findsOneWidget);
+    expect(find.text('person@example.com'), findsOneWidget);
+  });
+
+  testWidgets('reports a network failure instead of pretending it loaded', (
+    tester,
+  ) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        failure: AuthFailure(AuthFailureKind.networkUnavailable),
+      ),
+    );
+
+    expect(
+      find.text(
+        'Molo cannot connect right now. Check your connection and try again.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Next up'), findsNothing);
+  });
+
+  testWidgets('reports a build with no session service', (tester) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        failure: AuthFailure(AuthFailureKind.configurationMissing),
+      ),
+    );
+
+    expect(
+      find.text('Session details are not available in this build yet.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('offers a retry big enough to hit, and wires it', (tester) async {
+    final viewModel = _StubAuthViewModel(
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        failure: AuthFailure(AuthFailureKind.networkUnavailable),
+      ),
+    );
+    await _pumpWelcome(tester, null, viewModel: viewModel);
+
+    final retry = find.byKey(const Key('retry_session_button'));
+    expect(retry, findsOneWidget);
+    expect(find.text('Try again'), findsOneWidget);
+    final size = tester.getSize(retry);
+    expect(size.width, greaterThanOrEqualTo(48));
+    expect(size.height, greaterThanOrEqualTo(48));
+
+    await tester.tap(retry);
+    await tester.pump();
+
+    expect(viewModel.reloadCalls, 1);
+  });
+
+  testWidgets('offers the retry at expanded width without overflowing', (
+    tester,
+  ) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        failure: AuthFailure(AuthFailureKind.attestationRequired),
+      ),
+      size: const Size(1280, 900),
+    );
+
+    expect(find.byKey(const Key('retry_session_button')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
 
 Future<void> _pumpWelcome(
   WidgetTester tester,
-  AuthViewState state, {
+  AuthViewState? state, {
   Size size = const Size(390, 844),
+  _StubAuthViewModel? viewModel,
 }) async {
+  final model = viewModel ?? _StubAuthViewModel(state!);
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -187,7 +317,7 @@ Future<void> _pumpWelcome(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        authViewModelProvider.overrideWith(() => _StubAuthViewModel(state)),
+        authViewModelProvider.overrideWith(() => model),
         appEnvironmentProvider.overrideWithValue(
           const AppEnvironment(
             authMode: AuthRuntimeMode.preview,
@@ -216,7 +346,13 @@ final class _StubAuthViewModel extends AuthViewModel {
   _StubAuthViewModel(this._state);
 
   final AuthViewState _state;
+  int reloadCalls = 0;
 
   @override
   Future<AuthViewState> build() async => _state;
+
+  @override
+  Future<void> reloadSession() async {
+    reloadCalls += 1;
+  }
 }
