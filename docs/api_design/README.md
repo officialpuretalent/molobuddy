@@ -182,6 +182,7 @@ Clients branch on `code` and field-error `code`, never on `title`, `detail` or `
 - Keys are retained for at least 24 hours; longer-running or financial/legal commands may define a longer period.
 - A caller may retry `GET`, `HEAD` and an idempotent mutation after a network failure.
 - `PATCH` and state-changing actions marked `If-Match: required` use strong entity tags to prevent lost updates. A mismatch returns `412` without applying the command. [RFC 9110: If-Match](https://www.rfc-editor.org/rfc/rfc9110.html#name-if-match)
+- The `version` field carried by every resource representation **is** that entity tag: the opaque optimistic-concurrency token an `ETag` returns and `If-Match` is compared against. It is not a document schema stamp, which is `schemaVersion`. A server regenerates `version` on every write. A constant value would make every `If-Match` comparison succeed and silently remove the protection this section describes, so a resource that is never updated by a caller carries no `version` at all rather than a placeholder.
 
 ## 8. Dates, localisation and protected values
 

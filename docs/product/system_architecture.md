@@ -265,7 +265,7 @@ connectors.manage
 audit.read
 ```
 
-Roles map to capabilities. This avoids scattering role-name comparisons throughout the codebase and permits custom enterprise roles later.
+Roles map to capabilities. This avoids scattering role-name comparisons throughout the codebase and permits custom enterprise roles later. The canonical capability catalogue, default role bundles, resource scope, delegation limits and portal-grant rules are defined in the [Identity and Access Data Design](../data_design/identity_access.md).
 
 ### 4.4 Solo practice behaviour
 
@@ -660,7 +660,7 @@ type TaxpayerAccessGrant = {
   taxpayerId: string;
   uid: string;
   role: 'self' | 'director' | 'trustee' | 'representative' | 'viewer' | 'uploader';
-  scopes: Array<'taxpayer.read' | 'workItems.read' | 'documents.read' | 'documents.upload' | 'requests.respond'>;
+  scopes: Array<'taxpayer.read' | 'workItems.read' | 'documentRequests.read' | 'documents.read' | 'documents.upload' | 'requests.respond'>;
   status: 'invited' | 'active' | 'suspended' | 'expired' | 'revoked';
   validFrom?: Timestamp;
   validTo?: Timestamp;

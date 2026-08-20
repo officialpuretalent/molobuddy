@@ -1,8 +1,8 @@
 # Molo Data Design
 
-- **Status:** Reserved for design
+- **Status:** Identity and access drafted; remaining domains reserved for design
 - **Owner:** Product and engineering
-- **Last updated:** 19 August 2026
+- **Last updated:** 20 August 2026
 
 This directory will hold Molo's persistence and information-model contracts. It is deliberately separate from API design: an API contract describes what callers can observe and request, while a data design describes how durable business truth is represented and protected.
 

@@ -50,7 +50,7 @@ type TaxpayerAccessGrant = {
   taxpayerId: string;
   uid: string;
   role: 'self' | 'director' | 'trustee' | 'representative' | 'viewer' | 'uploader';
-  scopes: Array<'taxpayer.read' | 'workItems.read' | 'documents.read' | 'documents.upload' | 'requests.respond'>;
+  scopes: Array<'taxpayer.read' | 'workItems.read' | 'documentRequests.read' | 'documents.read' | 'documents.upload' | 'requests.respond'>;
   status: 'invited' | 'active' | 'suspended' | 'expired' | 'revoked';
   validFrom?: string;
   validTo?: string;
@@ -222,7 +222,7 @@ Creation request:
 {
   "email": "representative@example.com",
   "role": "representative",
-  "scopes": ["taxpayer.read", "workItems.read", "documents.upload", "requests.respond"],
+  "scopes": ["taxpayer.read", "workItems.read", "documentRequests.read", "documents.upload", "requests.respond"],
   "validFrom": "2026-08-19T00:00:00Z",
   "validTo": "2027-08-19T00:00:00Z",
   "authorityEvidenceDocumentIds": ["doc_opaque"]
@@ -242,7 +242,7 @@ Updating a grant may change role, scopes, dates or status. Revocation is a dedic
 ## Security and audit rules
 
 - Member email is masked in normal responses; full email access requires a separately authorised view.
-- Membership and grants are resolved from the regional database on every consequential command.
+- Membership and grants are resolved from the regional database on every consequential command. The capability catalogue, default role bundles, resource scopes and delegation limits are defined in the [Identity and Access Data Design](../data_design/identity_access.md).
 - Invitations, role changes, capability overrides, suspension and revocation always create audit events.
 - Authentication-factor setup, password reset and provider linking remain Firebase Authentication flows and are not reimplemented by this API.
 
