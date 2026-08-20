@@ -89,16 +89,21 @@ final class HttpSessionService implements SessionService {
     final practiceId = raw['practiceId'];
     final displayLabel = raw['displayLabel'];
     final homeRegionKey = raw['homeRegionKey'];
+    // The server schema makes routeVersion required. Inventing route state is
+    // worse than dropping a practice we cannot address, so an absent or
+    // non-integer value rejects the reference.
+    final routeVersion = raw['routeVersion'];
     if (practiceId is! String ||
         displayLabel is! String ||
-        homeRegionKey is! String) {
+        homeRegionKey is! String ||
+        routeVersion is! int) {
       return null;
     }
     return PracticeRef(
       practiceId: practiceId,
       displayLabel: displayLabel,
       homeRegionKey: homeRegionKey,
-      routeVersion: raw['routeVersion'] is int ? raw['routeVersion'] as int : 1,
+      routeVersion: routeVersion,
       accessStatus: switch (raw['accessStatus']) {
         'active' => PracticeAccessStatus.active,
         'invited' => PracticeAccessStatus.invited,

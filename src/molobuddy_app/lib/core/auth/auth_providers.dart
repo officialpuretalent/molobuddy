@@ -36,13 +36,18 @@ AuthProviderCatalogueService authProviderCatalogue(Ref ref) {
   );
 }
 
-/// Loads Molo's own session over the authenticated transport. Falls back to
-/// [UnavailableSessionService] when no API base URL is configured, such as
-/// preview builds.
+/// Loads Molo's own session over the authenticated transport.
+///
+/// Falls back to [UnavailableSessionService] unless this build both runs a
+/// real Firebase identity and knows an API base URL. A preview build has no
+/// token broker and no attestation, so calling the control API could only ever
+/// return `authentication_required`, which the user cannot recover from by
+/// signing in again. Not calling is the honest answer.
 @Riverpod(keepAlive: true)
 SessionService sessionService(Ref ref) {
-  final baseUrl = ref.watch(appEnvironmentProvider).apiBaseUrl;
-  if (baseUrl == null) {
+  final environment = ref.watch(appEnvironmentProvider);
+  final baseUrl = environment.apiBaseUrl;
+  if (environment.authMode != AuthRuntimeMode.firebase || baseUrl == null) {
     return const UnavailableSessionService();
   }
   return HttpSessionService(

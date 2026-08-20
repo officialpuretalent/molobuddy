@@ -192,23 +192,35 @@ final class AuthProviderCatalogueProvider
 String _$authProviderCatalogueHash() =>
     r'24b56fd680ca0ce6500db9920eae1b897c93d3fd';
 
-/// Loads Molo's own session over the authenticated transport. Falls back to
-/// [UnavailableSessionService] when no API base URL is configured, such as
-/// preview builds.
+/// Loads Molo's own session over the authenticated transport.
+///
+/// Falls back to [UnavailableSessionService] unless this build both runs a
+/// real Firebase identity and knows an API base URL. A preview build has no
+/// token broker and no attestation, so calling the control API could only ever
+/// return `authentication_required`, which the user cannot recover from by
+/// signing in again. Not calling is the honest answer.
 
 @ProviderFor(sessionService)
 final sessionServiceProvider = SessionServiceProvider._();
 
-/// Loads Molo's own session over the authenticated transport. Falls back to
-/// [UnavailableSessionService] when no API base URL is configured, such as
-/// preview builds.
+/// Loads Molo's own session over the authenticated transport.
+///
+/// Falls back to [UnavailableSessionService] unless this build both runs a
+/// real Firebase identity and knows an API base URL. A preview build has no
+/// token broker and no attestation, so calling the control API could only ever
+/// return `authentication_required`, which the user cannot recover from by
+/// signing in again. Not calling is the honest answer.
 
 final class SessionServiceProvider
     extends $FunctionalProvider<SessionService, SessionService, SessionService>
     with $Provider<SessionService> {
-  /// Loads Molo's own session over the authenticated transport. Falls back to
-  /// [UnavailableSessionService] when no API base URL is configured, such as
-  /// preview builds.
+  /// Loads Molo's own session over the authenticated transport.
+  ///
+  /// Falls back to [UnavailableSessionService] unless this build both runs a
+  /// real Firebase identity and knows an API base URL. A preview build has no
+  /// token broker and no attestation, so calling the control API could only ever
+  /// return `authentication_required`, which the user cannot recover from by
+  /// signing in again. Not calling is the honest answer.
   SessionServiceProvider._()
     : super(
         from: null,
@@ -242,7 +254,7 @@ final class SessionServiceProvider
   }
 }
 
-String _$sessionServiceHash() => r'0465ae605635715b1ab0f40ebafd70fbf085285f';
+String _$sessionServiceHash() => r'5f5a3fc06c4b52caede516ad89eb7753ab620cfd';
 
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();

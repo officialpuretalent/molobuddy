@@ -23,6 +23,36 @@ void main() {
     expect(session.practiceRefs, isEmpty);
   });
 
+  test('keeps a practice reference that carries a route version', () async {
+    final service = _serviceReturning(200, '''
+{"data":{"user":{"uid":"user_1"},"practiceRefs":[
+{"practiceId":"p_1","displayLabel":"Mokoena Tax Studio","homeRegionKey":"za1",
+"routeVersion":3,"accessStatus":"active"}]}}''');
+
+    final session =
+        (await service.loadSession() as AuthSuccess<MoloSession>).value;
+
+    expect(session.practiceRefs, hasLength(1));
+    expect(session.practiceRefs.single.routeVersion, 3);
+  });
+
+  test('drops a practice reference with no route version', () async {
+    // routeVersion is required by the server schema. Defaulting it would
+    // invent route state, which is worse than dropping the reference.
+    final service = _serviceReturning(200, '''
+{"data":{"user":{"uid":"user_1"},"practiceRefs":[
+{"practiceId":"p_1","displayLabel":"Mokoena Tax Studio","homeRegionKey":"za1",
+"accessStatus":"active"},
+{"practiceId":"p_2","displayLabel":"Other","homeRegionKey":"za1",
+"routeVersion":"1","accessStatus":"active"}]}}''');
+
+    final session =
+        (await service.loadSession() as AuthSuccess<MoloSession>).value;
+
+    expect(session.practiceRefs, isEmpty);
+    expect(session.hasPractices, isFalse);
+  });
+
   test('maps a missing attestation to its own failure kind', () async {
     final service = _serviceReturning(403, '{"code":"app_check_required"}');
 
