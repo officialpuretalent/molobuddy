@@ -5,7 +5,11 @@ import {
   GetSession,
   maskEmail,
 } from '../../src/contexts/identity_access/application/queries/get_session.js';
-import type { PracticeRefReader } from '../../src/contexts/identity_access/application/ports/practice_ref_reader.js';
+import type {
+  PracticeRef,
+  PracticeRefReader,
+} from '../../src/contexts/identity_access/application/ports/practice_ref_reader.js';
+import type { OnboardingStatusReader } from '../../src/contexts/identity_access/application/ports/onboarding_status_reader.js';
 import type {
   RequestTokenVerifier,
   VerifiedActor,
@@ -35,11 +39,34 @@ const noPractices: PracticeRefReader = {
   },
 };
 
+const aPractice: PracticeRef = {
+  practiceId: 'prc_1',
+  displayLabel: 'Mokoena Media Tax',
+  homeRegionKey: 'za1',
+  routeVersion: 1,
+  accessStatus: 'active',
+};
+
+function readerReturning(practices: readonly PracticeRef[]): PracticeRefReader {
+  return {
+    async listForUser() {
+      return practices;
+    },
+  };
+}
+
+const notOnboarded: OnboardingStatusReader = {
+  async isComplete() {
+    return false;
+  },
+};
+
 describe('get session', () => {
   it('returns a Molo session without leaking a raw email address', async () => {
     const result = await new GetSession(
       verifierAccepting(actor),
       noPractices,
+      notOnboarded,
     ).execute({});
 
     assert.deepEqual(result, {
@@ -51,6 +78,7 @@ describe('get session', () => {
           emailMasked: 't***@example.com',
         },
         practiceRefs: [],
+        onboarding: { status: 'in_progress' },
       },
     });
   });
@@ -79,6 +107,7 @@ describe('get session', () => {
     const result = await new GetSession(
       verifierAccepting(actor),
       reader,
+      notOnboarded,
     ).execute({});
 
     assert.equal(result.ok, true);
@@ -95,6 +124,7 @@ describe('get session', () => {
     const result = await new GetSession(
       verifierAccepting(actor),
       noPractices,
+      notOnboarded,
     ).execute({});
 
     assert.equal(result.ok, true);
@@ -115,9 +145,63 @@ describe('get session', () => {
       },
     };
 
-    const result = await new GetSession(rejecting, reader).execute({});
+    const result = await new GetSession(
+      rejecting,
+      reader,
+      notOnboarded,
+    ).execute({});
 
     assert.deepEqual(result, { ok: false, code: 'token_invalid' });
     assert.equal(consulted, false);
+  });
+
+  it('reports onboarding complete for a user who has a practice', async () => {
+    let consulted = false;
+    const query = new GetSession(
+      verifierAccepting(actor),
+      readerReturning([aPractice]),
+      {
+        async isComplete() {
+          consulted = true;
+          return false;
+        },
+      },
+    );
+
+    const result = await query.execute({});
+
+    assert.equal(result.ok, true);
+    assert.deepEqual(result.session.onboarding, { status: 'complete' });
+    // Having a practice settles it. Reading the record anyway would add a
+    // Firestore round trip to the hottest endpoint for every onboarded user.
+    assert.equal(consulted, false);
+  });
+
+  it('asks the record only when the user has no practice', async () => {
+    const query = new GetSession(
+      verifierAccepting(actor),
+      noPractices,
+      notOnboarded,
+    );
+
+    const result = await query.execute({});
+
+    assert.equal(result.ok, true);
+    assert.deepEqual(result.session.onboarding, { status: 'in_progress' });
+  });
+
+  it('believes a completed record even with no practice left', async () => {
+    // Losing access to a practice must not push someone who already onboarded
+    // back into a wizard.
+    const query = new GetSession(verifierAccepting(actor), noPractices, {
+      async isComplete() {
+        return true;
+      },
+    });
+
+    const result = await query.execute({});
+
+    assert.equal(result.ok, true);
+    assert.deepEqual(result.session.onboarding, { status: 'complete' });
   });
 });

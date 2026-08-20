@@ -1,6 +1,7 @@
 export { GetSession } from './application/queries/get_session.js';
 export { ListAuthProviders } from './application/queries/list_auth_providers.js';
 
+export type { OnboardingStatusReader } from './application/ports/onboarding_status_reader.js';
 export type {
   PracticeRef,
   PracticeRefReader,

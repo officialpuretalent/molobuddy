@@ -21,6 +21,7 @@ type SessionResponse = Readonly<{
       practiceId: string;
       displayLabel: string;
     }>[];
+    onboarding: Readonly<{ status: string }>;
   }>;
   meta: Readonly<{
     apiVersion: string;
@@ -51,6 +52,10 @@ describe('control API integration', () => {
   before(async () => {
     app = await buildControlApi(testConfig(), {
       practiceRefReader: readerReturning([]),
+      // Supplied, not reached for. Without this the gate opens a live
+      // connection to the real development project and the gate becomes a
+      // test of whoever is running it.
+      onboardingStatusReader: { isComplete: async () => false },
     });
   });
 
@@ -89,6 +94,7 @@ describe('control API integration', () => {
         emailMasked: 't***@example.com',
       },
       practiceRefs: [],
+      onboarding: { status: 'in_progress' },
     });
     assert.equal(body.meta.correlationId, 'cor_integration_123');
     assert.equal(response.headers['x-correlation-id'], 'cor_integration_123');
@@ -120,6 +126,7 @@ describe('control API integration', () => {
 
   it('carries the caller\u2019s practices through the whole HTTP slice', async () => {
     const withPractice = await buildControlApi(testConfig(), {
+      onboardingStatusReader: { isComplete: async () => false },
       practiceRefReader: readerReturning([
         {
           practiceId: 'prc_1',
@@ -142,6 +149,11 @@ describe('control API integration', () => {
     await withPractice.close();
 
     assert.equal(response.statusCode, 200);
+    // A practice settles the gate, so the injected reader saying otherwise
+    // must not matter.
+    assert.deepEqual(response.json<SessionResponse>().data.onboarding, {
+      status: 'complete',
+    });
     assert.deepEqual(response.json<SessionResponse>().data.practiceRefs, [
       {
         practiceId: 'prc_1',

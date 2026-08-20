@@ -1,10 +1,12 @@
 import type { Firestore } from 'firebase-admin/firestore';
 
 import type { ServerConfig } from './config.js';
+import { FirestoreOnboardingStatusReader } from '../contexts/identity_access/adapters/outbound/persistence/firestore_onboarding_status_reader.js';
 import { FirestorePracticeRefReader } from '../contexts/identity_access/adapters/outbound/persistence/firestore_practice_ref_reader.js';
 import {
   GetSession,
   ListAuthProviders,
+  type OnboardingStatusReader,
   type PracticeRefReader,
   type RequestTokenVerifier,
 } from '../contexts/identity_access/index.js';
@@ -48,6 +50,7 @@ export type ControlApiDependencies = Readonly<{
   auditEventSink?: AuditEventSink;
   practiceRefReader?: PracticeRefReader;
   onboardingRepository?: OnboardingRepository;
+  onboardingStatusReader?: OnboardingStatusReader;
 }>;
 
 export function createControlApiContainer(
@@ -88,6 +91,8 @@ export function createControlApiContainer(
       verifier,
       dependencies.practiceRefReader ??
         new FirestorePracticeRefReader(database()),
+      dependencies.onboardingStatusReader ??
+        new FirestoreOnboardingStatusReader(database()),
     ),
     listAuthProviders: new ListAuthProviders(),
     verifier,

@@ -229,7 +229,7 @@ export const sessionResponseSchema = {
     data: {
       type: 'object',
       additionalProperties: false,
-      required: ['user', 'practiceRefs'],
+      required: ['user', 'practiceRefs', 'onboarding'],
       properties: {
         user: {
           type: 'object',
@@ -246,6 +246,12 @@ export const sessionResponseSchema = {
           type: 'array',
           maxItems: 500,
           items: practiceRefSchema,
+        },
+        onboarding: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['status'],
+          properties: { status: { enum: ['in_progress', 'complete'] } },
         },
       },
     },

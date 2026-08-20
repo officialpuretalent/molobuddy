@@ -1,9 +1,14 @@
+import type { OnboardingStatusReader } from '../ports/onboarding_status_reader.js';
 import type { PracticeRefReader } from '../ports/practice_ref_reader.js';
 import type {
   PresentedRequestTokens,
   RequestTokenVerifier,
   TokenVerificationFailure,
 } from '../ports/request_token_verifier.js';
+
+export type OnboardingGate = Readonly<{
+  status: 'in_progress' | 'complete';
+}>;
 
 export type Session = Readonly<{
   user: Readonly<{
@@ -19,6 +24,7 @@ export type Session = Readonly<{
     routeVersion: number;
     accessStatus: 'active' | 'invited' | 'suspended';
   }>[];
+  onboarding: OnboardingGate;
 }>;
 
 export type GetSessionResult =
@@ -28,6 +34,7 @@ export class GetSession {
   constructor(
     private readonly verifier: RequestTokenVerifier,
     private readonly practiceRefs: PracticeRefReader,
+    private readonly onboarding: OnboardingStatusReader,
   ) {}
 
   async execute(tokens: PresentedRequestTokens): Promise<GetSessionResult> {
@@ -42,6 +49,10 @@ export class GetSession {
     // The uid comes from the verified token, never from the request, so one
     // user cannot read another's list.
     const practiceRefs = await this.practiceRefs.listForUser(actor.uid);
+    // A practice settles it without a second read. Only a user who has none
+    // needs the record consulted, which is every user exactly once.
+    const onboardingComplete =
+      practiceRefs.length > 0 || (await this.onboarding.isComplete(actor.uid));
 
     return {
       ok: true,
@@ -57,6 +68,9 @@ export class GetSession {
             : { preferredLocale: actor.preferredLocale }),
         },
         practiceRefs,
+        onboarding: {
+          status: onboardingComplete ? 'complete' : 'in_progress',
+        },
       },
     };
   }
