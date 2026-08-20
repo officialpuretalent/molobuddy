@@ -170,6 +170,7 @@ export function registerProblemHandlers(app: FastifyInstance): void {
           error.validationContext === 'body'
             ? 'validation_error'
             : 'invalid_query',
+          pointersFromValidation(error.validation),
         );
       }
 
@@ -186,6 +187,29 @@ export function registerProblemHandlers(app: FastifyInstance): void {
       return sendProblem(reply, request, 'internal_error');
     },
   );
+}
+
+/**
+ * Field pointers for a schema rejection.
+ *
+ * The schema rejects the obvious cases before a handler runs, so without this
+ * a caller learns which endpoint refused them but not which field. Only the
+ * path is taken; the message is Molo's own, because a validator's wording is
+ * not a contract and some keywords quote the value back.
+ */
+function pointersFromValidation(
+  validation: NonNullable<FastifyError['validation']>,
+): readonly ProblemPointer[] {
+  return validation.slice(0, 32).map((entry) => {
+    const params = entry.params as Readonly<{ additionalProperty?: unknown }>;
+    const extra = params.additionalProperty;
+    const path = entry.instancePath === '' ? '' : entry.instancePath;
+    return {
+      pointer: typeof extra === 'string' ? `${path}/${extra}` : path,
+      code: 'validation_error',
+      message: 'This value is not acceptable.',
+    };
+  });
 }
 
 function isJsonSyntaxError(error: FastifyError): boolean {

@@ -8,13 +8,18 @@ import {
   type PracticeRefReader,
   type RequestTokenVerifier,
 } from '../contexts/identity_access/index.js';
+import { FirestoreOnboardingRepository } from '../contexts/practice_management/adapters/outbound/persistence/firestore_onboarding_repository.js';
 import {
   FirestoreAuditEventSink,
   FirestorePracticeRepository,
 } from '../contexts/practice_management/adapters/outbound/persistence/firestore_practice_repository.js';
 import {
+  CompleteOnboarding,
+  GetOnboarding,
   ProvisionPractice,
+  SaveOnboardingAnswers,
   type AuditEventSink,
+  type OnboardingRepository,
   type PracticeRepository,
 } from '../contexts/practice_management/index.js';
 import { FirebaseAdminRequestTokenVerifier } from '../platform/auth/firebase_admin_request_token_verifier.js';
@@ -25,6 +30,9 @@ export type ControlApiContainer = Readonly<{
   getSession: GetSession;
   listAuthProviders: ListAuthProviders;
   provisionPractice: ProvisionPractice;
+  getOnboarding: GetOnboarding;
+  saveOnboardingAnswers: SaveOnboardingAnswers;
+  completeOnboarding: CompleteOnboarding;
   verifier: RequestTokenVerifier;
 }>;
 
@@ -39,6 +47,7 @@ export type ControlApiDependencies = Readonly<{
   practiceRepository?: PracticeRepository;
   auditEventSink?: AuditEventSink;
   practiceRefReader?: PracticeRefReader;
+  onboardingRepository?: OnboardingRepository;
 }>;
 
 export function createControlApiContainer(
@@ -62,6 +71,18 @@ export function createControlApiContainer(
           'molobuddy-development',
     ));
 
+  const onboarding =
+    dependencies.onboardingRepository ??
+    new FirestoreOnboardingRepository(database());
+  // One instance, so the endpoint and the completion command cannot drift into
+  // two provisioning commands configured differently.
+  const provisionPractice = new ProvisionPractice(
+    dependencies.practiceRepository ??
+      new FirestorePracticeRepository(database()),
+    dependencies.auditEventSink ?? new FirestoreAuditEventSink(database()),
+    config.regionKey,
+  );
+
   return {
     getSession: new GetSession(
       verifier,
@@ -70,11 +91,9 @@ export function createControlApiContainer(
     ),
     listAuthProviders: new ListAuthProviders(),
     verifier,
-    provisionPractice: new ProvisionPractice(
-      dependencies.practiceRepository ??
-        new FirestorePracticeRepository(database()),
-      dependencies.auditEventSink ?? new FirestoreAuditEventSink(database()),
-      config.regionKey,
-    ),
+    provisionPractice,
+    getOnboarding: new GetOnboarding(onboarding),
+    saveOnboardingAnswers: new SaveOnboardingAnswers(onboarding),
+    completeOnboarding: new CompleteOnboarding(onboarding, provisionPractice),
   };
 }

@@ -123,6 +123,59 @@ export const authProvidersResponseSchema = {
   },
 } as const;
 
+const onboardingAnswersSchema = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    practiceName: { type: 'string', minLength: 1, maxLength: 120 },
+    practiceSize: { enum: ['solo', 'small_team', 'growing_team'] },
+    priorities: {
+      type: 'array',
+      minItems: 1,
+      maxItems: 4,
+      uniqueItems: true,
+      items: { enum: ['deadlines', 'documents', 'teamwork', 'visibility'] },
+    },
+    startingPoint: {
+      enum: ['import_clients', 'add_first_client', 'sample_workspace'],
+    },
+  },
+} as const;
+
+export const onboardingPatchBodySchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['answers'],
+  properties: { answers: onboardingAnswersSchema },
+} as const;
+
+export const onboardingResponseSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['data', 'meta'],
+  properties: {
+    data: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['status', 'answers'],
+      properties: {
+        status: { enum: ['in_progress', 'complete'] },
+        nextStep: {
+          enum: [
+            'practice',
+            'priorities',
+            'starting_point',
+            'ready_to_complete',
+          ],
+        },
+        answers: onboardingAnswersSchema,
+        version: { type: 'string', minLength: 1, maxLength: 128 },
+      },
+    },
+    meta: responseMetaSchema,
+  },
+} as const;
+
 /**
  * The routing projection.
  *

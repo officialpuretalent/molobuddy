@@ -7,6 +7,7 @@ import {
   type ControlApiDependencies,
 } from './container.js';
 import { registerIdentityAccessRoutes } from '../contexts/identity_access/adapters/inbound/http/identity_access_routes.js';
+import { registerOnboardingRoutes } from '../contexts/practice_management/adapters/inbound/http/onboarding_routes.js';
 import { registerPracticeRoutes } from '../contexts/practice_management/adapters/inbound/http/practice_routes.js';
 import { createOpaqueId } from '../platform/http/identifiers.js';
 import { registerHealthRoute } from '../platform/http/health_route.js';
@@ -51,7 +52,7 @@ export async function buildControlApi(
         ? false
         : [...config.corsAllowedOrigins],
     credentials: false,
-    methods: ['GET', 'POST', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
       'Accept',
       'Content-Type',
@@ -59,6 +60,7 @@ export async function buildControlApi(
       'X-Firebase-AppCheck',
       'X-Correlation-Id',
       'Idempotency-Key',
+      'If-Match',
     ],
     exposedHeaders: ['X-Request-Id', 'X-Correlation-Id'],
     maxAge: 600,
@@ -72,6 +74,7 @@ export async function buildControlApi(
   registerHealthRoute(app, config);
   registerIdentityAccessRoutes(app, container);
   registerPracticeRoutes(app, container);
+  registerOnboardingRoutes(app, container);
 
   await app.ready();
   return app;
