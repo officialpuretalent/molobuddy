@@ -1,5 +1,6 @@
 import 'package:molobuddy_app/core/auth/auth_providers.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
+import 'package:molobuddy_app/core/auth/data/models/auth_user.dart';
 import 'package:molobuddy_app/core/auth/data/models/molo_session.dart';
 import 'package:molobuddy_app/core/auth/data/repositories/auth_repository.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_state.dart';
@@ -120,6 +121,67 @@ class AuthViewModel extends _$AuthViewModel {
           current.copyWith(status: AuthViewStatus.signedOut, failure: failure),
         );
     }
+  }
+
+  /// Adopts an account that has just been created.
+  ///
+  /// Creating an account signs that person in at the provider, so this model
+  /// has to learn about it the same way it learns about a sign-in. Without
+  /// this the app holds a signed-out session for a signed-in user, and every
+  /// screen that reads the session waits forever for one that never loads.
+  ///
+  /// Settling is identical to an interactive sign-in, generation guard
+  /// included, because it is the same thing happening for a different reason.
+  Future<AuthResult<AuthUser>> createAccount({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    // Registration can be reached before the first session load has settled,
+    // so this waits rather than demanding a value that is not there yet.
+    final current = switch (state) {
+      AsyncData(:final value) => value,
+      _ => await future,
+    };
+    state = AsyncData(
+      current.copyWith(
+        status: AuthViewStatus.authenticating,
+        clearFailure: true,
+      ),
+    );
+
+    final repository = ref.read(authRepositoryProvider);
+    final result = await repository.createAccount(
+      email: email,
+      password: password,
+      displayName: displayName,
+    );
+    if (!ref.mounted) {
+      return result;
+    }
+
+    switch (result) {
+      case AuthSuccess(:final value):
+        state = AsyncData(
+          current.copyWith(
+            status: AuthViewStatus.loadingSession,
+            user: value,
+            clearFailure: true,
+          ),
+        );
+        final generation = ++_sessionLoadGeneration;
+        final sessionResult = await _loadSessionSafely(repository);
+        if (!ref.mounted) {
+          return result;
+        }
+        final afterCreate = _sessionLoadStillOwnsState(generation);
+        if (afterCreate != null) {
+          state = AsyncData(_settledWithSession(afterCreate, sessionResult));
+        }
+      case AuthError():
+        state = AsyncData(current.copyWith(status: AuthViewStatus.signedOut));
+    }
+    return result;
   }
 
   Future<void> signOut() async {

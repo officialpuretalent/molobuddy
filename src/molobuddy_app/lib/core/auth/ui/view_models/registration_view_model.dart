@@ -1,5 +1,5 @@
-import 'package:molobuddy_app/core/auth/auth_providers.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
+import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'registration_view_model.g.dart';
@@ -109,8 +109,12 @@ class RegistrationViewModel extends _$RegistrationViewModel {
     }
 
     state = state.copyWith(submitting: true);
+    // Through the auth view model rather than the repository, so the model
+    // that owns "who is signed in" learns about the new account. Going
+    // straight to the repository left the app holding a signed-out session
+    // for a signed-in user.
     final result = await ref
-        .read(authRepositoryProvider)
+        .read(authViewModelProvider.notifier)
         .createAccount(
           email: cleanEmail,
           password: password,

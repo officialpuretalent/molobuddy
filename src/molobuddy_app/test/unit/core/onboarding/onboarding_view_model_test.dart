@@ -140,16 +140,19 @@ void main() {
     expect(_stateOf(container).version, 'v-next');
   });
 
-  test('advances to the step the server derived, never a guessed one', () async {
-    final service = _FakeOnboardingService(_atPractice);
-    final (model, container) = await _ready(service);
+  test(
+    'advances to the step the server derived, never a guessed one',
+    () async {
+      final service = _FakeOnboardingService(_atPractice);
+      final (model, container) = await _ready(service);
 
-    await model.saveAnswers(
-      const OnboardingAnswers(practiceName: 'Mokoena Media Tax'),
-    );
+      await model.saveAnswers(
+        const OnboardingAnswers(practiceName: 'Mokoena Media Tax'),
+      );
 
-    expect(_stateOf(container).step, OnboardingStep.priorities);
-  });
+      expect(_stateOf(container).step, OnboardingStep.priorities);
+    },
+  );
 
   test('a failed save keeps the user where they are', () async {
     final service = _FakeOnboardingService(_atPractice)

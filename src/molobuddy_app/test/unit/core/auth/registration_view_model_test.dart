@@ -6,6 +6,7 @@ import 'package:molobuddy_app/core/auth/data/models/auth_method_descriptor.dart'
 import 'package:molobuddy_app/core/auth/data/models/auth_user.dart';
 import 'package:molobuddy_app/core/auth/data/models/molo_session.dart';
 import 'package:molobuddy_app/core/auth/data/repositories/auth_repository.dart';
+import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_model.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/registration_view_model.dart';
 
 final class _RecordingRepository implements AuthRepository {
@@ -52,13 +53,16 @@ final class _RecordingRepository implements AuthRepository {
       throw UnimplementedError('signOut');
 }
 
-(RegistrationViewModel, ProviderContainer) _build(
+Future<(RegistrationViewModel, ProviderContainer)> _build(
   _RecordingRepository repository,
-) {
+) async {
   final container = ProviderContainer(
     overrides: [authRepositoryProvider.overrideWithValue(repository)],
   );
   addTearDown(container.dispose);
+  // Account creation goes through the auth view model, so let its first load
+  // settle before the form is submitted.
+  await container.read(authViewModelProvider.future);
   container.read(registrationViewModelProvider);
   return (container.read(registrationViewModelProvider.notifier), container);
 }
@@ -79,7 +83,7 @@ Future<bool> _submitValid(RegistrationViewModel model) {
 void main() {
   test('creates the account and normalises what it sends', () async {
     final repository = _RecordingRepository();
-    final (model, _) = _build(repository);
+    final (model, _) = await _build(repository);
 
     final created = await _submitValid(model);
 
@@ -91,7 +95,7 @@ void main() {
 
   test('refuses to call the provider with an unusable form', () async {
     final repository = _RecordingRepository();
-    final (model, container) = _build(repository);
+    final (model, container) = await _build(repository);
 
     final created = await model.createAccount(
       displayName: 'T',
@@ -110,7 +114,7 @@ void main() {
   });
 
   test('reports a taken address on the email field, not as a banner', () async {
-    final (model, container) = _build(
+    final (model, container) = await _build(
       _RecordingRepository(
         failure: const AuthFailure(AuthFailureKind.emailAlreadyRegistered),
       ),
@@ -124,7 +128,7 @@ void main() {
   });
 
   test('reports a rejected password on the password field', () async {
-    final (model, container) = _build(
+    final (model, container) = await _build(
       _RecordingRepository(
         failure: const AuthFailure(AuthFailureKind.passwordRejected),
       ),
@@ -139,7 +143,7 @@ void main() {
   test('anything no field explains becomes a form-level failure', () async {
     // This is the path a provider takes when email-enumeration protection
     // declines to say the address is taken.
-    final (model, container) = _build(
+    final (model, container) = await _build(
       _RecordingRepository(
         failure: const AuthFailure(AuthFailureKind.unexpected),
       ),
@@ -153,7 +157,7 @@ void main() {
 
   test('clears a previous refusal when the form is submitted again', () async {
     final repository = _RecordingRepository();
-    final (model, container) = _build(repository);
+    final (model, container) = await _build(repository);
     await model.createAccount(
       displayName: 'T',
       email: 'nope',
