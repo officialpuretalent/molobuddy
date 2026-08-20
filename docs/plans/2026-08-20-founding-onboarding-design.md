@@ -518,6 +518,33 @@ because by then it will be true.
   Claude cannot create accounts, so this run has to be driven by a person, the
   same way the password entry was.
 
+### 9.1 Edge cases still unverified against real Firebase
+
+Every item below is covered by unit or widget tests, several of them mutation
+checked. What none of them has met is the real provider. Listed so the gap is
+a known one rather than a discovered one.
+
+**Proven live on 2026-08-20:** resume at the derived step. A persisted session
+loaded, `GET /v1/session` and `GET /v1/onboarding` both returned 200, the gate
+read `in_progress` and the wizard opened at step 3 with the practice answer
+already stored. App Check passed throughout. The account-creation half of that
+journey is still unproven.
+
+| Case | How to induce it | What should happen |
+|---|---|---|
+| Lapsed attestation token | Leave a tab idle past the App Check TTL, roughly 30 minutes, then act | One silent forced refresh and the request succeeds. No error reaches a screen |
+| Lapsed token on the error path | Same, on a caller that has not widened `validateStatus` | Identical recovery. This path is a separate branch in the interceptor |
+| Onboarding read fails | Stop the control API, reload `/onboarding` | The reason and a retry, no progress panel, no empty step 1. Restart the API and the retry restores the wizard at the stored step |
+| Session load fails | Same, then navigate to `/sign-in` while signed in | Redirected to `/home`, which names the failure and offers a retry that works |
+| Abandon and resume | Register, answer step 2, close the tab, sign back in | Resumes at step 3, not at the account form or step 1 |
+| Version conflict | Two tabs on `/onboarding`, save in one, then save in the other | `412`, an automatic reload, and the latest stored answers shown |
+| Blind write | A save carrying no `If-Match` against a record that exists | `428 version_required`, handled as the same conflict |
+| Replayed completion | Complete, then replay the same idempotency key | One practice, `200` rather than `201`. Two would be the expensive failure |
+
+The last three are covered against the Firestore emulator, which is the right
+place for them. They appear here because the emulator does not exercise the
+client's handling of the responses.
+
 ## 10. Additions to existing contracts
 
 Each should be folded into the binding document as part of the work, not left
