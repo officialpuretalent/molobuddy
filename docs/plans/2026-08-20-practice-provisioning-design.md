@@ -66,7 +66,24 @@ type Practice = {
 
 `homeRegionKey` is the value the authentication design's pipeline resolves at
 step 5, and `status` carries the closure state its privileged tier refers to.
-`version` follows the convention already used by `PracticeMember`.
+
+`version` is the **optimistic concurrency token**, not a schema stamp. The API
+design makes an update return a strong `ETag` carrying the opaque resource
+version, requires `If-Match` on state-changing actions, and answers a stale one
+with `412 version_mismatch` and a missing one with `428 version_required`. This
+field is the value behind that ETag, and it is what stops two practitioners
+editing the same record from silently overwriting each other.
+
+It follows that the token **must be regenerated on every write**. A constant is
+worse than no token at all: every `If-Match` comparison would succeed, so the
+first update endpoint would appear to have lost-update protection while having
+none. The repository mints a fresh value each time it writes, so a document
+created today already carries a usable token when the first `PATCH` arrives and
+no migration is needed to make one.
+
+A document schema stamp is a different concern, already served by
+`schemaVersion` elsewhere in the architecture. This slice needs no such stamp
+and adds none.
 
 `practiceId` is a server-generated opaque identifier. It is never derived from
 the practice name, because a name is neither unique nor stable and an
@@ -101,6 +118,16 @@ Making the stored shape identical to the response shape removes a mapping layer
 that would otherwise drift. `accessStatus` mirrors the membership status,
 narrowed to the three values the API exposes; a `removed` member has their
 projection deleted rather than published as a fourth state.
+
+The projection deliberately carries **no `version`**. It is a server-owned
+derived record that no client ever updates, so no `If-Match` is ever compared
+against it and a concurrency token would have nothing to protect. It is rebuilt
+from the membership it mirrors, never edited in place.
+
+`routeVersion` is unrelated to that token despite the name. It invalidates a
+cached region route when a practice moves region, and stays `1` for every
+practice while one region exists. It is part of the session contract already
+shipped in `Session`, its response schema and the Flutter client.
 
 ## 4. The provisioning command
 
@@ -313,6 +340,12 @@ should be folded back into it, or corrected there, before this slice merges.
    as a different act.
 5. **Region is server-assigned** (section 4.2). Implied by treating client
    region as untrusted, but never stated for this command.
+6. **What `version` means** (section 3.1). The data design places `version` on
+   `PracticeMember` and `TaxpayerAccessGrant` without saying what it is for. It
+   is the optimistic concurrency token behind the API's ETag, and it must change
+   on every write. Stating this prevents the natural misreading that it is a
+   schema stamp, which would lead to writing a constant and silently disabling
+   lost-update protection.
 
 ## 11. Acceptance criteria
 
@@ -332,3 +365,5 @@ should be folded back into it, or corrected there, before this slice merges.
 9. A request whose body carries a region field has that field ignored, and the
    practice is created in the server-configured region.
 10. Creating a practice writes exactly one audit event containing no raw token.
+11. The practice and the member each carry a distinct concurrency token, and two
+    writes never produce the same token. The routing projection carries none.

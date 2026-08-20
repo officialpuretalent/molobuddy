@@ -296,7 +296,10 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { problemForCode } from '../../src/platform/http/problems.js';
-import { createOpaqueId } from '../../src/platform/http/identifiers.js';
+import {
+  createOpaqueId,
+  createResourceVersion,
+} from '../../src/platform/http/identifiers.js';
 
 describe('platform problem catalogue', () => {
   it('describes a validation error as a 400 the caller can act on', () => {
@@ -314,6 +317,20 @@ describe('opaque identifiers', () => {
     const id = createOpaqueId('prc');
 
     assert.match(id, /^prc_[a-f0-9]{32}$/);
+  });
+});
+
+describe('resource version', () => {
+  it('mints a different token every time', () => {
+    const tokens = new Set(
+      Array.from({ length: 100 }, () => createResourceVersion()),
+    );
+
+    assert.equal(tokens.size, 100);
+  });
+
+  it('is an opaque token safe to place in an ETag', () => {
+    assert.match(createResourceVersion(), /^[a-f0-9]{32}$/);
   });
 });
 ```
@@ -363,20 +380,38 @@ export function createOpaqueId(
 }
 ```
 
-- [ ] **Step 5: Run the test and watch it pass**
+- [ ] **Step 5: Add the concurrency token minter**
+
+Still in `src/platform/http/identifiers.ts`:
+
+```ts
+/**
+ * A fresh optimistic concurrency token.
+ *
+ * This is the value behind the API's strong ETag. `If-Match` is compared
+ * against it to prevent lost updates, so it MUST be regenerated on every write.
+ * A constant here would make every comparison succeed and silently disable the
+ * protection it appears to provide.
+ */
+export function createResourceVersion(): string {
+  return randomUUID().replaceAll('-', '');
+}
+```
+
+- [ ] **Step 6: Run the test and watch it pass**
 
 ```bash
 npm run test:unit
 ```
 
-Expected: PASS, 2 new tests.
+Expected: PASS, 4 new tests.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 npm run check
 git add src/molobuddy_server/src/platform/http src/molobuddy_server/test/unit/problems.test.ts
-git commit -m "feat: add a validation problem code and a practice identifier prefix"
+git commit -m "feat: add a validation problem code, practice ids and resource versions"
 ```
 
 ---
@@ -441,6 +476,15 @@ Create `domain/practice.ts`:
 ```ts
 export type PracticeStatus = 'active' | 'suspended' | 'closed';
 
+/**
+ * A practice as the domain knows it.
+ *
+ * Deliberately carries no `version`. That field is the optimistic concurrency
+ * token behind the API's ETag, it must change on every write, and it is
+ * therefore owned by the repository rather than by a command. Putting it here
+ * would invite a caller to pin it, which is exactly how lost-update protection
+ * gets silently disabled.
+ */
 export type Practice = Readonly<{
   practiceId: string;
   displayName: string;
@@ -1033,6 +1077,29 @@ describe('firestore practice repository', () => {
     assert.equal([a.replayed, b.replayed].filter(Boolean).length, 1);
   });
 
+  it('gives each record its own concurrency token, and none to the projection', async () => {
+    const db = getMoloFirestore(projectId);
+    const repository = new FirestorePracticeRepository(db);
+    const uid = `user_${randomUUID()}`;
+    const write = writeFor(uid, 'version-key');
+
+    await repository.provision(write);
+
+    const id = write.practice.practiceId;
+    const practice = (await db.doc(`practices/${id}`).get()).data()!;
+    const member = (await db.doc(`practices/${id}/members/${uid}`).get()).data()!;
+    const ref = (await db.doc(`users/${uid}/practiceRefs/${id}`).get()).data()!;
+
+    // A hardcoded constant would pass the format check but fail this: two
+    // resources sharing one token means one ETag can validate the other.
+    assert.match(practice.version, /^[a-f0-9]{32}$/);
+    assert.match(member.version, /^[a-f0-9]{32}$/);
+    assert.notEqual(practice.version, member.version);
+
+    // The projection is server-owned and never PATCHed, so it carries no token.
+    assert.equal(ref.version, undefined);
+  });
+
   it('keeps one user’s key from colliding with another’s', async () => {
     const db = getMoloFirestore(projectId);
     const repository = new FirestorePracticeRepository(db);
@@ -1063,6 +1130,7 @@ Create `adapters/outbound/persistence/firestore_practice_repository.ts`:
 ```ts
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 
+import { createResourceVersion } from '../../../../../platform/http/identifiers.js';
 import { runInTransaction } from '../../../../../platform/persistence/firestore.js';
 import type {
   AuditEvent,
@@ -1098,17 +1166,19 @@ export class FirestorePracticeRepository implements PracticeRepository {
       }
 
       const practiceId = write.practice.practiceId;
+      // Each resource gets its own freshly minted concurrency token. They are
+      // separate resources with separate ETags, so they must not share one.
       tx.set(this.db.doc(`practices/${practiceId}`), {
         ...write.practice,
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
-        version: 'v1',
+        version: createResourceVersion(),
       });
       tx.set(this.db.doc(`practices/${practiceId}/members/${uid}`), {
         ...write.member,
         joinedAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
-        version: 'v1',
+        version: createResourceVersion(),
       });
       tx.set(
         this.db.doc(`users/${uid}/practiceRefs/${practiceId}`),
@@ -1142,7 +1212,7 @@ export class FirestoreAuditEventSink implements AuditEventSink {
 npm run test:firestore
 ```
 
-Expected: PASS, 4 tests. If the racing test is flaky, that is a real finding, not a test problem: Firestore retries a contended transaction, and the read-then-write ordering above is what makes the retry converge on one practice. Do not add a sleep.
+Expected: PASS, 5 tests. If the racing test is flaky, that is a real finding, not a test problem: Firestore retries a contended transaction, and the read-then-write ordering above is what makes the retry converge on one practice. Do not add a sleep.
 
 - [ ] **Step 5: Commit**
 
@@ -1550,7 +1620,22 @@ In its section 2, alongside the existing statement that a client-supplied region
 
 In `docs/api_design/identity_access.md`, add `POST /v1/practices`: its request body, the `Idempotency-Key` header, the 201 and 200 responses, and the error table from the spec's section 8.
 
-- [ ] **Step 5: Correct acceptance criterion 9 in the spec**
+- [ ] **Step 5: Explain what `version` means in the data design**
+
+`docs/data_design/identity_access.md` puts `version: string` on
+`PracticeMember` and `TaxpayerAccessGrant` without ever saying what it is for,
+and the same bare field appears on most records across the API design. The
+natural misreading is that it stamps a document schema, which leads to writing
+a constant and silently disabling lost-update protection.
+
+Add a short subsection to its section 3 stating: `version` is the optimistic
+concurrency token behind the API's strong ETag; `If-Match` is compared against
+it and a stale value returns `412 version_mismatch`; it must be regenerated on
+every write; a constant defeats it entirely; and a document schema stamp is a
+separate concern served by `schemaVersion`. Note also that a server-owned
+derived projection carries no `version`, because nothing updates it.
+
+- [ ] **Step 6: Correct acceptance criterion 9 in the spec**
 
 In `docs/plans/2026-08-20-practice-provisioning-design.md`, criterion 9 currently
 says a request carrying a region field has it ignored. The implementation
@@ -1559,11 +1644,11 @@ sets `additionalProperties: false`. Rewrite the criterion to state the rejection
 and note in section 4.2 that an unknown body field is refused rather than
 dropped.
 
-- [ ] **Step 6: Add the emulator to the runbook**
+- [ ] **Step 7: Add the emulator to the runbook**
 
 In `docs/local_development.md`, add a short section: Firestore is managed from the repository root, `npm run test:firestore` runs the emulator-backed tests, and the emulator uses port 8081 because the control API holds 8080.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add docs
