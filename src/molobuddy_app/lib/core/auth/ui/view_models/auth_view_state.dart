@@ -41,6 +41,7 @@ final class AuthViewState {
 
   bool get isBusy {
     return status == AuthViewStatus.authenticating ||
+        status == AuthViewStatus.loadingSession ||
         status == AuthViewStatus.signingOut;
   }
 
