@@ -1,9 +1,9 @@
 # Identity and Access Data Design
 
-- **Status:** Draft v0.1
+- **Status:** Draft v0.2, practice provisioning implemented
 - **Owner:** Product and engineering
 - **Last updated:** 20 August 2026
-- **Related contracts:** [system architecture](../product/system_architecture.md), [authentication design](../backend_design/authentication.md), [Identity and Access API](../api_design/identity_access.md)
+- **Related contracts:** [system architecture](../product/system_architecture.md), [authentication design](../backend_design/authentication.md), [Identity and Access API](../api_design/identity_access.md), [practice provisioning design](../plans/2026-08-20-practice-provisioning-design.md)
 
 ## 1. Decision
 
@@ -50,6 +50,12 @@ The result is deny-by-default. There is no cached client assertion and no
 long-lived role claim that can survive a suspension or revocation. Membership
 and grant changes take effect on the next regional request.
 
+A practice's `homeRegionKey` is assigned by the server when the practice is
+provisioned and is never accepted from a request body. Step 2 above can only
+reject a request sent to the wrong region if the trusted region was decided by
+the server in the first place; honouring a client-supplied region would let a
+caller place a practice in a jurisdiction they were never granted.
+
 ```text
 verified actor + current grant + target resource + endpoint policy
                               │
@@ -78,9 +84,76 @@ The authoritative records are regional, below the practice they govern:
 
 The global control-plane `users/{uid}/practiceRefs/{practiceId}` record is a
 minimal routing/navigation projection. It contains no capability and never
-authorises a regional operation.
+authorises a regional operation:
 
-### 3.1 Practice membership
+```ts
+type PracticeRefRecord = {
+  practiceId: string;
+  displayLabel: string;
+  homeRegionKey: string;
+  routeVersion: number;
+  accessStatus: 'active' | 'invited' | 'suspended';
+};
+```
+
+This is deliberately the same shape `GET /v1/session` returns, so there is no
+mapping layer between storage and contract to drift. `accessStatus` mirrors the
+membership status, narrowed to the three values the API exposes; a `removed`
+member has their projection deleted rather than published as a fourth state.
+
+### 3.0 What `version` means
+
+Every record below carries `version: string`. It is the **optimistic
+concurrency token** behind the API's strong `ETag`. `If-Match` is compared
+against it on a state-changing request; a stale value answers
+`412 version_mismatch` and a missing one `428 version_required`. It is what
+stops two practitioners editing the same record from silently overwriting each
+other.
+
+Three consequences follow, and each one is a mistake that has to be avoided
+deliberately:
+
+1. **The server regenerates it on every write.** A constant is worse than no
+   token at all: every `If-Match` comparison would succeed, so an endpoint
+   would appear to have lost-update protection while having none.
+2. **It is not a document schema stamp.** That is a separate concern served by
+   `schemaVersion`, and reading `version` as a schema marker is exactly what
+   leads to writing a constant.
+3. **A server-owned derived record carries no `version` at all.** The routing
+   projection above has none: no client ever updates it, so no `If-Match` is
+   ever compared against it and a token would have nothing to protect. It is
+   rebuilt from the membership it mirrors, never edited in place. A placeholder
+   would be worse than its absence.
+
+### 3.1 Practice
+
+The practice itself, at `/practices/{practiceId}`:
+
+```ts
+type Practice = {
+  practiceId: string;
+  displayName: string;
+  homeRegionKey: string;
+  routeVersion: number;
+  status: 'active' | 'suspended' | 'closed';
+  createdByUid: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  version: string;
+};
+```
+
+`practiceId` is a server-generated opaque identifier, never derived from the
+practice name: a name is neither unique nor stable, and an identifier derived
+from one leaks it into URLs and logs. `homeRegionKey` is the trusted region
+section 2 resolves. `status` carries the closure state section 8's privileged
+tier refers to.
+
+`routeVersion` invalidates a cached region route when a practice moves region.
+It is unrelated to `version` despite the name, and stays `1` for every practice
+while one region exists.
+
+### 3.2 Practice membership
 
 ```ts
 type PracticeMember = {
@@ -101,7 +174,7 @@ type PracticeMember = {
 `role` and `status` are required. The optional overrides are tightly governed
 exceptions, not a custom-role editor; section 6 defines their limits.
 
-### 3.2 Taxpayer access grant
+### 3.3 Taxpayer access grant
 
 ```ts
 type TaxpayerAccessGrant = {
@@ -262,8 +335,20 @@ tiers. This data design assigns the minimum tier:
 | Action | Minimum tier | Additional rule |
 |---|---|---|
 | Read/update ordinary scoped work | Standard | Current grant and capability |
+| Create a practice | Standard | None beyond the pipeline's steps 1 to 4 |
 | Invite/change member or portal access; connector authorisation; audit export | Sensitive | Verified email, token-revocation check, recent authentication and reason where applicable |
 | Reveal protected identifier; statutory deadline override; practice closure; owner transfer | Privileged | Explicit step-up/fresh authentication, reason and dedicated immutable audit event |
+
+Creating a practice is Standard because the actor creates a practice they will
+own, touching no existing practice, no other person's access and no taxpayer
+data. The privileged tier is reserved for acts against an existing practice,
+such as closure or owner transfer.
+
+Founding a practice deliberately does **not** require a verified email. The
+authentication design requires verification before joining an existing practice
+as staff, which is a different act: accepting someone else's invitation.
+Requiring it here would lock the founding owner out of their own workspace on an
+unverified address, which is the state every newly created account starts in.
 
 Workflow and review policies can impose more conditions than the capability
 catalogue. At minimum, a reviewer cannot approve their own work where the

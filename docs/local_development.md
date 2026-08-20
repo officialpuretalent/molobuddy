@@ -175,6 +175,31 @@ Do not "fix" an attestation failure by weakening the verifier. The App Check
 requirement is a deliberate control, and App Check failures must stay
 distinguishable from authentication failures.
 
+## Firestore
+
+Firestore is managed from the repository root: `firebase.json`,
+`firestore.rules` and `firestore.indexes.json`. The ruleset denies every client
+operation. Molo clients never reach Firestore directly, every write comes from
+the Admin SDK, and the Admin SDK bypasses rules, so the denial is a backstop
+rather than a restriction on anything that exists today.
+
+Emulator-backed tests run separately from the ordinary gate, because they need
+the Firebase CLI and `npm run check` must not:
+
+```bash
+cd src/molobuddy_server && npm run test:firestore
+```
+
+The emulator listens on **8570**. The control API holds 8080, and 8081 to 8086
+were already taken on the machine this was set up on. The script invokes
+`$npm_node_execpath` rather than bare `node`: the standalone Firebase CLI
+prepends its own bundled Node to `PATH` inside `emulators:exec`, and that build
+reads `--test` as a filename.
+
+`npm run check` reaches no network and needs no Google credentials. Anything
+that touches real Firestore is either an emulator test or a deliberate manual
+check.
+
 ## Verification
 
 ```bash

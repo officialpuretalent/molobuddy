@@ -62,7 +62,7 @@ Nothing can be persisted or tested until Firestore is reachable from the server 
 **Interfaces:**
 - Produces: `getMoloFirestore(projectId: string): Firestore` and `runInTransaction<T>(db: Firestore, work: (tx: Transaction) => Promise<T>): Promise<T>`.
 
-- [ ] **Step 1: Write the Firebase config files**
+- [x] **Step 1: Write the Firebase config files**
 
 `firebase.json` at the repository root:
 
@@ -107,7 +107,7 @@ service cloud.firestore {
 
 Port 8081 is deliberate: the control API already uses 8080.
 
-- [ ] **Step 2: Add the emulator test script**
+- [x] **Step 2: Add the emulator test script**
 
 In `src/molobuddy_server/package.json`, add to `scripts`:
 
@@ -117,7 +117,7 @@ In `src/molobuddy_server/package.json`, add to `scripts`:
 
 Leave `check` unchanged so the ordinary gate does not require the Firebase CLI.
 
-- [ ] **Step 3: Write the failing test**
+- [x] **Step 3: Write the failing test**
 
 Create `test/integration/firestore/transaction_runner.test.ts`:
 
@@ -168,7 +168,7 @@ describe('firestore transaction runner', () => {
 });
 ```
 
-- [ ] **Step 4: Run the test and watch it fail**
+- [x] **Step 4: Run the test and watch it fail**
 
 ```bash
 cd src/molobuddy_server && npm run test:firestore
@@ -176,7 +176,7 @@ cd src/molobuddy_server && npm run test:firestore
 
 Expected: FAIL. TypeScript cannot resolve `src/platform/persistence/firestore.js`.
 
-- [ ] **Step 5: Write the implementation**
+- [x] **Step 5: Write the implementation**
 
 Create `src/platform/persistence/firestore.ts`:
 
@@ -223,7 +223,7 @@ export function runInTransaction<T>(
 }
 ```
 
-- [ ] **Step 6: Run the test and watch it pass**
+- [x] **Step 6: Run the test and watch it pass**
 
 ```bash
 npm run test:firestore
@@ -231,7 +231,7 @@ npm run test:firestore
 
 Expected: PASS, 3 tests.
 
-- [ ] **Step 7: Pin the deny-all ruleset**
+- [x] **Step 7: Pin the deny-all ruleset**
 
 Add to `test/unit/firestore_rules.test.ts`:
 
@@ -258,7 +258,7 @@ This pins the intent cheaply. It is not a substitute for a rules-engine test,
 which would need the client SDK as a dependency; the value here is that
 loosening the ruleset cannot pass unnoticed.
 
-- [ ] **Step 8: Confirm the ordinary gate is unaffected**
+- [x] **Step 8: Confirm the ordinary gate is unaffected**
 
 ```bash
 npm run check
@@ -266,7 +266,7 @@ npm run check
 
 Expected: 18 tests, all green.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add firebase.json firestore.rules firestore.indexes.json src/molobuddy_server/package.json src/molobuddy_server/src/platform/persistence src/molobuddy_server/test/integration/firestore src/molobuddy_server/test/unit/firestore_rules.test.ts
@@ -287,7 +287,7 @@ Two small platform additions the later tasks depend on. They are one task becaus
 **Interfaces:**
 - Produces: `ProblemCode` gains `'validation_error'`; `createOpaqueId` accepts `'prc'`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/unit/problems.test.ts`:
 
@@ -335,7 +335,7 @@ describe('resource version', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 cd src/molobuddy_server && npm run test:unit
@@ -343,7 +343,7 @@ cd src/molobuddy_server && npm run test:unit
 
 Expected: FAIL. `problemForCode` is not exported, and `'prc'` is not an allowed prefix.
 
-- [ ] **Step 3: Add the validation code and the accessor**
+- [x] **Step 3: Add the validation code and the accessor**
 
 In `src/platform/http/problems.ts`, add `'validation_error'` to the `ProblemCode` union, add this entry to the `problems` record, and export an accessor so the catalogue is testable:
 
@@ -368,7 +368,7 @@ Also export the `ProblemCode` type so route code can name it:
 export type { ProblemCode };
 ```
 
-- [ ] **Step 4: Allow the practice prefix**
+- [x] **Step 4: Allow the practice prefix**
 
 In `src/platform/http/identifiers.ts`, widen the prefix union:
 
@@ -380,7 +380,7 @@ export function createOpaqueId(
 }
 ```
 
-- [ ] **Step 5: Add the concurrency token minter**
+- [x] **Step 5: Add the concurrency token minter**
 
 Still in `src/platform/http/identifiers.ts`:
 
@@ -398,7 +398,7 @@ export function createResourceVersion(): string {
 }
 ```
 
-- [ ] **Step 6: Run the test and watch it pass**
+- [x] **Step 6: Run the test and watch it pass**
 
 ```bash
 npm run test:unit
@@ -406,7 +406,7 @@ npm run test:unit
 
 Expected: PASS, 4 new tests.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 npm run check
@@ -429,7 +429,7 @@ Types and interfaces only, with a test that pins the invariants worth protecting
 **Interfaces:**
 - Produces: `Practice`, `PracticeMemberRecord`, `PracticeRefRecord`, `normalisePracticeName`, `PracticeRepository`, `ProvisionPracticeWrite`, `ProvisionPracticeOutcome`, `AuditEventSink`, `AuditEvent`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/unit/practice_domain.test.ts`:
 
@@ -461,7 +461,7 @@ describe('practice name', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 npm run test:unit
@@ -469,7 +469,7 @@ npm run test:unit
 
 Expected: FAIL, cannot resolve `practice.js`.
 
-- [ ] **Step 3: Write the domain file**
+- [x] **Step 3: Write the domain file**
 
 Create `domain/practice.ts`:
 
@@ -538,7 +538,7 @@ export function normalisePracticeName(value: unknown): string | undefined {
 }
 ```
 
-- [ ] **Step 4: Write the ports**
+- [x] **Step 4: Write the ports**
 
 Create `application/ports/practice_repository.ts`:
 
@@ -589,7 +589,7 @@ export interface AuditEventSink {
 }
 ```
 
-- [ ] **Step 5: Guard the dependency rule**
+- [x] **Step 5: Guard the dependency rule**
 
 Create `test/unit/vendor_containment.test.ts`. The repository structure document
 forbids a Google type in domain or application code, and nothing enforces it:
@@ -636,7 +636,7 @@ describe('context dependency rules', () => {
 });
 ```
 
-- [ ] **Step 6: Run the tests and watch them pass**
+- [x] **Step 6: Run the tests and watch them pass**
 
 ```bash
 npm run test:unit
@@ -646,7 +646,7 @@ Expected: PASS, 5 tests. Confirm the guard bites by temporarily adding
 `import { FieldValue } from 'firebase-admin/firestore';` to
 `domain/practice.ts`, re-running, seeing the failure, then removing it.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 npm run check
@@ -667,7 +667,7 @@ git commit -m "feat: add the practice domain shapes and provisioning ports"
 - Consumes: `PracticeRepository`, `AuditEventSink`, `normalisePracticeName`, `createOpaqueId`, `VerifiedActor`.
 - Produces: `ProvisionPractice` with `execute(input: ProvisionPracticeInput): Promise<ProvisionPracticeResult>`, where the result is `{ ok: true; practiceRef: PracticeRefRecord; replayed: boolean }` or `{ ok: false; code: 'validation_error'; pointer: string }`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/unit/provision_practice.test.ts`:
 
@@ -835,7 +835,7 @@ describe('provision practice', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 npm run test:unit
@@ -843,7 +843,7 @@ npm run test:unit
 
 Expected: FAIL, cannot resolve `provision_practice.js`.
 
-- [ ] **Step 3: Write the command**
+- [x] **Step 3: Write the command**
 
 Create `application/commands/provision_practice.ts`:
 
@@ -936,7 +936,7 @@ export class ProvisionPractice {
 }
 ```
 
-- [ ] **Step 4: Write the context import surface**
+- [x] **Step 4: Write the context import surface**
 
 Create `src/contexts/practice_management/index.ts`:
 
@@ -952,7 +952,7 @@ export type { PracticeRepository } from './application/ports/practice_repository
 export type { AuditEventSink } from './application/ports/audit_event_sink.js';
 ```
 
-- [ ] **Step 5: Run the test and watch it pass**
+- [x] **Step 5: Run the test and watch it pass**
 
 ```bash
 npm run test:unit
@@ -960,7 +960,7 @@ npm run test:unit
 
 Expected: PASS, 7 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 npm run check
@@ -982,7 +982,7 @@ Where the transactional behaviour actually lives, so this is where the emulator 
 - Consumes: `PracticeRepository`, `ProvisionPracticeWrite`, `getMoloFirestore`, `runInTransaction`.
 - Produces: `FirestorePracticeRepository`, and `FirestoreAuditEventSink` writing to `/auditEvents/{autoId}`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/integration/firestore/practice_repository.test.ts`:
 
@@ -1115,7 +1115,7 @@ describe('firestore practice repository', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 npm run test:firestore
@@ -1123,7 +1123,7 @@ npm run test:firestore
 
 Expected: FAIL, cannot resolve `firestore_practice_repository.js`.
 
-- [ ] **Step 3: Write the adapter**
+- [x] **Step 3: Write the adapter**
 
 Create `adapters/outbound/persistence/firestore_practice_repository.ts`:
 
@@ -1206,7 +1206,7 @@ export class FirestoreAuditEventSink implements AuditEventSink {
 }
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 ```bash
 npm run test:firestore
@@ -1214,7 +1214,7 @@ npm run test:firestore
 
 Expected: PASS, 5 tests. If the racing test is flaky, that is a real finding, not a test problem: Firestore retries a contended transaction, and the read-then-write ordering above is what makes the retry converge on one practice. Do not add a sleep.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 npm run check
@@ -1237,7 +1237,7 @@ git commit -m "feat: persist a provisioned practice in one transaction"
 - Consumes: `ProvisionPractice`, `RequestTokenVerifier`, `sendProblem`, `responseMeta`.
 - Produces: `registerPracticeRoutes(app, container)`; the container gains `provisionPractice: ProvisionPractice` and `verifier: RequestTokenVerifier`.
 
-- [ ] **Step 1: Add the schemas**
+- [x] **Step 1: Add the schemas**
 
 In `src/platform/http/schemas.ts`, add:
 
@@ -1292,7 +1292,7 @@ match. If you prefer the spec's original behaviour, drop `additionalProperties`
 from the body schema and change the contract test accordingly, but do not leave
 the two documents disagreeing.
 
-- [ ] **Step 2: Write the failing contract test**
+- [x] **Step 2: Write the failing contract test**
 
 Create `test/contract/practice_provisioning.test.ts`, following the existing `test/contract/auth_contract.test.ts` for how it builds the app and presents the local verifier's token pair. Assert:
 
@@ -1309,7 +1309,7 @@ Create `test/contract/practice_provisioning.test.ts`, following the existing `te
 
 Write each of those eight as a real test body using `app.inject`, in the style of the existing contract test. Use an in-memory `PracticeRepository` fake injected through the container so the contract test needs no emulator.
 
-- [ ] **Step 3: Run the test and watch it fail**
+- [x] **Step 3: Run the test and watch it fail**
 
 ```bash
 npm run test:contract
@@ -1317,7 +1317,7 @@ npm run test:contract
 
 Expected: FAIL. The route does not exist, so every case returns 404.
 
-- [ ] **Step 4: Write the route**
+- [x] **Step 4: Write the route**
 
 Create `adapters/inbound/http/practice_routes.ts`:
 
@@ -1392,7 +1392,7 @@ function readTokens(request: FastifyRequest): Readonly<{
 }
 ```
 
-- [ ] **Step 5: Wire the container and the app**
+- [x] **Step 5: Wire the container and the app**
 
 In `src/bootstrap/container.ts`, keep the verifier in a local, expose it on the container, and construct the command from the Firestore adapters:
 
@@ -1417,7 +1417,7 @@ Add `verifier: RequestTokenVerifier` and `provisionPractice: ProvisionPractice` 
 
 In `src/bootstrap/build_control_api.ts`, call `registerPracticeRoutes(app, container)` beside the existing `registerIdentityAccessRoutes(app, container)`.
 
-- [ ] **Step 6: Run the test and watch it pass**
+- [x] **Step 6: Run the test and watch it pass**
 
 ```bash
 npm run test:contract && npm run check
@@ -1425,7 +1425,7 @@ npm run test:contract && npm run check
 
 Expected: PASS, 8 new contract tests, everything else green.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/molobuddy_server/src src/molobuddy_server/test/contract/practice_provisioning.test.ts
@@ -1447,7 +1447,7 @@ git commit -m "feat: create a practice over the control API"
 **Interfaces:**
 - Produces: `PracticeRefReader` with `listForUser(uid: string): Promise<readonly PracticeRef[]>`, where `PracticeRef` is the type already declared inside `Session`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `test/unit/get_session.test.ts`, keeping every existing test unchanged:
 
@@ -1491,7 +1491,7 @@ Add to `test/unit/get_session.test.ts`, keeping every existing test unchanged:
 
 Reuse whatever fixture names the existing file already defines for the verifier, actor and tokens rather than inventing new ones.
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 ```bash
 npm run test:unit
@@ -1499,7 +1499,7 @@ npm run test:unit
 
 Expected: FAIL. `GetSession` takes one constructor argument.
 
-- [ ] **Step 3: Write the port**
+- [x] **Step 3: Write the port**
 
 Create `application/ports/practice_ref_reader.ts`:
 
@@ -1514,7 +1514,7 @@ export interface PracticeRefReader {
 }
 ```
 
-- [ ] **Step 4: Use it in the query**
+- [x] **Step 4: Use it in the query**
 
 In `get_session.ts`, take the reader as a second constructor argument and replace the hardcoded list:
 
@@ -1533,7 +1533,7 @@ and in `execute`, after the actor is known:
 
 then return `practiceRefs` in place of the literal `[]`. The uid comes from the verified actor, never from the request, so one user cannot read another's list.
 
-- [ ] **Step 5: Write the Firestore reader**
+- [x] **Step 5: Write the Firestore reader**
 
 Create `adapters/outbound/persistence/firestore_practice_ref_reader.ts`:
 
@@ -1559,11 +1559,11 @@ export class FirestorePracticeRefReader implements PracticeRefReader {
 }
 ```
 
-- [ ] **Step 6: Wire it and export the port type**
+- [x] **Step 6: Wire it and export the port type**
 
 In `container.ts`, pass `new FirestorePracticeRefReader(db)` as the second argument to `GetSession`. In `identity_access/index.ts`, export the `PracticeRefReader` type alongside the existing exports.
 
-- [ ] **Step 7: Run the tests and watch them pass**
+- [x] **Step 7: Run the tests and watch them pass**
 
 ```bash
 npm run check
@@ -1571,7 +1571,7 @@ npm run check
 
 Expected: PASS, including the two new tests and every pre-existing one.
 
-- [ ] **Step 8: Verify the client-visible payoff by hand**
+- [x] **Step 8: Verify the client-visible payoff by hand**
 
 This is the acceptance criterion the automated tests cannot reach, because it
 spans both applications and needs no client change.
@@ -1586,7 +1586,7 @@ then reload the app. The welcome screen must stop showing "You are signed in.
 No practice has been connected to this account yet." and the practice must
 appear. Record the observed result in the task report.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/molobuddy_server/src src/molobuddy_server/test/unit/get_session.test.ts
@@ -1604,23 +1604,23 @@ The spec's section 10 lists five details it decided that the data design leaves 
 - Modify: `docs/local_development.md`
 - Modify: `docs/api_design/identity_access.md`
 
-- [ ] **Step 1: Add the two record shapes to the data design**
+- [x] **Step 1: Add the two record shapes to the data design**
 
 In `docs/data_design/identity_access.md` section 3, add the `Practice` record and the `PracticeRefRecord` projection fields exactly as the spec's sections 3.1 and 3.3 define them. Note beside the projection that its shape is deliberately identical to the session response.
 
-- [ ] **Step 2: Add the tier and the verification rule**
+- [x] **Step 2: Add the tier and the verification rule**
 
 In its section 8 tier table, add a row: creating a practice is Standard tier. Beneath the table, state that founding a practice does not require a verified email, and why: the authentication design requires verification to join an existing practice as staff, which is a different act.
 
-- [ ] **Step 3: State that region is server-assigned**
+- [x] **Step 3: State that region is server-assigned**
 
 In its section 2, alongside the existing statement that a client-supplied region is untrusted, add that `homeRegionKey` is assigned by the server at provisioning and is never accepted from a request body.
 
-- [ ] **Step 4: Document the endpoint**
+- [x] **Step 4: Document the endpoint**
 
 In `docs/api_design/identity_access.md`, add `POST /v1/practices`: its request body, the `Idempotency-Key` header, the 201 and 200 responses, and the error table from the spec's section 8.
 
-- [ ] **Step 5: Explain what `version` means in the data design**
+- [x] **Step 5: Explain what `version` means in the data design**
 
 `docs/data_design/identity_access.md` puts `version: string` on
 `PracticeMember` and `TaxpayerAccessGrant` without ever saying what it is for,
@@ -1635,7 +1635,7 @@ every write; a constant defeats it entirely; and a document schema stamp is a
 separate concern served by `schemaVersion`. Note also that a server-owned
 derived projection carries no `version`, because nothing updates it.
 
-- [ ] **Step 6: Correct acceptance criterion 9 in the spec**
+- [x] **Step 6: Correct acceptance criterion 9 in the spec**
 
 In `docs/plans/2026-08-20-practice-provisioning-design.md`, criterion 9 currently
 says a request carrying a region field has it ignored. The implementation
@@ -1644,11 +1644,11 @@ sets `additionalProperties: false`. Rewrite the criterion to state the rejection
 and note in section 4.2 that an unknown body field is refused rather than
 dropped.
 
-- [ ] **Step 7: Add the emulator to the runbook**
+- [x] **Step 7: Add the emulator to the runbook**
 
 In `docs/local_development.md`, add a short section: Firestore is managed from the repository root, `npm run test:firestore` runs the emulator-backed tests, and the emulator uses port 8081 because the control API holds 8080.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add docs
@@ -1656,6 +1656,38 @@ git commit -m "docs: fold the provisioning decisions into the design contracts"
 ```
 
 ---
+
+## Execution notes
+
+Recorded after the fact, because the plan was wrong about them and the next
+reader should not rediscover it.
+
+- **The emulator listens on 8570, not 8081.** The control API holds 8080 and
+  ports 8081 to 8086 were already taken. The plan's reasoning stands; only the
+  number moved.
+- **`test:firestore` invokes `$npm_node_execpath`, not bare `node`.** The
+  standalone Firebase CLI prepends its own bundled Node to `PATH` inside
+  `emulators:exec`, and that build reads `--test` as a filename.
+- **Task 2's non-null assertions had to go.** This codebase's eslint forbids
+  them, in test files too. A small `only()` helper replaced them and says more
+  than the assertion did: exactly one write, not at least one.
+- **Task 6 needed a fifth change the plan did not list.** The error handler
+  mapped every schema failure to `invalid_query`. The spec's error table gives
+  a rejected body `validation_error`, so the handler now splits on Fastify's
+  `validationContext`.
+- **Task 7 could not leave the existing `get_session` tests untouched.** A
+  required second constructor argument makes that impossible. Their assertions
+  are preserved verbatim behind shared fixtures.
+- **Task 7 also had to inject the reader into the integration test.** Wiring
+  the Firestore reader made `npm run check` open a live connection to the real
+  development project: the session test went from 1 ms to 1683 ms and would
+  fail for anyone without Google credentials. A gate must not need a network.
+- **`practiceRefSchema` is declared once.** The plan added a second copy beside
+  the one already inline in `sessionResponseSchema`. Two declarations of a
+  shape whose whole point is that storage and contract match is the seam they
+  drift apart at.
+- **CORS gained `POST` and `Idempotency-Key`.** Not in the plan, but without
+  them the endpoint is unreachable from the browser it exists for.
 
 ## Out of Scope
 

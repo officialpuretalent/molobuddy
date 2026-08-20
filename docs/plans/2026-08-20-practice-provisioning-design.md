@@ -1,6 +1,6 @@
 # Practice Provisioning Design
 
-- **Status:** Draft v0.1, approved in brainstorming, awaiting review
+- **Status:** Draft v0.2, implemented; decisions folded into the data and API designs
 - **Owner:** Product and engineering
 - **Last updated:** 20 August 2026
 - **Related contracts:** [identity and access data design](../data_design/identity_access.md), [client-first authentication](../backend_design/authentication.md), [repository and source structure](../backend_design/repository_structure.md), [identity and access API](../api_design/identity_access.md), [runtime platform](../backend_design/runtime_platform.md)
@@ -168,6 +168,11 @@ picker, but the data design treats a client-supplied region as untrusted input,
 and honouring one would let a caller place a practice in a jurisdiction they
 were never granted. The server assigns `homeRegionKey` from its own
 configuration, which is `za1` for every practice in this slice.
+
+An unknown body field is **refused rather than dropped**: the body schema sets
+`additionalProperties: false`. Silently ignoring a `region` field would let a
+client believe it had chosen a jurisdiction and be wrong about it for as long
+as nobody checked. Refusing tells it immediately.
 
 When a second region exists, region selection becomes a server-side decision
 informed by the account, not a field the client sets. That change will not
@@ -362,8 +367,9 @@ should be folded back into it, or corrected there, before this slice merges.
    provisioned user, with no client change beyond running against the endpoint.
 7. A client using a Firestore SDK directly is denied by rules.
 8. Domain and application code contain no Firestore import.
-9. A request whose body carries a region field has that field ignored, and the
-   practice is created in the server-configured region.
+9. A request whose body carries a region field is refused with
+   `400 validation_error`, and no practice is created. Every practice that is
+   created is placed in the server-configured region.
 10. Creating a practice writes exactly one audit event containing no raw token.
 11. The practice and the member each carry a distinct concurrency token, and two
     writes never produce the same token. The routing projection carries none.

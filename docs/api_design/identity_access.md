@@ -68,6 +68,11 @@ type AuthProvider = {
 };
 ```
 
+The `practiceRefs` entry above is the `PracticeRef` that `POST /v1/practices`
+returns, and it is stored in that exact shape. It carries no `version`: it is a
+server-owned derived projection that no client updates, so there is no
+`If-Match` for a token to protect.
+
 `displayLabel` is the only practice presentation snapshot allowed in the control plane. It must not include taxpayer, work, document or connector information.
 
 ## Endpoint summary
@@ -77,6 +82,7 @@ type AuthProvider = {
 | `GET` | `/v1/auth/providers` | Global | Public safe configuration; App Check where available | — |
 | `GET` | `/v1/session` | Global | Authenticated user | — |
 | `POST` | `/v1/session:resolve-practice` | Global | Authorised practice reference | — |
+| `POST` | `/v1/practices` | Global | Authenticated user; no capability | Idempotency key |
 | `GET` | `/v1/practices/{practiceId}/members` | Regional | `members.read` | — |
 | `POST` | `/v1/practices/{practiceId}/invitations` | Regional | `members.invite` | Idempotency key |
 | `POST` | `/v1/invitations:accept` | Global edge | Valid invite + authenticated user | Idempotency key |
@@ -134,6 +140,82 @@ Returns the caller's identity and minimal authorised-practice directory. Suspend
 **Response:** `200 OK` with `Session`.
 
 **Errors:** `401 authentication_required`, `403 app_check_required`.
+
+## `POST /v1/practices`
+
+Creates a practice and makes the caller its first owner. This is how a practice
+comes into existence, and therefore how `practiceRefs` in `GET /v1/session`
+stops being empty.
+
+No capability is required: the actor creates a practice they will own, touching
+no existing practice and no other person's access. The tier is Standard, and a
+verified email is deliberately not required — that requirement belongs to
+joining someone else's practice as staff, which is a different act.
+
+```http
+POST /v1/practices
+Authorization: Bearer <firebase id token>
+X-Firebase-AppCheck: <app check token>
+Idempotency-Key: <client-generated opaque key>
+Content-Type: application/json
+
+{ "displayName": "Mokoena Media Tax" }
+```
+
+`displayName` is the only accepted field. The request body carries **no
+region**: `homeRegionKey` is assigned by the server from its own configuration,
+because a client-supplied region is untrusted input and honouring one would let
+a caller place a practice in a jurisdiction they were never granted. An unknown
+body field is refused with `400 validation_error` rather than silently dropped,
+so a client learns immediately that a field it believes it is sending has no
+effect.
+
+**Response:** `201 Created` with the caller's new `PracticeRef`, the same shape
+`GET /v1/session` lists. Returning the projection rather than a bare identifier
+lets a client navigate straight into the new practice without a second round
+trip.
+
+```json
+{
+  "data": {
+    "practiceId": "prc_opaque",
+    "displayLabel": "Mokoena Media Tax",
+    "homeRegionKey": "za1",
+    "routeVersion": 1,
+    "accessStatus": "active"
+  },
+  "meta": {
+    "apiVersion": "v1",
+    "requestId": "req_opaque",
+    "correlationId": "cor_opaque"
+  }
+}
+```
+
+A repeated `Idempotency-Key` from the same caller answers `200 OK` with the
+original projection, so a client can tell a replay from a creation. Keys are
+scoped per user, so one caller's key can never collide with another's or reveal
+that another's exists. Two calls with *different* keys create two practices,
+deliberately: a user may own several, which the session's list and the
+`selecting_practice` state already anticipate.
+
+The practice, its founding owner membership, the routing projection and the
+audit event are written in one transaction. A practice without an owner or
+without a routing entry cannot exist.
+
+**Errors:**
+
+| Condition | Status | Code |
+|---|---|---|
+| Missing or unparseable body | 400 | `invalid_json` |
+| `displayName` absent, empty, longer than 120 characters, or an unknown field present | 400 | `validation_error` |
+| Missing `Idempotency-Key` | 400 | `validation_error` |
+| No ID token | 401 | `authentication_required` |
+| Bad ID token | 401 | `token_invalid` |
+| Missing or bad App Check token | 403 | `app_check_required` |
+| Anything else | 500 | `internal_error` |
+
+No error detail echoes a submitted value.
 
 ## `POST /v1/session:resolve-practice`
 
