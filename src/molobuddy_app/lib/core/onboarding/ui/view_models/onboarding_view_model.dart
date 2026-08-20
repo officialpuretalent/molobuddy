@@ -16,6 +16,7 @@ final class OnboardingViewState {
     this.version,
     this.busy = false,
     this.failure,
+    this.loadFailure,
     this.completed = false,
     this.practice,
     this.draftPracticeName,
@@ -31,7 +32,17 @@ final class OnboardingViewState {
   /// so a double tap cannot dispatch twice.
   final bool busy;
 
+  /// Why the last action was refused. The wizard is still usable.
   final OnboardingFailure? failure;
+
+  /// Why the wizard could not be read at all, and nothing else.
+  ///
+  /// Kept apart from [failure] because the recovery differs: a refused answer
+  /// leaves a wizard to correct, a refused read leaves nothing to answer. Set
+  /// only where a load result is settled, which is why [copyWith] carries it
+  /// through rather than accepting it.
+  final OnboardingFailure? loadFailure;
+
   final bool completed;
   final PracticeRef? practice;
 
@@ -59,6 +70,7 @@ final class OnboardingViewState {
       version: version ?? this.version,
       busy: busy ?? this.busy,
       failure: clearFailure ? null : failure ?? this.failure,
+      loadFailure: loadFailure,
       completed: completed ?? this.completed,
       practice: practice ?? this.practice,
       draftPracticeName: draftPracticeName ?? this.draftPracticeName,
@@ -83,6 +95,24 @@ class OnboardingViewModel extends _$OnboardingViewModel {
     return _stateFrom(await _load());
   }
 
+  /// Asks the server for the wizard again after a read that failed.
+  ///
+  /// The only recovery from [OnboardingViewState.loadFailure]: without it a
+  /// user whose token lapsed mid-signup has to reload the whole application.
+  Future<void> reload() async {
+    final current = _current();
+    if (current == null || current.busy) {
+      return;
+    }
+    state = AsyncData(current.copyWith(busy: true, clearFailure: true));
+
+    final reloaded = await _load();
+    if (!ref.mounted) {
+      return;
+    }
+    state = AsyncData(_stateFrom(reloaded));
+  }
+
   /// Saves one step's answers, then moves to wherever the server says next.
   Future<void> saveAnswers(OnboardingAnswers answers) async {
     final current = _current();
@@ -99,8 +129,8 @@ class OnboardingViewModel extends _$OnboardingViewModel {
     }
 
     switch (result) {
-      case OnboardingSuccess(:final value):
-        state = AsyncData(_stateFrom(value));
+      case OnboardingSuccess():
+        state = AsyncData(_stateFrom(result));
       case OnboardingError(:final failure):
         if (failure.kind == OnboardingFailureKind.versionConflict) {
           // Someone else wrote first, most likely another tab. Retrying with
@@ -173,19 +203,23 @@ class OnboardingViewModel extends _$OnboardingViewModel {
     if (!ref.mounted) {
       return;
     }
+    // Saying "we have loaded the latest answers" on top of a read that failed
+    // would be a state that contradicts itself. The read failure is the whole
+    // story in that case.
+    final next = _stateFrom(reloaded);
     state = AsyncData(
-      _stateFrom(reloaded).copyWith(
-        failure: const OnboardingFailure(OnboardingFailureKind.versionConflict),
-      ),
+      next.loadFailure != null
+          ? next
+          : next.copyWith(
+              failure: const OnboardingFailure(
+                OnboardingFailureKind.versionConflict,
+              ),
+            ),
     );
   }
 
-  Future<OnboardingSnapshot?> _load() async {
-    final result = await ref.read(onboardingServiceProvider).load();
-    return switch (result) {
-      OnboardingSuccess(:final value) => value,
-      OnboardingError() => null,
-    };
+  Future<OnboardingResult<OnboardingSnapshot>> _load() {
+    return ref.read(onboardingServiceProvider).load();
   }
 
   OnboardingViewState? _current() {
@@ -199,22 +233,28 @@ class OnboardingViewModel extends _$OnboardingViewModel {
   ///
   /// Computing it here as well would be a second copy of one rule, and a
   /// resumed wizard would open on a question the user already answered.
-  static OnboardingViewState _stateFrom(OnboardingSnapshot? snapshot) {
-    if (snapshot == null) {
-      // The read failed. Start at the first question rather than guessing a
-      // later one; the first save will tell us what the server actually holds.
-      return const OnboardingViewState(
+  static OnboardingViewState _stateFrom(
+    OnboardingResult<OnboardingSnapshot> result,
+  ) {
+    return switch (result) {
+      OnboardingSuccess(:final value) => OnboardingViewState(
+        step: value.nextStep ?? OnboardingStep.readyToComplete,
+        answers: value.answers,
+        version: value.version,
+        completed: value.complete,
+      ),
+      // A failed read is carried, reason and all, rather than turned into an
+      // empty first step. Inventing one hid the answers a returning user had
+      // already given, and guaranteed their next save was refused: it would
+      // have carried no version for the server to match against. The reason
+      // travels because "we could not verify this device" and "something went
+      // wrong" send a person looking in completely different places.
+      OnboardingError(:final failure) => OnboardingViewState(
         step: OnboardingStep.practice,
-        answers: OnboardingAnswers(),
-        failure: OnboardingFailure(OnboardingFailureKind.unexpected),
-      );
-    }
-    return OnboardingViewState(
-      step: snapshot.nextStep ?? OnboardingStep.readyToComplete,
-      answers: snapshot.answers,
-      version: snapshot.version,
-      completed: snapshot.complete,
-    );
+        answers: const OnboardingAnswers(),
+        loadFailure: failure,
+      ),
+    };
   }
 
   static String _randomToken() {

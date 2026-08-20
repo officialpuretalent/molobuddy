@@ -183,6 +183,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'That address already has an account. Sign in instead.';
 
   @override
+  String get onboardingLoadFailed => 'Molo could not load your setup.';
+
+  @override
   String get onboardingChangedElsewhere =>
       'Your setup changed somewhere else. We\'ve loaded the latest answers.';
 
@@ -654,6 +657,9 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   @override
   String get emailAlreadyRegistered =>
       'That address already has an account. Sign in instead.';
+
+  @override
+  String get onboardingLoadFailed => 'Molo could not load your setup.';
 
   @override
   String get onboardingChangedElsewhere =>

@@ -60,6 +60,7 @@
   "secureSession": "Secure session",
   "secureSessionBody": "Firebase identity stays behind Molo''s authentication boundary.",
   "emailAlreadyRegistered": "That address already has an account. Sign in instead.",
+  "onboardingLoadFailed": "Molo could not load your setup.",
   "onboardingChangedElsewhere": "Your setup changed somewhere else. We''ve loaded the latest answers.",
   "onboardingAnswerRejected": "That answer could not be saved. Check it and try again.",
   "onboardingIncomplete": "A question is still unanswered. Go back and complete it.",

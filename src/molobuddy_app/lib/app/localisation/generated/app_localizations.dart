@@ -415,6 +415,12 @@ abstract class AppLocalizations {
   /// **'That address already has an account. Sign in instead.'**
   String get emailAlreadyRegistered;
 
+  /// Heading on the onboarding wizard when the saved answers could not be read, so there is no wizard to show. The reason follows underneath.
+  ///
+  /// In en, this message translates to:
+  /// **'Molo could not load your setup.'**
+  String get onboardingLoadFailed;
+
   /// Shown when a save lost to another tab and the wizard reloaded what is stored.
   ///
   /// In en, this message translates to:

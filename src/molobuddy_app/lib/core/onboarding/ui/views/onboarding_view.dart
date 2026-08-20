@@ -45,6 +45,17 @@ class OnboardingView extends ConsumerWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final loadFailure = state.loadFailure;
+    if (loadFailure != null) {
+      // Nothing was read, so there is nothing to ask. Rendering the first step
+      // here would hide the answers a returning user already gave and send
+      // their next save off without a version to match against.
+      return MoloWizardShell(
+        pageTitle: localisations.signUpPageTitle,
+        child: _LoadFailureStep(failure: loadFailure, busy: state.busy),
+      );
+    }
+
     return MoloWizardShell(
       pageTitle: localisations.signUpPageTitle,
       progress: WizardProgress(
@@ -95,6 +106,48 @@ class OnboardingView extends ConsumerWidget {
     OnboardingStep.priorities => 58,
     OnboardingStep.startingPoint || OnboardingStep.readyToComplete => 82,
   };
+}
+
+/// Shown in place of the wizard when the saved answers could not be read.
+///
+/// No progress panel: the step number and readiness figure are derived from
+/// answers nobody has, and inventing them would be the same lie in smaller
+/// print.
+class _LoadFailureStep extends ConsumerWidget {
+  const _LoadFailureStep({required this.failure, required this.busy});
+
+  final OnboardingFailure failure;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final localisations = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      key: const Key('onboarding_load_failure'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: MoloSpacing.md),
+        Semantics(
+          header: true,
+          child: Text(
+            localisations.onboardingLoadFailed,
+            style: textTheme.headlineSmall,
+          ),
+        ),
+        const SizedBox(height: MoloSpacing.md),
+        _OnboardingFailureNotice(failure: failure),
+        const SizedBox(height: MoloSpacing.xl),
+        FilledButton(
+          key: const Key('onboarding_load_retry'),
+          onPressed: busy
+              ? null
+              : ref.read(onboardingViewModelProvider.notifier).reload,
+          child: Text(localisations.retrySessionLoad),
+        ),
+      ],
+    );
+  }
 }
 
 class _PracticeStep extends ConsumerStatefulWidget {

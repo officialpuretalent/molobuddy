@@ -22,12 +22,17 @@ final class _FakeOnboarding implements OnboardingService {
   OnboardingSnapshot _snapshot;
   final List<OnboardingAnswers> saved = [];
   int completions = 0;
+  OnboardingFailure? loadFailure;
   OnboardingFailure? saveFailure;
   OnboardingFailure? completeFailure;
 
   @override
-  Future<OnboardingResult<OnboardingSnapshot>> load() async =>
-      OnboardingSuccess(_snapshot);
+  Future<OnboardingResult<OnboardingSnapshot>> load() async {
+    final failure = loadFailure;
+    return failure == null
+        ? OnboardingSuccess(_snapshot)
+        : OnboardingError(failure);
+  }
 
   @override
   Future<OnboardingResult<OnboardingSnapshot>> save({
@@ -183,6 +188,55 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('registration_practice_step')), findsNothing);
+  });
+
+  testWidgets('a wizard that could not load asks nothing', (tester) async {
+    final service = _FakeOnboarding(_atStartingPoint)
+      ..loadFailure = const OnboardingFailure(
+        OnboardingFailureKind.attestationRequired,
+      );
+    await _pump(tester, service);
+
+    expect(find.byKey(const Key('onboarding_load_failure')), findsOneWidget);
+    expect(
+      find.byKey(const Key('registration_starting_point_step')),
+      findsNothing,
+    );
+    expect(find.byKey(const Key('registration_practice_step')), findsNothing);
+  });
+
+  testWidgets('a wizard that could not load says which failure it was', (
+    tester,
+  ) async {
+    final service = _FakeOnboarding(_atPractice)
+      ..loadFailure = const OnboardingFailure(
+        OnboardingFailureKind.attestationRequired,
+      );
+    await _pump(tester, service);
+
+    expect(find.text('This device could not be verified.'), findsOneWidget);
+    expect(find.text('Something went wrong. Try again.'), findsNothing);
+  });
+
+  testWidgets('a wizard that could not load offers to try again', (
+    tester,
+  ) async {
+    final service = _FakeOnboarding(_atStartingPoint)
+      ..loadFailure = const OnboardingFailure(
+        OnboardingFailureKind.networkUnavailable,
+      );
+    await _pump(tester, service);
+    service.loadFailure = null;
+
+    await _tapWhenVisible(
+      tester,
+      find.byKey(const Key('onboarding_load_retry')),
+    );
+
+    expect(
+      find.byKey(const Key('registration_starting_point_step')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a step saves before it advances', (tester) async {

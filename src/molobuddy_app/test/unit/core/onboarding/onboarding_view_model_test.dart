@@ -32,6 +32,7 @@ final class _FakeOnboardingService implements OnboardingService {
   OnboardingSnapshot _snapshot;
   final List<String> idempotencyKeys = [];
   final List<String?> savedVersions = [];
+  OnboardingFailure? loadFailure;
   OnboardingFailure? saveFailure;
   OnboardingFailure? completeFailure;
   int loads = 0;
@@ -39,6 +40,10 @@ final class _FakeOnboardingService implements OnboardingService {
   @override
   Future<OnboardingResult<OnboardingSnapshot>> load() async {
     loads += 1;
+    final failure = loadFailure;
+    if (failure != null) {
+      return OnboardingError(failure);
+    }
     return OnboardingSuccess(_snapshot);
   }
 
@@ -226,6 +231,85 @@ void main() {
     expect(_stateOf(container).completed, isTrue);
     expect(_stateOf(container).practice?.displayLabel, 'Mokoena Media Tax');
   });
+
+  test('a failed read keeps the reason it was given', () async {
+    // Reporting every failed read as "unexpected" sent a user with a broken
+    // App Check token looking for a bug that was not there.
+    final service = _FakeOnboardingService(_atPractice)
+      ..loadFailure = const OnboardingFailure(
+        OnboardingFailureKind.attestationRequired,
+      );
+    final (_, container) = await _ready(service);
+
+    expect(
+      _stateOf(container).loadFailure?.kind,
+      OnboardingFailureKind.attestationRequired,
+    );
+  });
+
+  test('a failed read is not dressed up as an answerable wizard', () async {
+    // The old behaviour invented an empty first step. For anyone resuming,
+    // that both hid their stored answers and guaranteed the next save was
+    // refused, because it carried no version to match against.
+    final service = _FakeOnboardingService(_readyToComplete)
+      ..loadFailure = const OnboardingFailure(
+        OnboardingFailureKind.networkUnavailable,
+      );
+    final (_, container) = await _ready(service);
+
+    expect(_stateOf(container).loadFailure, isNotNull);
+    expect(_stateOf(container).version, isNull);
+  });
+
+  test('retrying a failed read adopts what the server holds', () async {
+    final service = _FakeOnboardingService(_readyToComplete)
+      ..loadFailure = const OnboardingFailure(
+        OnboardingFailureKind.networkUnavailable,
+      );
+    final (model, container) = await _ready(service);
+    service.loadFailure = null;
+
+    await model.reload();
+
+    expect(_stateOf(container).loadFailure, isNull);
+    expect(_stateOf(container).step, OnboardingStep.readyToComplete);
+    expect(_stateOf(container).version, 'v-1');
+  });
+
+  test('a reload that fails again says so rather than clearing', () async {
+    final service = _FakeOnboardingService(_readyToComplete)
+      ..loadFailure = const OnboardingFailure(
+        OnboardingFailureKind.networkUnavailable,
+      );
+    final (model, container) = await _ready(service);
+
+    await model.reload();
+
+    expect(
+      _stateOf(container).loadFailure?.kind,
+      OnboardingFailureKind.networkUnavailable,
+    );
+  });
+
+  test(
+    'a conflict whose reload fails does not fall back to step one',
+    () async {
+      final service = _FakeOnboardingService(_readyToComplete)
+        ..saveFailure = const OnboardingFailure(
+          OnboardingFailureKind.versionConflict,
+        );
+      final (model, container) = await _ready(service);
+      service.loadFailure = const OnboardingFailure(
+        OnboardingFailureKind.networkUnavailable,
+      );
+
+      await model.saveAnswers(
+        const OnboardingAnswers(practiceName: 'Mokoena Media Tax'),
+      );
+
+      expect(_stateOf(container).loadFailure, isNotNull);
+    },
+  );
 
   test('a double tap cannot submit twice', () async {
     final service = _FakeOnboardingService(_readyToComplete);

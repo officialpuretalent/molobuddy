@@ -87,6 +87,10 @@
   "secureSession": "Secure session",
   "secureSessionBody": "Firebase identity stays behind Molo''s authentication boundary.",
   "emailAlreadyRegistered": "That address already has an account. Sign in instead.",
+  "onboardingLoadFailed": "Molo could not load your setup.",
+  "@onboardingLoadFailed": {
+    "description": "Heading on the onboarding wizard when the saved answers could not be read, so there is no wizard to show. The reason follows underneath."
+  },
   "onboardingChangedElsewhere": "Your setup changed somewhere else. We''ve loaded the latest answers.",
   "onboardingAnswerRejected": "That answer could not be saved. Check it and try again.",
   "onboardingIncomplete": "A question is still unanswered. Go back and complete it.",
