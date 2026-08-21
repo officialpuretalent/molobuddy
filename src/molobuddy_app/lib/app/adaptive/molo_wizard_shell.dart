@@ -8,17 +8,33 @@ import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
 import 'package:molobuddy_app/app/localisation/generated/app_localizations.dart';
 import 'package:molobuddy_app/app/router/app_router.dart';
 
+/// Where one step of the wizard stands relative to the step on screen.
+enum WizardStepState { done, current, pending }
+
+/// What the rail says about one step.
+///
+/// Distinct from the eyebrow shown in the form: the rail names the step from
+/// outside it ("Your practice") while the form names the task ("Shape your
+/// workspace"), and the design writes both.
+final class WizardStepDescriptor {
+  const WizardStepDescriptor({required this.title, required this.note});
+
+  final String title;
+  final String note;
+}
+
 /// What the signup chrome needs to know, whichever half of the wizard is on
 /// screen.
 ///
 /// Signup spans two routes — the account step at `/sign-up` and the rest at
 /// `/onboarding` — and each keeps its own state. This is the small shape they
-/// both reduce to, so the progress panel does not need to know which half it
-/// is decorating.
+/// both reduce to, so the rail does not need to know which half it is
+/// decorating.
 final class WizardProgress {
   const WizardProgress({
     required this.stepNumber,
     required this.readinessPercent,
+    required this.steps,
     this.practiceName = '',
   });
 
@@ -27,10 +43,49 @@ final class WizardProgress {
 
   final int readinessPercent;
 
+  /// One descriptor per step, in order. The rail marks them from [stepNumber]
+  /// rather than being told each one's state, so the two can never disagree.
+  final List<WizardStepDescriptor> steps;
+
   /// Empty until the user has named their practice.
   final String practiceName;
 
   static const totalSteps = 4;
+
+  WizardStepState stateOf(int oneBasedStep) {
+    if (oneBasedStep < stepNumber) {
+      return WizardStepState.done;
+    }
+    if (oneBasedStep == stepNumber) {
+      return WizardStepState.current;
+    }
+    return WizardStepState.pending;
+  }
+}
+
+/// The rail's four descriptors, in order.
+///
+/// One definition, because both routes render the same rail and a second copy
+/// would drift on whichever step the other route does not own.
+List<WizardStepDescriptor> moloWizardSteps(AppLocalizations localisations) {
+  return [
+    WizardStepDescriptor(
+      title: localisations.wizardStepAccountTitle,
+      note: localisations.wizardStepAccountNote,
+    ),
+    WizardStepDescriptor(
+      title: localisations.wizardStepPracticeTitle,
+      note: localisations.wizardStepPracticeNote,
+    ),
+    WizardStepDescriptor(
+      title: localisations.wizardStepGoalsTitle,
+      note: localisations.wizardStepGoalsNote,
+    ),
+    WizardStepDescriptor(
+      title: localisations.wizardStepStartTitle,
+      note: localisations.wizardStepStartNote,
+    ),
+  ];
 }
 
 /// The chrome both halves of signup share.

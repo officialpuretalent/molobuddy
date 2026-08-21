@@ -61,6 +61,7 @@ class OnboardingView extends ConsumerWidget {
       progress: WizardProgress(
         stepNumber: _stepNumber(state.step),
         readinessPercent: _readiness(state.step),
+        steps: moloWizardSteps(localisations),
         practiceName:
             state.draftPracticeName ?? state.answers.practiceName ?? '',
       ),

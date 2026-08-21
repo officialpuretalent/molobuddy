@@ -43,7 +43,11 @@ class _RegistrationViewState extends ConsumerState<RegistrationView> {
     final state = ref.watch(registrationViewModelProvider);
     return MoloWizardShell(
       pageTitle: localisations.signUpPageTitle,
-      progress: const WizardProgress(stepNumber: 1, readinessPercent: 12),
+      progress: WizardProgress(
+        stepNumber: 1,
+        readinessPercent: 12,
+        steps: moloWizardSteps(localisations),
+      ),
       showSignInLink: true,
       child: _AccountStep(
         key: const ValueKey('account'),

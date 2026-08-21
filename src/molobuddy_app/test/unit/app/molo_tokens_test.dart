@@ -48,6 +48,23 @@ void main() {
       );
     });
 
+    test('the readiness figure is readable on the rail', () {
+      expect(
+        _contrast(MoloColours.pulseOnDark, MoloColours.moloPlum),
+        greaterThan(4.5),
+      );
+    });
+
+    test('and brighter than the bar it labels', () {
+      // Both pinks clear AA on plum, so this is hierarchy, not contrast: the
+      // figure has to separate itself from the bar's own fill.
+      expect(
+        _contrast(MoloColours.pulseOnDark, MoloColours.moloPlum),
+        greaterThan(_contrast(MoloColours.moloPulse, MoloColours.moloPlum)),
+      );
+      expect(MoloColours.pulseOnDark, const Color(0xFFF98FA4));
+    });
+
     test('the values are the traced ones', () {
       expect(MoloColours.pulseBorder, const Color(0xFFE9B9C4));
       expect(MoloColours.moloPlumHover, const Color(0xFF3A2440));

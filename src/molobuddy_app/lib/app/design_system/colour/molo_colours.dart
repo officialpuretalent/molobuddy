@@ -24,6 +24,14 @@ abstract final class MoloColours {
   /// Fill only. A [warmCanvas] label on it measures 13.37:1, so the hover
   /// state never costs the label its contrast.
   static const moloPlumHover = Color(0xFF3A2440);
+
+  /// The readiness figure in the signup wizard's rail.
+  ///
+  /// 7.82:1 on [moloPlum], against [moloPulse]'s 5.27:1. Both clear AA, so this
+  /// is hierarchy rather than a gate: pulse is spent on the bar's fill, and a
+  /// figure in the same pink would compete with the bar it describes instead of
+  /// labelling it.
+  static const pulseOnDark = Color(0xFFF98FA4);
   static const success = Color(0xFF087A55);
   static const warning = Color(0xFFA85D00);
   static const error = Color(0xFFC2382B);

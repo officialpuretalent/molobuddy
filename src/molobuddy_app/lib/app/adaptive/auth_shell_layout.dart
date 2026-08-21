@@ -16,4 +16,13 @@ abstract final class MoloAuthShellLayout {
   static double signInHeroWidth(double availableWidth) {
     return availableWidth * 0.44;
   }
+
+  /// The signup wizard's rail, which the design draws at 38% of the window and
+  /// stops at 460.
+  ///
+  /// Narrower than [signInHeroWidth] on purpose: a photograph earns width that
+  /// a list of four steps does not.
+  static double wizardRailWidth(double availableWidth) {
+    return (availableWidth * 0.38).clamp(0, 460).toDouble();
+  }
 }
