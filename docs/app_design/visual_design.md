@@ -79,6 +79,52 @@ Molo uses bundled Geist Sans Regular (400) and Medium (500), registered through 
 - Prefer borders and surface contrast over heavy shadows. Elevation should explain hierarchy, not decorate it.
 - Keep the main form narrow even on wide displays; use the extra space for brand storytelling rather than stretching inputs.
 
+### Panels that float over a surface
+
+A menu, popover or modal traced from the design draws its own shape: fill,
+radius, border and shadow. Host it in something that supplies no surface of its
+own, or the two fight and the host wins.
+
+Material's menu and dialog widgets are not neutral hosts. `MenuAnchor`,
+`PopupMenuButton`, `Dialog` and `Card` each wrap what you give them in their own
+`Material` — with a shape, an elevation and `clipBehavior: Clip.hardEdge` — and
+a menu adds padding, a scroll view that also clips, and a scrollbar that is
+always on while the menu is open. A panel drawing its own shadow inside that
+gets the shadow **clipped to its own bounding box**, so it survives only where
+the corner radius leaves the box: a hard grey wedge in each rounded corner and
+no shadow anywhere else. It reads as a second rectangle sitting behind the
+panel, which is how this was first reported.
+
+The rule:
+
+- A panel that owns its surface is hosted by `RawMenuAnchor` and its
+  `overlayBuilder`, which keeps dismissal, focus and the anchor rect while
+  supplying no `Material`, no padding, no scroll view and no scrollbar.
+- Position it from the anchor rect rather than relying on a menu to flip itself:
+  `bottom: overlaySize.height - anchorRect.top + gap` puts a panel above its
+  anchor outright.
+- Never two shadows. If the host draws one, the panel must not, and the reverse.
+  Check for `elevation`, `shadowColor`, `boxShadow`, `PhysicalModel` and
+  `PhysicalShape` on both sides.
+- Wrap the panel in a `TapRegion` carrying the overlay's `tapRegionGroupId` so a
+  tap outside closes it.
+
+Two conversions worth writing down, because both look like a wrong number
+otherwise:
+
+- CSS states a blur *radius*, which is twice the Gaussian deviation, while
+  Flutter converts a radius with `radius * 0.57735 + 0.5`. A design's
+  `40px` blur is a deviation of `20`, which is a Flutter `blurRadius` of about
+  `33.8`. Passing `40` straight through spreads it half again as far.
+- A CSS border sits inside the box it measures. A Flutter `Border` paints over
+  the box without reserving room, so a bordered panel needs a `Container`, which
+  adds the border's dimensions to its padding, rather than a `DecoratedBox`.
+
+Do not judge a shadow from a widget test. `flutter_test` sets
+`debugDisableShadows`, so shadows paint as solid unblurred shapes and every
+shadow looks like a hard offset rectangle. Assert the `BoxShadow` values
+directly, and confirm the appearance in a browser.
+
 ## 5. Authentication and onboarding composition
 
 ### Compact windows

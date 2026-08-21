@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
 import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
+import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 
 /// The workspace search field that sits in the desktop top bar.
 ///
@@ -26,51 +27,62 @@ class MoloSearchField extends StatelessWidget {
     return SizedBox(
       width: width,
       height: height,
-      child: DecoratedBox(
+      child: Container(
         decoration: BoxDecoration(
           color: MoloColours.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: MoloColours.border),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Row(
-            children: [
-              MoloIcon(
-                MoloGlyphs.search,
-                size: 15,
-                color: MoloColours.secondaryText,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  onChanged: onChanged,
-                  style: const TextStyle(
+        // The design pads 14 inside a 1 border, and CSS holds the border
+        // outside the padding, so its content starts 15 in and runs 230 wide.
+        // A Container adds the border's own dimensions to this padding; a
+        // DecoratedBox would paint the border over the content instead of
+        // making room for it, and the field would run 2 wide and 1 off.
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        child: Row(
+          children: [
+            MoloIcon(
+              MoloGlyphs.search,
+              size: 15,
+              color: MoloColours.secondaryText,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: controller,
+                onChanged: onChanged,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0,
+                  height: MoloTypography.normalLineHeight,
+                  color: MoloColours.moloPlum,
+                ),
+                decoration: InputDecoration(
+                  hintText: hint,
+                  hintStyle: const TextStyle(
                     fontSize: 13,
+                    fontWeight: FontWeight.w400,
                     letterSpacing: 0,
-                    color: MoloColours.moloPlum,
+                    height: MoloTypography.normalLineHeight,
+                    // The design leaves the placeholder to the browser,
+                    // which paints Chrome's default grey. That is a user
+                    // agent default rather than a decision, so this uses the
+                    // system's own muted text instead of copying it.
+                    color: MoloColours.secondaryText,
                   ),
-                  decoration: InputDecoration(
-                    hintText: hint,
-                    hintStyle: const TextStyle(
-                      fontSize: 13,
-                      letterSpacing: 0,
-                      color: MoloColours.secondaryText,
-                    ),
-                    // The design draws the border on the container, so the
-                    // field itself contributes none of its own chrome.
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                    filled: false,
-                  ),
+                  // The design draws the border on the container, so the
+                  // field itself contributes none of its own chrome.
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                  filled: false,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

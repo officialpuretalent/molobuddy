@@ -8,6 +8,7 @@ import 'package:molobuddy_app/app/design_system/components/molo_search_field.dar
 import 'package:molobuddy_app/app/design_system/components/molo_wordmark.dart';
 import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
+import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 
 /// Presentation data for one authenticated workspace destination.
 ///
@@ -424,10 +425,17 @@ class MoloTopBar extends StatelessWidget implements PreferredSizeWidget {
           child: SizedBox(
             height: height,
             child: Padding(
-              padding: EdgeInsets.symmetric(
+              padding: EdgeInsets.fromLTRB(
                 // 40 on desktop, 20 when compact.
-                horizontal: compact ? 20 : 40,
-                vertical: 12,
+                compact ? 20 : 40,
+                12,
+                compact ? 20 : 40,
+                // 12, plus the pixel the hairline rule occupies. CSS puts a
+                // border inside the box it measures, so the design's content
+                // box is 40 tall, not 41, and its search field starts exactly
+                // 12 down. A Flutter border paints over the box instead of
+                // reserving room in it, so the room is reserved here.
+                13,
               ),
               child: Row(
                 children: [
@@ -447,6 +455,7 @@ class MoloTopBar extends StatelessWidget implements PreferredSizeWidget {
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
                               letterSpacing: 0,
+                              height: MoloTypography.normalLineHeight,
                               color: MoloColours.moloPlum,
                             ),
                           ),
@@ -641,6 +650,10 @@ class _MoloSidebarBrand extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 // -0.02em at 21px, as the design specifies.
                 letterSpacing: -0.42,
+                // Material's body leading made this line box 30 against the
+                // design's 27, which pushed the mark off centre and shifted
+                // every row beneath the lockup down by 3.
+                height: MoloTypography.normalLineHeight,
                 color: MoloColours.surface,
               ),
             ),
@@ -685,9 +698,16 @@ class _MoloPrimaryAction extends StatelessWidget {
                 borderRadius: BorderRadius.circular(15),
               ),
               padding: EdgeInsets.zero,
-              textStyle: const TextStyle(
+              // Built from the theme's button role rather than from a bare
+              // TextStyle. A button style's text style replaces the role
+              // outright instead of merging with it, so writing one from
+              // scratch dropped the font family with it and the label came out
+              // in the platform default instead of Geist, half again too wide.
+              textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
+                letterSpacing: 0,
+                height: MoloTypography.normalLineHeight,
               ),
             ).copyWith(
               overlayColor: const WidgetStatePropertyAll(

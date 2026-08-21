@@ -1,4 +1,4 @@
-import 'dart:ui' show Tristate;
+import 'dart:ui' show PointerDeviceKind, Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -170,6 +170,37 @@ void main() {
             .isEnabled,
         Tristate.isTrue,
       );
+    });
+  });
+
+  group('pointer feedback suits a dark surface', () {
+    testWidgets('hovering lifts the row with white, not with onSurface', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(item()));
+      final gesture = await tester.createGesture(
+        kind: PointerDeviceKind.mouse,
+      );
+      await gesture.addPointer(location: Offset.zero);
+      addTearDown(gesture.removePointer);
+      await gesture.moveTo(tester.getCenter(find.byType(MoloNavigationItem)));
+      await tester.pumpAndSettle();
+
+      // Material resolves its default hover from the light theme's dark
+      // onSurface, which on plum reads as a smudge rather than a highlight.
+      // The design states white at eight percent for a row on this surface.
+      final inkWell = tester.widget<InkWell>(find.byType(InkWell));
+      expect(
+        inkWell.overlayColor?.resolve({WidgetState.hovered}),
+        MoloNavigationItem.hoverFill,
+      );
+      expect(MoloNavigationItem.hoverFill, const Color(0x14FFFFFF));
+    });
+
+    testWidgets('and an idle row is left unpainted', (tester) async {
+      await tester.pumpWidget(host(item()));
+      final inkWell = tester.widget<InkWell>(find.byType(InkWell));
+      expect(inkWell.overlayColor?.resolve(<WidgetState>{}), isNull);
     });
   });
 }

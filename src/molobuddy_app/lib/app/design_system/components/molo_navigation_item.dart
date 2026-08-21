@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
 import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
+import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 
 /// One row of workspace navigation, on the plum sidebar or icon rail.
 ///
@@ -37,6 +38,17 @@ class MoloNavigationItem extends StatelessWidget {
 
   /// Unselected label and glyph colour: the warm white at 72 percent.
   static const idleForeground = Color(0xB8FFF9F7);
+
+  /// Pointer-over fill: white at eight percent.
+  ///
+  /// The design leaves the navigation rows themselves without a hover rule,
+  /// but it does state one for the account row on the same plum, and Material's
+  /// default is built for a light surface: it washes a dark one with the dark
+  /// `onSurface`, which reads as grime rather than a highlight.
+  static const hoverFill = Color(0x14FFFFFF);
+
+  /// Pressed fill, one step on from [hoverFill] so a tap registers.
+  static const pressedFill = Color(0x1FFFFFFF);
 
   static const _fontSize = 15.0;
   static const _gap = 12.0;
@@ -87,8 +99,10 @@ class MoloNavigationItem extends StatelessWidget {
                 fontSize: _fontSize,
                 fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
                 // Stated, not inherited: the ambient Material style tracks
-                // body text and the design tracks navigation not at all.
+                // body text and the design tracks navigation not at all, and
+                // it leads body text taller than Geist's own line box.
                 letterSpacing: 0,
+                height: MoloTypography.normalLineHeight,
                 color: effective,
               ),
             ),
@@ -104,6 +118,11 @@ class MoloNavigationItem extends StatelessWidget {
       child: InkWell(
         onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(_radius),
+        overlayColor: const WidgetStateMapper<Color?>({
+          WidgetState.pressed: pressedFill,
+          WidgetState.hovered: hoverFill,
+          WidgetState.any: null,
+        }),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: labelled ? _gap : 0),
           child: row,
@@ -152,6 +171,9 @@ class _Badge extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w500,
               letterSpacing: 0,
+              // Inheriting Material's leading grew the pill to 21 against the
+              // design's 19.5, which crowded the 44 row.
+              height: MoloTypography.normalLineHeight,
               color: MoloColours.moloPlum,
             ),
           ),

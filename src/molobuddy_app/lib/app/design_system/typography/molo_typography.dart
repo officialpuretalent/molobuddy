@@ -15,6 +15,17 @@ import 'package:flutter/material.dart';
 /// spacing the design never asked for. Every Molo style therefore states its
 /// tracking, including when the answer is zero.
 abstract final class MoloTypography {
+  /// Geist's own line box, which is what the design's `line-height: normal`
+  /// resolves to.
+  ///
+  /// Measured in the baseline at 1000px to remove rounding: both weights
+  /// report exactly 1.3, and the browser's own font metrics agree. Material
+  /// bakes taller line heights into its body roles for reading text, so any
+  /// chrome that merges with the ambient style inherits leading the design
+  /// never asked for: the sidebar's account row stood 63 tall against the
+  /// design's 60, and everything under the wordmark sat 3 low.
+  static const normalLineHeight = 1.3;
+
   /// Converts the design's em tracking to the logical pixels Flutter wants.
   ///
   /// CSS `letter-spacing` in `em` scales with the font size; Flutter's

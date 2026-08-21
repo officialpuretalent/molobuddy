@@ -142,6 +142,131 @@ abstract final class MoloGlyphs {
       ..close(),
   );
 
+  /// The account menu's glyphs, transcribed from the same 18-unit paths.
+  ///
+  /// Arcs and curves are carried across command for command rather than
+  /// approximated: `relativeArcToPoint` takes the same radius, large-arc and
+  /// sweep that SVG's `a` does, and a smooth cubic's first control point is the
+  /// reflection of the previous one, worked out here rather than eyeballed.
+
+  static final switchPractice = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(2.8, 6.8)
+      ..relativeLineTo(9.6, 0)
+      ..moveTo(9.8, 4)
+      ..lineTo(12.6, 6.8)
+      ..lineTo(9.8, 9.6)
+      ..moveTo(15.2, 11.2)
+      ..lineTo(5.6, 11.2)
+      ..moveTo(8.4, 14)
+      ..lineTo(5.6, 11.2)
+      ..lineTo(8.4, 8.4),
+  );
+
+  static final connectors = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(6.4, 2.8)
+      ..relativeLineTo(0, 3.4)
+      ..moveTo(11.6, 2.8)
+      ..relativeLineTo(0, 3.4)
+      ..moveTo(4.6, 6.2)
+      ..relativeLineTo(8.8, 0)
+      ..relativeLineTo(0, 2.4)
+      ..relativeArcToPoint(
+        const Offset(-8.8, 0),
+        radius: const Radius.circular(4.4),
+      )
+      ..close()
+      ..moveTo(9, 13)
+      ..relativeLineTo(0, 2.2),
+  );
+
+  static final profile = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      // Two semicircles of diameter 5.6 about (9, 6.6), which is a circle.
+      ..addOval(Rect.fromCircle(center: const Offset(9, 6.6), radius: 2.8))
+      ..moveTo(3.8, 15.2)
+      ..relativeCubicTo(0.6, -2.5, 2.5, -3.9, 5.2, -3.9)
+      // The smooth cubic's first control is the reflection of (2.5, -3.9)
+      // about the join, which is (2.7, 0).
+      ..relativeCubicTo(2.7, 0, 4.6, 1.4, 5.2, 3.9),
+  );
+
+  static final settings = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(3.2, 5.6)
+      ..relativeLineTo(11.6, 0)
+      ..moveTo(3.2, 12.4)
+      ..relativeLineTo(11.6, 0)
+      ..moveTo(6.6, 3.9)
+      ..relativeLineTo(0, 3.4)
+      ..moveTo(11.4, 10.7)
+      ..relativeLineTo(0, 3.4),
+  );
+
+  static final help = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..addOval(Rect.fromCircle(center: const Offset(9, 9), radius: 6.4))
+      ..moveTo(7.2, 7)
+      ..relativeArcToPoint(
+        const Offset(2.6, 1.8),
+        radius: const Radius.circular(1.9),
+        largeArc: true,
+      )
+      ..relativeCubicTo(-0.5, 0.2, -0.8, 0.7, -0.8, 1.2)
+      ..relativeLineTo(0, 0.4)
+      // The stop under the hook. A round cap turns this into the dot.
+      ..moveTo(9, 12.7)
+      ..relativeLineTo(0.01, 0),
+  );
+
+  static final logOut = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(11, 5.6)
+      ..lineTo(11, 4)
+      ..relativeArcToPoint(
+        const Offset(-1.4, -1.4),
+        radius: const Radius.circular(1.4),
+        clockwise: false,
+      )
+      ..lineTo(4.8, 2.6)
+      ..arcToPoint(
+        const Offset(3.4, 4),
+        radius: const Radius.circular(1.4),
+        clockwise: false,
+      )
+      ..relativeLineTo(0, 10)
+      ..relativeArcToPoint(
+        const Offset(1.4, 1.4),
+        radius: const Radius.circular(1.4),
+        clockwise: false,
+      )
+      ..relativeLineTo(4.8, 0)
+      ..arcToPoint(
+        const Offset(11, 14),
+        radius: const Radius.circular(1.4),
+        clockwise: false,
+      )
+      ..relativeLineTo(0, -1.6)
+      ..moveTo(7.8, 9)
+      ..relativeLineTo(6.8, 0)
+      ..moveTo(12.2, 6.6)
+      ..lineTo(14.6, 9)
+      ..relativeLineTo(-2.4, 2.4),
+  );
+
   /// The top bar's search glyph, drawn in a 16-unit box.
   static final search = MoloGlyph(
     cap: StrokeCap.round,
