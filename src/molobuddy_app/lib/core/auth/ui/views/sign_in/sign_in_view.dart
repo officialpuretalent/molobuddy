@@ -9,6 +9,7 @@ import 'package:molobuddy_app/app/design_system/components/molo_brand_lockup.dar
 import 'package:molobuddy_app/app/design_system/components/molo_check_row.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_pill_button.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_text_field.dart';
+import 'package:molobuddy_app/app/design_system/icons/molo_brand_marks.dart';
 import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
 import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
@@ -556,6 +557,7 @@ class _ActionsGroup extends StatelessWidget {
                 buttonKey: const Key('microsoft_sign_in_button'),
                 label: localisations.microsoftLabel,
                 comingSoonHint: localisations.microsoftComingSoonHint,
+                mark: MoloBrandMarks.microsoft,
               ),
             ),
             const SizedBox(width: 10),
@@ -564,6 +566,7 @@ class _ActionsGroup extends StatelessWidget {
                 buttonKey: const Key('google_sign_in_button'),
                 label: localisations.googleLabel,
                 comingSoonHint: localisations.googleComingSoonHint,
+                mark: MoloBrandMarks.google,
               ),
             ),
           ],
@@ -583,16 +586,24 @@ class _ActionsGroup extends StatelessWidget {
 ///
 /// The outline is the quiet [MoloColours.border] the design draws. A disabled
 /// control is exempt from WCAG 1.4.11, and these two never enable.
+///
+/// The mark keeps its owner's colours even though the control is disabled. The
+/// baseline draws neither mark, but a bare product name is the weaker signal:
+/// people find these buttons by their logo, and a grey logo would say the
+/// provider is wrong rather than that it is not ready yet. The muted label and
+/// outline are what carry the disabled state.
 class _ProviderButton extends StatelessWidget {
   const _ProviderButton({
     required this.buttonKey,
     required this.label,
     required this.comingSoonHint,
+    required this.mark,
   });
 
   final Key buttonKey;
   final String label;
   final String comingSoonHint;
+  final MoloBrandMark mark;
 
   @override
   Widget build(BuildContext context) {
@@ -617,7 +628,16 @@ class _ProviderButton extends StatelessWidget {
             height: MoloTypography.normalLineHeight,
           ),
         ),
-        child: Text(label, overflow: TextOverflow.ellipsis),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MoloBrandIcon(mark, size: 18),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+          ],
+        ),
       ),
     );
   }

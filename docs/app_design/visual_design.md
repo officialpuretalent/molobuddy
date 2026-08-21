@@ -167,9 +167,17 @@ implementation.
 - Email and password are the available first method. The field label sits above
   the field rather than floating inside its outline, which leaves the label row
   free to carry an action such as password recovery.
-- Microsoft and Google are both drawn and both disabled. A 46-high grid cell
-  has no room for a **Coming soon** pill, so the reason is the control's
-  accessible name instead.
+- Microsoft and Google are both drawn and both disabled, each behind its own
+  brand mark. A 46-high grid cell has no room for a **Coming soon** pill, so
+  the reason is the control's accessible name instead.
+- A third-party brand mark is not a Molo glyph and does not live with them. Molo
+  glyphs are a single stroked outline that takes its colour from its context; a
+  brand mark is several filled shapes in colours its owner fixes. They are held
+  in separate types so a mark can never be handed to the glyph painter and
+  quietly re-coloured, and the mark's painter takes no colour parameter at all.
+- A disabled provider keeps its mark in full colour. The disabled state is
+  carried by the muted label and outline, because a greyed logo reads as the
+  wrong provider rather than as one that is not ready yet.
 - A disabled provider never starts an SDK flow and remains understandable to
   screen readers.
 - "Keep me signed in on this device" appears only where the platform can honour

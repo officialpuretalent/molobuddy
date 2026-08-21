@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:molobuddy_app/app/adaptive/auth_shell_layout.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
+import 'package:molobuddy_app/app/design_system/icons/molo_brand_marks.dart';
 import 'package:molobuddy_app/app/design_system/molo_theme.dart';
 import 'package:molobuddy_app/app/localisation/generated/app_localizations.dart';
 import 'package:molobuddy_app/core/auth/ui/views/sign_in/sign_in_hero_pane.dart';
@@ -157,6 +158,51 @@ void main() {
       );
       expect(google.left - microsoft.right, closeTo(10, 0.5));
       expect(microsoft.width, closeTo(google.width, 0.5));
+    });
+
+    testWidgets('each provider is identified by its own mark', (tester) async {
+      await setViewport(tester, const Size(1440, 950));
+      await pumpPreviewSignIn(tester);
+      for (final pair in const [
+        (Key('microsoft_sign_in_button'), 23.0),
+        (Key('google_sign_in_button'), 48.0),
+      ]) {
+        final mark = find.descendant(
+          of: find.byKey(pair.$1),
+          matching: find.byType(MoloBrandIcon),
+        );
+        expect(mark, findsOneWidget);
+        // The mark keeps its owner's box, and its colours whether or not the
+        // control is enabled: a grey logo would read as the wrong provider
+        // rather than as one that is not ready.
+        expect(tester.widget<MoloBrandIcon>(mark).mark.viewBox, pair.$2);
+        expect(tester.getSize(mark), const Size(18, 18));
+      }
+    });
+
+    testWidgets('the mark sits 10 before the label', (tester) async {
+      await setViewport(tester, const Size(1440, 950));
+      await pumpPreviewSignIn(tester);
+      final mark = find.descendant(
+        of: find.byKey(const Key('google_sign_in_button')),
+        matching: find.byType(MoloBrandIcon),
+      );
+      expect(
+        tester.getRect(find.text('Google')).left - tester.getRect(mark).right,
+        closeTo(10, 1),
+      );
+    });
+
+    testWidgets('a provider button still fits on the narrowest phone', (
+      tester,
+    ) async {
+      await setViewport(tester, const Size(390, 900));
+      await pumpPreviewSignIn(tester);
+      // Adding a mark to a 46-high cell is what would push the label out, so
+      // the two-column grid is measured at the narrowest width supported.
+      expect(tester.takeException(), isNull);
+      expect(find.text('Microsoft'), findsOneWidget);
+      expect(find.text('Google'), findsOneWidget);
     });
 
     testWidgets('each disabled provider names its reason once', (tester) async {
