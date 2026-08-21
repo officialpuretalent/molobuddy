@@ -267,6 +267,293 @@ abstract final class MoloGlyphs {
       ..relativeLineTo(-2.4, 2.4),
   );
 
+  // The signup wizard's ten option glyphs, traced from the baseline's own path
+  // data. The `arcToPoint` calls are its `a` commands: SVG's arc parameters and
+  // Flutter's are the same five, so these are the baseline's arcs rather than
+  // circles fitted by eye.
+
+  /// A solo practitioner.
+  static final practiceSolo = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(9, 9.4)
+      ..arcToPoint(
+        const Offset(9, 4.2),
+        radius: const Radius.circular(2.6),
+        largeArc: true,
+        clockwise: false,
+      )
+      ..arcToPoint(
+        const Offset(9, 9.4),
+        radius: const Radius.circular(2.6),
+        clockwise: false,
+      )
+      ..close()
+      ..moveTo(3.6, 15)
+      ..cubicTo(4.2, 12.6, 6.3, 11.3, 9, 11.3)
+      ..cubicTo(11.7, 11.3, 13.8, 12.6, 14.4, 15),
+  );
+
+  /// A team of two to ten.
+  static final practiceSmallTeam = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(6.6, 8.6)
+      ..arcToPoint(
+        const Offset(6.6, 4),
+        radius: const Radius.circular(2.3),
+        largeArc: true,
+        clockwise: false,
+      )
+      ..arcToPoint(
+        const Offset(6.6, 8.6),
+        radius: const Radius.circular(2.3),
+        clockwise: false,
+      )
+      ..close()
+      ..moveTo(12.4, 9)
+      ..arcToPoint(
+        const Offset(12.4, 5),
+        radius: const Radius.circular(2),
+        largeArc: true,
+        clockwise: false,
+      )
+      ..arcToPoint(
+        const Offset(12.4, 9),
+        radius: const Radius.circular(2),
+        clockwise: false,
+      )
+      ..close()
+      ..moveTo(2.4, 14.6)
+      ..cubicTo(2.9, 12.5, 4.5, 11.4, 6.6, 11.4)
+      ..cubicTo(8.7, 11.4, 10.3, 12.5, 10.8, 14.6)
+      ..moveTo(12, 11.6)
+      ..cubicTo(13.9, 11.7, 15.1, 12.7, 15.6, 14.6),
+  );
+
+  /// A team of eleven or more.
+  static final practiceGrowing = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(3.4, 15)
+      ..lineTo(3.4, 4.2)
+      ..lineTo(8.8, 4.2)
+      ..lineTo(8.8, 15)
+      ..moveTo(8.8, 7.4)
+      ..lineTo(14.6, 7.4)
+      ..lineTo(14.6, 15)
+      ..moveTo(2.2, 15)
+      ..lineTo(15.8, 15)
+      ..moveTo(5.4, 6.6)
+      ..lineTo(6.8, 6.6)
+      ..moveTo(5.4, 9.2)
+      ..lineTo(6.8, 9.2)
+      ..moveTo(5.4, 11.8)
+      ..lineTo(6.8, 11.8)
+      ..moveTo(11, 10)
+      ..lineTo(12.6, 10)
+      ..moveTo(11, 12.6)
+      ..lineTo(12.6, 12.6),
+  );
+
+  /// Staying ahead of deadlines.
+  static final goalDeadlines = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(3, 5.4)
+      ..lineTo(15, 5.4)
+      ..lineTo(15, 15)
+      ..lineTo(3, 15)
+      ..close()
+      ..moveTo(6, 3)
+      ..lineTo(6, 5.6)
+      ..moveTo(12, 3)
+      ..lineTo(12, 5.6)
+      ..moveTo(3, 8.4)
+      ..lineTo(15, 8.4)
+      ..moveTo(8.2, 11.6)
+      ..lineTo(9.4, 12.8)
+      ..lineTo(11.8, 10.4),
+  );
+
+  /// Keeping documents moving.
+  static final goalDocuments = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(2.6, 5.4)
+      ..lineTo(6.8, 5.4)
+      ..lineTo(8.2, 7.1)
+      ..lineTo(15.4, 7.1)
+      ..lineTo(15.4, 15)
+      ..lineTo(2.6, 15)
+      ..close(),
+  );
+
+  /// Running work with a team.
+  static final goalTeamwork = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(9, 5.2)
+      ..arcToPoint(
+        const Offset(9, 2.2),
+        radius: const Radius.circular(1.5),
+        largeArc: true,
+        clockwise: false,
+      )
+      ..arcToPoint(
+        const Offset(9, 5.2),
+        radius: const Radius.circular(1.5),
+        clockwise: false,
+      )
+      ..close()
+      ..moveTo(4.4, 14.6)
+      ..arcToPoint(
+        const Offset(4.4, 11.6),
+        radius: const Radius.circular(1.5),
+        largeArc: true,
+        clockwise: false,
+      )
+      ..arcToPoint(
+        const Offset(4.4, 14.6),
+        radius: const Radius.circular(1.5),
+        clockwise: false,
+      )
+      ..close()
+      ..moveTo(13.6, 14.6)
+      ..arcToPoint(
+        const Offset(13.6, 11.6),
+        radius: const Radius.circular(1.5),
+        largeArc: true,
+        clockwise: false,
+      )
+      ..arcToPoint(
+        const Offset(13.6, 14.6),
+        radius: const Radius.circular(1.5),
+        clockwise: false,
+      )
+      ..close()
+      ..moveTo(8.2, 6.4)
+      ..lineTo(5.2, 11.4)
+      ..moveTo(9.8, 6.4)
+      ..lineTo(12.8, 11.4),
+  );
+
+  /// Seeing the whole practice clearly.
+  static final goalVisibility = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(8.2, 2.6)
+      ..lineTo(9.5, 6.1)
+      ..lineTo(13, 7.4)
+      ..lineTo(9.5, 8.7)
+      ..lineTo(8.2, 12.2)
+      ..lineTo(6.9, 8.7)
+      ..lineTo(3.4, 7.4)
+      ..lineTo(6.9, 6.1)
+      ..close()
+      ..moveTo(13, 11.4)
+      ..lineTo(13.7, 13.2)
+      ..lineTo(15.5, 13.9)
+      ..lineTo(13.7, 14.6)
+      ..lineTo(13, 16.4)
+      ..lineTo(12.3, 14.6)
+      ..lineTo(10.5, 13.9)
+      ..lineTo(12.3, 13.2)
+      ..close(),
+  );
+
+  /// Importing a client list.
+  static final startImport = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(4.4, 2.6)
+      ..lineTo(9.6, 2.6)
+      ..lineTo(13.4, 6.4)
+      ..lineTo(13.4, 15.4)
+      ..lineTo(4.4, 15.4)
+      ..close()
+      ..moveTo(9.4, 2.6)
+      ..lineTo(9.4, 6.5)
+      ..lineTo(13.3, 6.5)
+      ..moveTo(9, 9)
+      ..lineTo(9, 13)
+      ..moveTo(7.4, 10.6)
+      ..lineTo(9, 9)
+      ..lineTo(10.6, 10.6),
+  );
+
+  /// Adding the first client.
+  static final startFirstClient = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(7.4, 9.2)
+      ..arcToPoint(
+        const Offset(7.4, 4),
+        radius: const Radius.circular(2.6),
+        largeArc: true,
+        clockwise: false,
+      )
+      ..arcToPoint(
+        const Offset(7.4, 9.2),
+        radius: const Radius.circular(2.6),
+        clockwise: false,
+      )
+      ..close()
+      ..moveTo(2.6, 15)
+      ..cubicTo(3.1, 12.7, 5, 11.4, 7.4, 11.4)
+      ..moveTo(12.6, 8.6)
+      ..lineTo(12.6, 12.8)
+      ..moveTo(10.5, 10.7)
+      ..lineTo(14.7, 10.7),
+  );
+
+  /// Exploring a sample workspace.
+  static final startSample = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(9, 15.4)
+      ..arcToPoint(
+        const Offset(9, 2.6),
+        radius: const Radius.circular(6.4),
+        largeArc: true,
+        clockwise: false,
+      )
+      ..arcToPoint(
+        const Offset(9, 15.4),
+        radius: const Radius.circular(6.4),
+        clockwise: false,
+      )
+      ..close()
+      ..moveTo(11.6, 6.4)
+      ..lineTo(7.9, 7.9)
+      ..lineTo(6.4, 11.6)
+      ..lineTo(10.1, 10.1)
+      ..close(),
+  );
+
+  /// The wizard's back link, drawn in a 16-unit box like the search glyph.
+  static final backArrow = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    viewBox: 16,
+    buildPath: () => Path()
+      ..moveTo(9.6, 3.6)
+      ..lineTo(5.2, 8)
+      ..lineTo(9.6, 12.4)
+      ..moveTo(5.4, 8)
+      ..lineTo(11.6, 8),
+  );
+
   /// The top bar's search glyph, drawn in a 16-unit box.
   static final search = MoloGlyph(
     cap: StrokeCap.round,
