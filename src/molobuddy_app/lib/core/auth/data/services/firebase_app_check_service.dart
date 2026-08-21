@@ -1,5 +1,6 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:molobuddy_app/core/auth/data/services/app_check_gateway.dart';
 
 /// Firebase-backed application attestation.
@@ -41,7 +42,13 @@ final class FirebaseAppCheckGateway implements AppCheckGateway {
             ? AppleDebugProvider()
             : AppleAppAttestProvider(),
       );
-    } on Object {
+    } on Object catch (error) {
+      // Swallowing this silently turned a configuration mistake into an
+      // unexplained "This device could not be verified." on every request.
+      // The reason belongs in the log even though the failure is not fatal.
+      if (kDebugMode) {
+        debugPrint('Molo: App Check activation failed. $error');
+      }
       return const UnavailableAppCheckGateway();
     }
     return FirebaseAppCheckGateway._(appCheck);
