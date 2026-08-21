@@ -163,23 +163,45 @@ void main() {
       size: const Size(1280, 900),
     );
 
-    expect(find.text('Welcome back'), findsOneWidget);
-    // Named card content, so deleting the card block cannot pass this test.
-    expect(find.text('Next up'), findsWidgets);
+    expect(find.text('Good morning.'), findsOneWidget);
+    // Named home content, so deleting the workspace block cannot pass this test.
+    expect(find.text('Needs your attention'), findsOneWidget);
     expect(
       find.text(
-        'Connect the real Firebase project, then load your authorised '
-        'practices from the Molo API.',
+        'Your VAT return for Mokoena Media is due tomorrow and is waiting for '
+        'final review. Two client replies could also unblock this week’s work.',
       ),
       findsOneWidget,
     );
-    expect(find.text('Secure session'), findsWidgets);
-    expect(
-      find.text(
-        "Firebase identity stays behind Molo's authentication boundary.",
+    expect(find.text('Deadlines coming up'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('shows the operational home at compact width', (tester) async {
+    await _pumpWelcome(
+      tester,
+      const AuthViewState(
+        status: AuthViewStatus.signedIn,
+        methods: [],
+        user: _user,
+        session: MoloSession(
+          uid: 'user_1',
+          practiceRefs: [
+            PracticeRef(
+              practiceId: 'practice_1',
+              displayLabel: 'Mokoena Tax Studio',
+              homeRegionKey: 'za',
+              routeVersion: 1,
+              accessStatus: PracticeAccessStatus.active,
+            ),
+          ],
+        ),
       ),
-      findsOneWidget,
     );
+
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('Needs your attention'), findsOneWidget);
+    expect(find.text('Ask Molo about your practice'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -200,7 +222,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.text('Good morning.'), findsOneWidget);
     // The display-size greeting used to fall back to the raw address, which
     // put it on screen directly above the masked one the session produced.
     expect(find.textContaining('person@example.com'), findsNothing);
@@ -223,7 +245,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Welcome, Thando Mokoena'), findsOneWidget);
+    expect(find.text('Good morning, Thando Mokoena.'), findsOneWidget);
   });
 
   testWidgets('greets by the local name before the server has answered', (
@@ -242,7 +264,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Welcome, Thando Mokoena'), findsOneWidget);
+    expect(find.text('Good morning, Thando Mokoena.'), findsOneWidget);
   });
 
   testWidgets('ignores a blank name rather than greeting nobody', (
@@ -267,8 +289,8 @@ void main() {
       ),
     );
 
-    expect(find.text('Welcome back'), findsOneWidget);
-    expect(find.text('Welcome,    '), findsNothing);
+    expect(find.text('Good morning.'), findsOneWidget);
+    expect(find.text('Good morning,    .'), findsNothing);
   });
 
   testWidgets('shows the masked address the server returned', (tester) async {
@@ -327,7 +349,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('Next up'), findsNothing);
+    expect(find.text('Needs your attention'), findsNothing);
   });
 
   testWidgets('reports a build with no session service', (tester) async {
@@ -472,8 +494,8 @@ void main() {
       size: const Size(1280, 900),
     );
 
-    expect(find.text('Next up'), findsWidgets);
-    expect(find.text('Secure session'), findsWidgets);
+    expect(find.text('Needs your attention'), findsOneWidget);
+    expect(find.text('Deadlines coming up'), findsOneWidget);
     expect(
       find.text('Session details are not available in this build yet.'),
       findsNothing,

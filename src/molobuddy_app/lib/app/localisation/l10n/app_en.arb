@@ -30,8 +30,12 @@
   "@termsNotice": {
     "description": "Sign-in agreement sentence with labels that are rendered as separate links.",
     "placeholders": {
-      "termsLink": {"type": "String"},
-      "privacyLink": {"type": "String"}
+      "termsLink": {
+        "type": "String"
+      },
+      "privacyLink": {
+        "type": "String"
+      }
     }
   },
   "invalidEmail": "Enter a valid email address.",
@@ -70,7 +74,9 @@
   "@welcomeName": {
     "description": "Signed-in welcome using a display name. Never an email address: the address is shown separately and in masked form.",
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "welcomeNameless": "Welcome back",
@@ -82,6 +88,63 @@
   "previewModeLabel": "Preview mode",
   "signOut": "Sign out",
   "signingOut": "Signing out…",
+  "homePageTitle": "Home | Molo",
+  "homeNavigationHome": "Home",
+  "homeNavigationWork": "Work",
+  "homeNavigationClients": "Clients",
+  "homeNavigationDocuments": "Documents",
+  "homeNavigationDeadlines": "Deadlines",
+  "homeNavigationMeetings": "Meetings",
+  "homeNavigationPracticeView": "Practice view",
+  "homeSearchHint": "Search clients, work, documents",
+  "homeAskMolo": "Ask Molo",
+  "homeTeamActivity": "Team activity",
+  "homeCreateWork": "Create work",
+  "homePracticeAccount": "Practice account",
+  "homeAccountMenu": "Open practice account menu",
+  "homeKicker": "Your practice, in flow",
+  "homeGreeting": "Good morning, {name}.",
+  "@homeGreeting": {
+    "description": "Personal home greeting. The name is a display name only and never an email address.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeGreetingNameless": "Good morning.",
+  "homeIntro": "Three things need attention today. Start with the one that keeps a deadline moving.",
+  "homeMoloName": "Molo",
+  "homeDailyBrief": "Daily brief",
+  "homeBriefBody": "Your VAT return for Mokoena Media is due tomorrow and is waiting for final review. Two client replies could also unblock this week’s work.",
+  "homeReviewVat": "Review VAT return",
+  "homeSeeBlockers": "See what is blocked",
+  "homeAttentionTitle": "Needs your attention",
+  "homeViewAllWork": "View all work",
+  "homeVatReturn": "VAT return · July 2026",
+  "homeVatReturnBody": "Mokoena Media (Pty) Ltd · Due tomorrow",
+  "homeFinalReview": "Final review",
+  "homeIncomeTax": "Income tax return · 2026",
+  "homeIncomeTaxBody": "Khanyisile Dlamini · Document request",
+  "homeClientReply": "Client reply",
+  "homeVatRegistration": "VAT registration",
+  "homeVatRegistrationBody": "Coastline Foods · New work item",
+  "homeAssignOwner": "Assign owner",
+  "homeDeadlinesTitle": "Deadlines coming up",
+  "homeDueTomorrow": "Due tomorrow",
+  "homeDueInTwoDays": "Due in 2 days",
+  "homeMokoenaMedia": "Mokoena Media (Pty) Ltd",
+  "homeProvisionalTax": "Provisional tax · first period",
+  "homeThandoMokoena": "Thando Mokoena",
+  "homeFlowTitle": "In the flow",
+  "homeActivityDavid": "David",
+  "homeActivityDavidBody": "completed the reconciliation check.",
+  "homeActivityDavidTime": "14 min ago",
+  "homeActivityKhanyisile": "Khanyisile",
+  "homeActivityKhanyisileBody": "uploaded an IRP5.",
+  "homeActivityKhanyisileTime": "28 min ago",
+  "homeAskMoloHint": "Ask Molo about your practice",
+  "homeActionUnavailable": "This workspace action is coming soon.",
   "homeNextAction": "Next up",
   "homeNextActionBody": "Connect the real Firebase project, then load your authorised practices from the Molo API.",
   "secureSession": "Secure session",
@@ -123,8 +186,12 @@
   "@acceptTermsLabel": {
     "description": "Account agreement sentence with labels that are rendered as separate links.",
     "placeholders": {
-      "termsLink": {"type": "String"},
-      "privacyLink": {"type": "String"}
+      "termsLink": {
+        "type": "String"
+      },
+      "privacyLink": {
+        "type": "String"
+      }
     }
   },
   "termsOfService": "Terms of Service",
@@ -177,17 +244,29 @@
   "workspaceReadiness": "Workspace {percent}% ready",
   "@workspaceReadiness": {
     "description": "Readiness of the workspace during onboarding.",
-    "placeholders": {"percent": {"type": "int"}}
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
   },
   "registrationCompleteTitle": "Your workspace is ready, {name}",
   "@registrationCompleteTitle": {
     "description": "Registration preview completion heading.",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "registrationCompleteBody": "{practiceName} is shaped around what matters to you.",
   "@registrationCompleteBody": {
     "description": "Registration preview completion body.",
-    "placeholders": {"practiceName": {"type": "String"}}
+    "placeholders": {
+      "practiceName": {
+        "type": "String"
+      }
+    }
   },
   "registrationCompleteSummary": "Your practice defaults, first priorities and preferred starting point are ready for the real account flow.",
   "continueToSignIn": "Continue to sign in",
@@ -204,8 +283,12 @@
   "@registrationProgress": {
     "description": "Compact registration progress label.",
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "backLabel": "Back"

@@ -385,6 +385,300 @@ abstract class AppLocalizations {
   /// **'Signing out…'**
   String get signingOut;
 
+  /// No description provided for @homePageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Home | Molo'**
+  String get homePageTitle;
+
+  /// No description provided for @homeNavigationHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get homeNavigationHome;
+
+  /// No description provided for @homeNavigationWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get homeNavigationWork;
+
+  /// No description provided for @homeNavigationClients.
+  ///
+  /// In en, this message translates to:
+  /// **'Clients'**
+  String get homeNavigationClients;
+
+  /// No description provided for @homeNavigationDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get homeNavigationDocuments;
+
+  /// No description provided for @homeNavigationDeadlines.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadlines'**
+  String get homeNavigationDeadlines;
+
+  /// No description provided for @homeNavigationMeetings.
+  ///
+  /// In en, this message translates to:
+  /// **'Meetings'**
+  String get homeNavigationMeetings;
+
+  /// No description provided for @homeNavigationPracticeView.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice view'**
+  String get homeNavigationPracticeView;
+
+  /// No description provided for @homeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search clients, work, documents'**
+  String get homeSearchHint;
+
+  /// No description provided for @homeAskMolo.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Molo'**
+  String get homeAskMolo;
+
+  /// No description provided for @homeTeamActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Team activity'**
+  String get homeTeamActivity;
+
+  /// No description provided for @homeCreateWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Create work'**
+  String get homeCreateWork;
+
+  /// No description provided for @homePracticeAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice account'**
+  String get homePracticeAccount;
+
+  /// No description provided for @homeAccountMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Open practice account menu'**
+  String get homeAccountMenu;
+
+  /// No description provided for @homeKicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Your practice, in flow'**
+  String get homeKicker;
+
+  /// Personal home greeting. The name is a display name only and never an email address.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning, {name}.'**
+  String homeGreeting(String name);
+
+  /// No description provided for @homeGreetingNameless.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning.'**
+  String get homeGreetingNameless;
+
+  /// No description provided for @homeIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Three things need attention today. Start with the one that keeps a deadline moving.'**
+  String get homeIntro;
+
+  /// No description provided for @homeMoloName.
+  ///
+  /// In en, this message translates to:
+  /// **'Molo'**
+  String get homeMoloName;
+
+  /// No description provided for @homeDailyBrief.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily brief'**
+  String get homeDailyBrief;
+
+  /// No description provided for @homeBriefBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your VAT return for Mokoena Media is due tomorrow and is waiting for final review. Two client replies could also unblock this week’s work.'**
+  String get homeBriefBody;
+
+  /// No description provided for @homeReviewVat.
+  ///
+  /// In en, this message translates to:
+  /// **'Review VAT return'**
+  String get homeReviewVat;
+
+  /// No description provided for @homeSeeBlockers.
+  ///
+  /// In en, this message translates to:
+  /// **'See what is blocked'**
+  String get homeSeeBlockers;
+
+  /// No description provided for @homeAttentionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs your attention'**
+  String get homeAttentionTitle;
+
+  /// No description provided for @homeViewAllWork.
+  ///
+  /// In en, this message translates to:
+  /// **'View all work'**
+  String get homeViewAllWork;
+
+  /// No description provided for @homeVatReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT return · July 2026'**
+  String get homeVatReturn;
+
+  /// No description provided for @homeVatReturnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Mokoena Media (Pty) Ltd · Due tomorrow'**
+  String get homeVatReturnBody;
+
+  /// No description provided for @homeFinalReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Final review'**
+  String get homeFinalReview;
+
+  /// No description provided for @homeIncomeTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Income tax return · 2026'**
+  String get homeIncomeTax;
+
+  /// No description provided for @homeIncomeTaxBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Khanyisile Dlamini · Document request'**
+  String get homeIncomeTaxBody;
+
+  /// No description provided for @homeClientReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Client reply'**
+  String get homeClientReply;
+
+  /// No description provided for @homeVatRegistration.
+  ///
+  /// In en, this message translates to:
+  /// **'VAT registration'**
+  String get homeVatRegistration;
+
+  /// No description provided for @homeVatRegistrationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Coastline Foods · New work item'**
+  String get homeVatRegistrationBody;
+
+  /// No description provided for @homeAssignOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign owner'**
+  String get homeAssignOwner;
+
+  /// No description provided for @homeDeadlinesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadlines coming up'**
+  String get homeDeadlinesTitle;
+
+  /// No description provided for @homeDueTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Due tomorrow'**
+  String get homeDueTomorrow;
+
+  /// No description provided for @homeDueInTwoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Due in 2 days'**
+  String get homeDueInTwoDays;
+
+  /// No description provided for @homeMokoenaMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Mokoena Media (Pty) Ltd'**
+  String get homeMokoenaMedia;
+
+  /// No description provided for @homeProvisionalTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Provisional tax · first period'**
+  String get homeProvisionalTax;
+
+  /// No description provided for @homeThandoMokoena.
+  ///
+  /// In en, this message translates to:
+  /// **'Thando Mokoena'**
+  String get homeThandoMokoena;
+
+  /// No description provided for @homeFlowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'In the flow'**
+  String get homeFlowTitle;
+
+  /// No description provided for @homeActivityDavid.
+  ///
+  /// In en, this message translates to:
+  /// **'David'**
+  String get homeActivityDavid;
+
+  /// No description provided for @homeActivityDavidBody.
+  ///
+  /// In en, this message translates to:
+  /// **'completed the reconciliation check.'**
+  String get homeActivityDavidBody;
+
+  /// No description provided for @homeActivityDavidTime.
+  ///
+  /// In en, this message translates to:
+  /// **'14 min ago'**
+  String get homeActivityDavidTime;
+
+  /// No description provided for @homeActivityKhanyisile.
+  ///
+  /// In en, this message translates to:
+  /// **'Khanyisile'**
+  String get homeActivityKhanyisile;
+
+  /// No description provided for @homeActivityKhanyisileBody.
+  ///
+  /// In en, this message translates to:
+  /// **'uploaded an IRP5.'**
+  String get homeActivityKhanyisileBody;
+
+  /// No description provided for @homeActivityKhanyisileTime.
+  ///
+  /// In en, this message translates to:
+  /// **'28 min ago'**
+  String get homeActivityKhanyisileTime;
+
+  /// No description provided for @homeAskMoloHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Molo about your practice'**
+  String get homeAskMoloHint;
+
+  /// No description provided for @homeActionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This workspace action is coming soon.'**
+  String get homeActionUnavailable;
+
   /// No description provided for @homeNextAction.
   ///
   /// In en, this message translates to:

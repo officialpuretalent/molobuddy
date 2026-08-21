@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:molobuddy_app/app/molo_app.dart';
 import 'package:molobuddy_app/bootstrap/app_environment.dart';
 import 'package:molobuddy_app/core/auth/auth_providers.dart';
+import 'package:molobuddy_app/core/auth/data/services/app_check_debug_token.dart';
 import 'package:molobuddy_app/core/auth/data/services/app_check_gateway.dart';
 import 'package:molobuddy_app/core/auth/data/services/auth_provider_catalogue_service.dart';
 import 'package:molobuddy_app/core/auth/data/services/auth_service.dart';
@@ -61,6 +62,15 @@ Future<_Identity> _createIdentity(AppEnvironment environment) async {
   if (environment.authMode != AuthRuntimeMode.firebase ||
       configuration == null) {
     return _unavailableIdentity;
+  }
+
+  // The debug token must be published before Firebase initialises. The App
+  // Check JavaScript module reads the global as it loads, which happens inside
+  // Firebase.initializeApp; setting it after activation is too late, and the
+  // SDK then falls back to reCAPTCHA with a placeholder site key and fails
+  // every attestation with `appCheck/recaptcha-error`.
+  if (environment.useAppCheckDebugProvider) {
+    pinAppCheckDebugToken(environment.appCheckDebugToken);
   }
 
   try {

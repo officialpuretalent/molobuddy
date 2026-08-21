@@ -12,6 +12,7 @@ final class AppEnvironment {
     required this.apiBaseUrl,
     required this.firebaseConfiguration,
     this.appCheckRecaptchaSiteKey,
+    this.appCheckDebugToken,
     this.useAppCheckDebugProvider = false,
   });
 
@@ -36,6 +37,7 @@ final class AppEnvironment {
       'MOLO_APP_CHECK_RECAPTCHA_SITE_KEY',
     );
     const debugAttestation = bool.fromEnvironment('MOLO_APP_CHECK_DEBUG');
+    const debugToken = String.fromEnvironment('MOLO_APP_CHECK_DEBUG_TOKEN');
 
     return AppEnvironment(
       authMode: authMode,
@@ -44,6 +46,7 @@ final class AppEnvironment {
       appCheckRecaptchaSiteKey: recaptchaSiteKey.trim().isEmpty
           ? null
           : recaptchaSiteKey.trim(),
+      appCheckDebugToken: debugToken.trim().isEmpty ? null : debugToken.trim(),
       // A debug attestation must never ship in a release build, whatever the
       // define says.
       useAppCheckDebugProvider: debugAttestation && kDebugMode,
@@ -57,6 +60,14 @@ final class AppEnvironment {
   /// reCAPTCHA site key for web attestation. Absent until App Check is
   /// configured, which leaves the app unattested rather than guessing a key.
   final String? appCheckRecaptchaSiteKey;
+
+  /// A pinned App Check debug token, for local development only.
+  ///
+  /// Comes from gitignored local config, never from a tracked file: the token
+  /// bypasses device verification, so anyone holding it can attest as this
+  /// application. Absent means the Firebase SDK mints one per browser profile
+  /// and prints it, which needs safelisting again for every new profile.
+  final String? appCheckDebugToken;
 
   /// Debug attestation, for local development only. Never true in release.
   final bool useAppCheckDebugProvider;

@@ -62,18 +62,38 @@ abstract final class MoloTheme {
         fontWeight: FontWeight.w500,
         letterSpacing: -0.3,
       ),
+      // Material 3 tracks its body and label roles; the design does not track
+      // body, navigation or control text at all. Every role states zero
+      // explicitly, because anything left unset inherits Material's spacing
+      // and reads looser than the design at every size.
+      titleMedium: base.textTheme.titleMedium?.copyWith(
+        color: MoloColours.moloPlum,
+        letterSpacing: 0,
+      ),
+      titleSmall: base.textTheme.titleSmall?.copyWith(
+        color: MoloColours.moloPlum,
+        letterSpacing: 0,
+      ),
       bodyLarge: base.textTheme.bodyLarge?.copyWith(
         color: MoloColours.moloPlum,
         height: 1.5,
+        letterSpacing: 0,
       ),
       bodyMedium: base.textTheme.bodyMedium?.copyWith(
         color: MoloColours.secondaryText,
         height: 1.45,
+        letterSpacing: 0,
+      ),
+      bodySmall: base.textTheme.bodySmall?.copyWith(
+        color: MoloColours.secondaryText,
+        letterSpacing: 0,
       ),
       labelLarge: base.textTheme.labelLarge?.copyWith(
         fontWeight: FontWeight.w500,
         letterSpacing: 0,
       ),
+      labelMedium: base.textTheme.labelMedium?.copyWith(letterSpacing: 0),
+      labelSmall: base.textTheme.labelSmall?.copyWith(letterSpacing: 0),
     );
 
     final controlShape = RoundedRectangleBorder(

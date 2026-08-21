@@ -77,6 +77,28 @@ Firebase and still see that banner, the defines did not reach the build.
 
 VS Code users get both as launch configurations in `.vscode/launch.json`.
 
+### Serving to your own browser
+
+`-d chrome` launches a Chrome instance Flutter owns and picks a random port.
+To open the app in a browser you already have, serve it instead:
+
+```bash
+cd src/molobuddy_app && flutter run -d web-server --web-hostname 0.0.0.0 --web-port 4300 --no-dds --dart-define-from-file=config/firebase.development.json
+```
+
+Then open **`http://localhost:4300`**. Three of those flags are load-bearing:
+
+| Flag | Why |
+|---|---|
+| `--web-port 4300` | The port must be in the server's `CORS_ALLOWED_ORIGINS`. Changing one without the other gives a screen that loads and then cannot reach the API. |
+| `--web-hostname 0.0.0.0` | `--web-hostname localhost` binds IPv6 `[::1]` **only**, so `http://127.0.0.1:<port>` is refused while `http://localhost:<port>` works. Binding `0.0.0.0` serves both, at the cost of exposing the dev server on your local network. |
+| `--no-dds` | `-d web-server` in debug mode expects the Dart Debug Chrome extension. Without it the debug-service WebSocket handshake fails when a browser connects and takes the whole `flutter run` process down with `Oops; flutter has exited unexpectedly`. Disabling DDS keeps hot reload and drops the debugger. |
+
+Prefer `localhost` over `127.0.0.1`: the Firebase project authorises the
+hostname `localhost`, not the IP literal.
+
+`.claude/launch.json` holds this configuration for agent-driven runs.
+
 `AppEnvironment.fromCompilation()` reads these defines. Missing or incomplete
 Firebase values leave the app in an `unavailable` state that refuses sign-in
 rather than failing silently.
@@ -86,6 +108,15 @@ rather than failing silently.
 ```bash
 cd src/molobuddy_server && npm run dev
 ```
+
+`.env.local` is read once at process start, so a change to it needs a restart,
+not just a file save. `tsx watch` reloads on source changes only.
+
+`CORS_ALLOWED_ORIGINS` must list every origin the Flutter app is served from,
+including the port. The two settings are coupled: change `--web-port` without
+adding the matching origin and the app renders, then reports that Molo cannot
+connect, because every request fails preflight. Wildcards are rejected at
+startup by design.
 
 The server selects its token verifier from `AUTH_VERIFIER` in `.env.local`:
 
@@ -115,8 +146,28 @@ token. A test asserts that containment.
 
 Attestation activates only when the build is configured for it. With neither
 `MOLO_APP_CHECK_RECAPTCHA_SITE_KEY` nor `MOLO_APP_CHECK_DEBUG`, the app uses
-`UnavailableAppCheckGateway` and simply sends no attestation header. A failed
-or missing attestation never blocks a request; the server decides.
+`UnavailableAppCheckGateway` and simply sends no attestation header. The client
+never treats that as fatal: the request still carries identity, and the server
+decides.
+
+**The server's decision is to refuse.** With `AUTH_VERIFIER=firebase`,
+`FirebaseAdminRequestTokenVerifier` rejects a request that carries no
+attestation header, before it looks at identity at all:
+
+```ts
+if (tokens.appCheckToken === undefined) {
+  return { ok: false, code: 'app_check_required' };
+}
+```
+
+An unverifiable token is refused the same way. The client maps
+`app_check_required` to **"This device could not be verified."**, so that
+message means attestation, never a password or a network problem.
+
+The practical consequence: running against `AUTH_VERIFIER=firebase` needs
+working attestation. A browser profile whose debug token is not safelisted
+gets that message on every request, and no amount of retrying or
+re-authenticating helps.
 
 ### Choosing a provider
 
@@ -151,6 +202,11 @@ App Check is registered against Identity Platform and Firestore but both are
 `UNENFORCED`, which is the state the authentication design asks for. Roll out
 monitoring first and confirm that legitimate traffic is passing before
 enforcing, or valid clients get locked out.
+
+That `UNENFORCED` state applies to the **Google-hosted** services only. It says
+nothing about the control API, which verifies attestation itself and always
+requires it under `AUTH_VERIFIER=firebase`. Do not read "UNENFORCED" as
+"attestation is optional locally" — it is not.
 
 ### Order matters when setting this up
 

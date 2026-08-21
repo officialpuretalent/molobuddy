@@ -114,14 +114,14 @@
     </div>
   </div>
   <!--
-    App Check debug attestation, local development only.
+    App Check debug attestation is configured by build define, not here.
 
-    Uncomment the line below, run the app, then copy the debug token printed
-    in the browser console into Firebase console → App Check → Apps → your Web
-    app → Manage debug tokens. The token bypasses device verification, so it
-    must never be committed or served from a deployed build.
+    Set MOLO_APP_CHECK_DEBUG and MOLO_APP_CHECK_DEBUG_TOKEN in
+    config/firebase.development.json, which git ignores, and the app publishes
+    the token before App Check activates. A debug token bypasses device
+    verification, so it must never live in a tracked file or reach a deployed
+    build; a test asserts this file sets none.
   -->
-  <script>self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;</script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
