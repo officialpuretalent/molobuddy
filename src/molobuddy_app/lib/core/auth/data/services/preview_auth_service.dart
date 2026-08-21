@@ -32,6 +32,9 @@ final class PreviewAuthService implements AuthService {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    // Preview holds its session in memory for one run, so there is nothing for
+    // a lifetime to change.
+    required bool persistSession,
   }) async {
     if (!_debugAllowed) {
       return const AuthError(AuthFailure(AuthFailureKind.configurationMissing));

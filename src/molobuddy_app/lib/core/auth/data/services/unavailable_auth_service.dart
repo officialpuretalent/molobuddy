@@ -12,6 +12,7 @@ final class UnavailableAuthService implements AuthService {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required bool persistSession,
   }) async {
     return const AuthError(AuthFailure(AuthFailureKind.configurationMissing));
   }

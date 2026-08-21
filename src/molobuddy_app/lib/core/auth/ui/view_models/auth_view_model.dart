@@ -59,9 +59,14 @@ class AuthViewModel extends _$AuthViewModel {
     };
   }
 
+  /// Signs in, and says whether the session should outlive the window.
+  ///
+  /// The default is to persist, which is both what someone who was never
+  /// offered the choice expects and what Android and iOS do regardless.
   Future<void> signInWithEmailAndPassword({
     required String email,
     required String password,
+    bool persistSession = true,
   }) async {
     final current = state.requireValue;
     final normalisedEmail = email.trim();
@@ -91,6 +96,7 @@ class AuthViewModel extends _$AuthViewModel {
     final result = await repository.signInWithEmailAndPassword(
       email: normalisedEmail,
       password: password,
+      persistSession: persistSession,
     );
     if (!ref.mounted) {
       return;

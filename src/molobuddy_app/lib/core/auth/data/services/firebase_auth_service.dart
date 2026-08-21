@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_user.dart';
 import 'package:molobuddy_app/core/auth/data/models/firebase_public_configuration.dart';
@@ -46,8 +47,19 @@ final class FirebaseAuthService implements AuthService {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required bool persistSession,
   }) async {
     try {
+      // Web is the only platform where a session's lifetime is a choice.
+      // Android and iOS persist unconditionally, so the guard is a capability
+      // check rather than a device check.
+      if (kIsWeb) {
+        await _auth.setPersistence(
+          persistSession
+              ? firebase.Persistence.LOCAL
+              : firebase.Persistence.SESSION,
+        );
+      }
       final credential = await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password,

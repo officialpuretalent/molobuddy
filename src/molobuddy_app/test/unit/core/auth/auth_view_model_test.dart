@@ -80,6 +80,7 @@ final class _FakeAuthRepository implements AuthRepository {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required bool persistSession,
   }) async {
     signInCalls += 1;
     _currentUser = AuthUser(id: 'user-1', email: email);

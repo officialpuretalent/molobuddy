@@ -388,6 +388,7 @@ final class _QueuedSessionRepository implements AuthRepository {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required bool persistSession,
   }) async {
     _currentUser = AuthUser(id: 'user_$email', email: email);
     return AuthSuccess(_currentUser!);
@@ -452,6 +453,7 @@ final class _FakeSessionRepository implements AuthRepository {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required bool persistSession,
   }) async {
     _currentUser = AuthUser(id: 'user_1', email: email);
     return AuthSuccess(_currentUser!);

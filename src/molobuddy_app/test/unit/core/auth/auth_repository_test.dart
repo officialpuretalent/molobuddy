@@ -19,6 +19,7 @@ void main() {
       final signIn = await repository.signInWithEmailAndPassword(
         email: 'Thando.Mokoena@example.com ',
         password: 'safe-preview-password',
+        persistSession: true,
       );
 
       expect(signIn, isA<AuthSuccess<Object>>());
@@ -38,6 +39,7 @@ void main() {
     final result = await service.signInWithEmailAndPassword(
       email: 'person@example.com',
       password: 'safe-preview-password',
+      persistSession: true,
     );
 
     expect(result, isA<AuthError<Object>>());

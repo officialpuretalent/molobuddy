@@ -223,6 +223,7 @@ final class _AlwaysTakenAuthService implements AuthService {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required bool persistSession,
   }) async => throw UnimplementedError('signInWithEmailAndPassword');
 
   @override

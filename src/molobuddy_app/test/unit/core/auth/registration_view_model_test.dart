@@ -46,6 +46,7 @@ final class _RecordingRepository implements AuthRepository {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required bool persistSession,
   }) async => throw UnimplementedError('signInWithEmailAndPassword');
 
   @override

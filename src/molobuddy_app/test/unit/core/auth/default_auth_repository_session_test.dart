@@ -60,6 +60,7 @@ final class _RecordingAuthService implements AuthService {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required bool persistSession,
   }) async {
     throw UnimplementedError('signInWithEmailAndPassword');
   }
@@ -96,6 +97,7 @@ final class _StubAuthService implements AuthService {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required bool persistSession,
   }) async => const AuthError(AuthFailure(AuthFailureKind.unexpected));
 
   @override

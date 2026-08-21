@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:molobuddy_app/bootstrap/app_environment.dart';
 import 'package:molobuddy_app/core/auth/data/repositories/auth_repository.dart';
 import 'package:molobuddy_app/core/auth/data/repositories/default_auth_repository.dart';
@@ -18,6 +19,16 @@ part 'auth_providers.g.dart';
 AuthService authService(Ref ref) {
   throw StateError('AuthService must be provided during bootstrap.');
 }
+
+/// Whether this platform lets someone choose how long a session outlives the
+/// window.
+///
+/// Web does: Firebase can hold the session in local storage or drop it with the
+/// tab. Android and iOS always persist, so a control offering the choice there
+/// would be a promise the platform does not keep — which is why the sign-in
+/// screen omits the row rather than disabling it.
+@Riverpod(keepAlive: true)
+bool sessionPersistenceChoosable(Ref ref) => kIsWeb;
 
 /// Raw identity tokens. Only the authenticated transport may read this.
 @Riverpod(keepAlive: true)

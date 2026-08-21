@@ -30,10 +30,12 @@ final class DefaultAuthRepository implements AuthRepository {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required bool persistSession,
   }) {
     return _authService.signInWithEmailAndPassword(
       email: email,
       password: password,
+      persistSession: persistSession,
     );
   }
 
