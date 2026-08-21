@@ -281,7 +281,7 @@ class _WorkspaceHome extends StatelessWidget {
   }
 }
 
-class _AccountMenu extends StatelessWidget {
+class _AccountMenu extends StatefulWidget {
   const _AccountMenu({
     required this.compact,
     required this.practice,
@@ -302,29 +302,41 @@ class _AccountMenu extends StatelessWidget {
   final bool onDark;
 
   @override
+  State<_AccountMenu> createState() => _AccountMenuState();
+}
+
+class _AccountMenuState extends State<_AccountMenu> {
+  final _controller = MenuController();
+
+  @override
   Widget build(BuildContext context) {
     final localisations = AppLocalizations.of(context);
-    final person = personName?.trim();
+    final person = widget.personName?.trim();
     final hasPerson = person != null && person.isNotEmpty;
 
-    return MenuAnchor(
-      // The panel supplies its own shape, fill and shadow, so the menu itself
-      // contributes none: a Material surface underneath would show its own
-      // corners and elevation through the design's 22 radius.
-      style: const MenuStyle(
-        backgroundColor: WidgetStatePropertyAll(Color(0x00000000)),
-        surfaceTintColor: WidgetStatePropertyAll(Color(0x00000000)),
-        shadowColor: WidgetStatePropertyAll(Color(0x00000000)),
-        elevation: WidgetStatePropertyAll(0),
-        padding: WidgetStatePropertyAll(EdgeInsets.zero),
-      ),
-      // The design floats the panel 4 clear of the row it opens from.
-      alignmentOffset: const Offset(0, 4),
-      menuChildren: [
-        MoloAccountMenu(
+    // RawMenuAnchor, not MenuAnchor. A Material menu wraps whatever it is
+    // given in its own Material, padding, scroll view and always-on scrollbar,
+    // and clips the lot to the panel's box. A panel that draws its own shadow
+    // then has that shadow cropped to the inside of its own bounds, which
+    // leaves it showing through the rounded corners as a grey wedge and
+    // nowhere else. The raw anchor keeps the dismiss and focus behaviour and
+    // supplies no surface of its own.
+    return RawMenuAnchor(
+      controller: _controller,
+      consumeOutsideTaps: true,
+      overlayBuilder: (context, info) => Positioned(
+        left: info.anchorRect.left,
+        // The design pins the panel 4 clear of the row's top edge. Measuring
+        // up from the overlay's floor puts it there outright, rather than
+        // relying on a menu deciding to flip above the anchor.
+        bottom: info.overlaySize.height - info.anchorRect.top + 4,
+        child: TapRegion(
+          groupId: info.tapRegionGroupId,
+          onTapOutside: (_) => _controller.close(),
+          child: MoloAccountMenu(
           header: MoloAccountMenuHeader(
-            initials: _initials(practice.displayLabel),
-            name: practice.displayLabel,
+            initials: _initials(widget.practice.displayLabel),
+            name: widget.practice.displayLabel,
             caption: localisations.homePracticeAccount,
           ),
           sections: [
@@ -358,25 +370,26 @@ class _AccountMenu extends StatelessWidget {
               MoloAccountMenuEntry(
                 key: const Key('sign_out_button'),
                 glyph: MoloGlyphs.logOut,
-                label: signingOut
+                label: widget.signingOut
                     ? localisations.signingOut
                     : localisations.signOut,
                 destructive: true,
-                onTap: signingOut ? null : onSignOut,
+                onTap: widget.signingOut ? null : widget.onSignOut,
               ),
             ],
-          ],
+            ],
+          ),
         ),
-      ],
+      ),
       builder: (context, controller, _) {
-        final trigger = compact
+        final trigger = widget.compact
             ? Icon(
                 Icons.account_circle_outlined,
-                color: onDark ? MoloColours.surface : null,
+                color: widget.onDark ? MoloColours.surface : null,
               )
             : MoloAccountRow(
-                initials: _initials(hasPerson ? person : practice.displayLabel),
-                name: practice.displayLabel,
+                initials: _initials(hasPerson ? person : widget.practice.displayLabel),
+                name: widget.practice.displayLabel,
                 detail: hasPerson ? person : localisations.homePracticeAccount,
               );
         return Semantics(
@@ -388,7 +401,7 @@ class _AccountMenu extends StatelessWidget {
               type: MaterialType.transparency,
               child: InkWell(
                 key: const Key('account_menu_button'),
-                onTap: signingOut
+                onTap: widget.signingOut
                     ? null
                     : () => controller.isOpen
                           ? controller.close()
