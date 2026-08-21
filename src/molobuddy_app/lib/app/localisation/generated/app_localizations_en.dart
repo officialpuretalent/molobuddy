@@ -165,6 +165,157 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signingOut => 'Signing out…';
 
   @override
+  String get homePageTitle => 'Home | Molo';
+
+  @override
+  String get homeNavigationHome => 'Home';
+
+  @override
+  String get homeNavigationWork => 'Work';
+
+  @override
+  String get homeNavigationClients => 'Clients';
+
+  @override
+  String get homeNavigationDocuments => 'Documents';
+
+  @override
+  String get homeNavigationDeadlines => 'Deadlines';
+
+  @override
+  String get homeNavigationMeetings => 'Meetings';
+
+  @override
+  String get homeNavigationPracticeView => 'Practice view';
+
+  @override
+  String get homeSearchHint => 'Search clients, work, documents';
+
+  @override
+  String get homeAskMolo => 'Ask Molo';
+
+  @override
+  String get homeTeamActivity => 'Team activity';
+
+  @override
+  String get homeCreateWork => 'Create work';
+
+  @override
+  String get homePracticeAccount => 'Practice account';
+
+  @override
+  String get homeAccountMenu => 'Open practice account menu';
+
+  @override
+  String get homeKicker => 'Your practice, in flow';
+
+  @override
+  String homeGreeting(String name) {
+    return 'Good morning, $name.';
+  }
+
+  @override
+  String get homeGreetingNameless => 'Good morning.';
+
+  @override
+  String get homeIntro =>
+      'Three things need attention today. Start with the one that keeps a deadline moving.';
+
+  @override
+  String get homeMoloName => 'Molo';
+
+  @override
+  String get homeDailyBrief => 'Daily brief';
+
+  @override
+  String get homeBriefBody =>
+      'Your VAT return for Mokoena Media is due tomorrow and is waiting for final review. Two client replies could also unblock this week’s work.';
+
+  @override
+  String get homeReviewVat => 'Review VAT return';
+
+  @override
+  String get homeSeeBlockers => 'See what is blocked';
+
+  @override
+  String get homeAttentionTitle => 'Needs your attention';
+
+  @override
+  String get homeViewAllWork => 'View all work';
+
+  @override
+  String get homeVatReturn => 'VAT return · July 2026';
+
+  @override
+  String get homeVatReturnBody => 'Mokoena Media (Pty) Ltd · Due tomorrow';
+
+  @override
+  String get homeFinalReview => 'Final review';
+
+  @override
+  String get homeIncomeTax => 'Income tax return · 2026';
+
+  @override
+  String get homeIncomeTaxBody => 'Khanyisile Dlamini · Document request';
+
+  @override
+  String get homeClientReply => 'Client reply';
+
+  @override
+  String get homeVatRegistration => 'VAT registration';
+
+  @override
+  String get homeVatRegistrationBody => 'Coastline Foods · New work item';
+
+  @override
+  String get homeAssignOwner => 'Assign owner';
+
+  @override
+  String get homeDeadlinesTitle => 'Deadlines coming up';
+
+  @override
+  String get homeDueTomorrow => 'Due tomorrow';
+
+  @override
+  String get homeDueInTwoDays => 'Due in 2 days';
+
+  @override
+  String get homeMokoenaMedia => 'Mokoena Media (Pty) Ltd';
+
+  @override
+  String get homeProvisionalTax => 'Provisional tax · first period';
+
+  @override
+  String get homeThandoMokoena => 'Thando Mokoena';
+
+  @override
+  String get homeFlowTitle => 'In the flow';
+
+  @override
+  String get homeActivityDavid => 'David';
+
+  @override
+  String get homeActivityDavidBody => 'completed the reconciliation check.';
+
+  @override
+  String get homeActivityDavidTime => '14 min ago';
+
+  @override
+  String get homeActivityKhanyisile => 'Khanyisile';
+
+  @override
+  String get homeActivityKhanyisileBody => 'uploaded an IRP5.';
+
+  @override
+  String get homeActivityKhanyisileTime => '28 min ago';
+
+  @override
+  String get homeAskMoloHint => 'Ask Molo about your practice';
+
+  @override
+  String get homeActionUnavailable => 'This workspace action is coming soon.';
+
+  @override
   String get homeNextAction => 'Next up';
 
   @override
@@ -639,6 +790,157 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
 
   @override
   String get signingOut => 'Signing out…';
+
+  @override
+  String get homePageTitle => 'Home | Molo';
+
+  @override
+  String get homeNavigationHome => 'Home';
+
+  @override
+  String get homeNavigationWork => 'Work';
+
+  @override
+  String get homeNavigationClients => 'Clients';
+
+  @override
+  String get homeNavigationDocuments => 'Documents';
+
+  @override
+  String get homeNavigationDeadlines => 'Deadlines';
+
+  @override
+  String get homeNavigationMeetings => 'Meetings';
+
+  @override
+  String get homeNavigationPracticeView => 'Practice view';
+
+  @override
+  String get homeSearchHint => 'Search clients, work, documents';
+
+  @override
+  String get homeAskMolo => 'Ask Molo';
+
+  @override
+  String get homeTeamActivity => 'Team activity';
+
+  @override
+  String get homeCreateWork => 'Create work';
+
+  @override
+  String get homePracticeAccount => 'Practice account';
+
+  @override
+  String get homeAccountMenu => 'Open practice account menu';
+
+  @override
+  String get homeKicker => 'Your practice, in flow';
+
+  @override
+  String homeGreeting(String name) {
+    return 'Good morning, $name.';
+  }
+
+  @override
+  String get homeGreetingNameless => 'Good morning.';
+
+  @override
+  String get homeIntro =>
+      'Three things need attention today. Start with the one that keeps a deadline moving.';
+
+  @override
+  String get homeMoloName => 'Molo';
+
+  @override
+  String get homeDailyBrief => 'Daily brief';
+
+  @override
+  String get homeBriefBody =>
+      'Your VAT return for Mokoena Media is due tomorrow and is waiting for final review. Two client replies could also unblock this week’s work.';
+
+  @override
+  String get homeReviewVat => 'Review VAT return';
+
+  @override
+  String get homeSeeBlockers => 'See what is blocked';
+
+  @override
+  String get homeAttentionTitle => 'Needs your attention';
+
+  @override
+  String get homeViewAllWork => 'View all work';
+
+  @override
+  String get homeVatReturn => 'VAT return · July 2026';
+
+  @override
+  String get homeVatReturnBody => 'Mokoena Media (Pty) Ltd · Due tomorrow';
+
+  @override
+  String get homeFinalReview => 'Final review';
+
+  @override
+  String get homeIncomeTax => 'Income tax return · 2026';
+
+  @override
+  String get homeIncomeTaxBody => 'Khanyisile Dlamini · Document request';
+
+  @override
+  String get homeClientReply => 'Client reply';
+
+  @override
+  String get homeVatRegistration => 'VAT registration';
+
+  @override
+  String get homeVatRegistrationBody => 'Coastline Foods · New work item';
+
+  @override
+  String get homeAssignOwner => 'Assign owner';
+
+  @override
+  String get homeDeadlinesTitle => 'Deadlines coming up';
+
+  @override
+  String get homeDueTomorrow => 'Due tomorrow';
+
+  @override
+  String get homeDueInTwoDays => 'Due in 2 days';
+
+  @override
+  String get homeMokoenaMedia => 'Mokoena Media (Pty) Ltd';
+
+  @override
+  String get homeProvisionalTax => 'Provisional tax · first period';
+
+  @override
+  String get homeThandoMokoena => 'Thando Mokoena';
+
+  @override
+  String get homeFlowTitle => 'In the flow';
+
+  @override
+  String get homeActivityDavid => 'David';
+
+  @override
+  String get homeActivityDavidBody => 'completed the reconciliation check.';
+
+  @override
+  String get homeActivityDavidTime => '14 min ago';
+
+  @override
+  String get homeActivityKhanyisile => 'Khanyisile';
+
+  @override
+  String get homeActivityKhanyisileBody => 'uploaded an IRP5.';
+
+  @override
+  String get homeActivityKhanyisileTime => '28 min ago';
+
+  @override
+  String get homeAskMoloHint => 'Ask Molo about your practice';
+
+  @override
+  String get homeActionUnavailable => 'This workspace action is coming soon.';
 
   @override
   String get homeNextAction => 'Next up';

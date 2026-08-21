@@ -209,7 +209,7 @@ void main() {
     // the form.
     expect(find.text('t***@example.com'), findsOneWidget);
     expect(find.text('thando.mokoena@example.com'), findsNothing);
-    expect(find.text('Welcome, Thando Mokoena'), findsOneWidget);
+    expect(find.text('Good morning, Thando Mokoena.'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('sign_out_button')));
     await tester.pumpAndSettle();
