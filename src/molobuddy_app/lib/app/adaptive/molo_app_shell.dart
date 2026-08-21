@@ -3,6 +3,7 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:molobuddy_app/app/adaptive/window_class.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_brand_lockup.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_navigation_item.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_search_field.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_wordmark.dart';
@@ -632,32 +633,11 @@ class _MoloSidebarBrand extends StatelessWidget {
         mainAxisAlignment:
             labelled ? MainAxisAlignment.start : MainAxisAlignment.center,
         children: [
-          Container(
-            key: MoloSidebar.brandMarkKey,
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(
-              color: MoloColours.moloPulse,
-              borderRadius: BorderRadius.circular(9),
-            ),
+          MoloBrandLockup(
+            onDark: true,
+            labelled: labelled,
+            markKey: MoloSidebar.brandMarkKey,
           ),
-          if (labelled) ...[
-            const SizedBox(width: 10),
-            const Text(
-              'molo',
-              style: TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.w500,
-                // -0.02em at 21px, as the design specifies.
-                letterSpacing: -0.42,
-                // Material's body leading made this line box 30 against the
-                // design's 27, which pushed the mark off centre and shifted
-                // every row beneath the lockup down by 3.
-                height: MoloTypography.normalLineHeight,
-                color: MoloColours.surface,
-              ),
-            ),
-          ],
         ],
       ),
     );
