@@ -425,10 +425,17 @@ class MoloTopBar extends StatelessWidget implements PreferredSizeWidget {
           child: SizedBox(
             height: height,
             child: Padding(
-              padding: EdgeInsets.symmetric(
+              padding: EdgeInsets.fromLTRB(
                 // 40 on desktop, 20 when compact.
-                horizontal: compact ? 20 : 40,
-                vertical: 12,
+                compact ? 20 : 40,
+                12,
+                compact ? 20 : 40,
+                // 12, plus the pixel the hairline rule occupies. CSS puts a
+                // border inside the box it measures, so the design's content
+                // box is 40 tall, not 41, and its search field starts exactly
+                // 12 down. A Flutter border paints over the box instead of
+                // reserving room in it, so the room is reserved here.
+                13,
               ),
               child: Row(
                 children: [
@@ -448,6 +455,7 @@ class MoloTopBar extends StatelessWidget implements PreferredSizeWidget {
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
                               letterSpacing: 0,
+                              height: MoloTypography.normalLineHeight,
                               color: MoloColours.moloPlum,
                             ),
                           ),

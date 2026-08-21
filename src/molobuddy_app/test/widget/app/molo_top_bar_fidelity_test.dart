@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:molobuddy_app/app/adaptive/molo_app_shell.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
@@ -6,9 +10,26 @@ import 'package:molobuddy_app/app/design_system/components/molo_account_row.dart
 import 'package:molobuddy_app/app/design_system/components/molo_search_field.dart';
 import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/design_system/molo_theme.dart';
+import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 
 /// Desktop top bar and the sidebar's account row, measured from the baseline.
 void main() {
+  // Real font, real measurements: the boxes below are line boxes, and a
+  // stand-in font would report sizes the browser never produces.
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final loader = FontLoader('Geist');
+    for (final path in const [
+      'assets/fonts/Geist-Regular.ttf',
+      'assets/fonts/Geist-Medium.ttf',
+    ]) {
+      loader.addFont(
+        Future.value(File(path).readAsBytesSync().buffer.asByteData()),
+      );
+    }
+    await loader.load();
+  });
+
   Widget host(Widget child) => MaterialApp(
     theme: MoloTheme.light(),
     home: Scaffold(appBar: child as PreferredSizeWidget, body: const SizedBox()),
@@ -244,6 +265,97 @@ void main() {
     testWidgets('shows initials, not an avatar image', (tester) async {
       await tester.pumpWidget(accountHost());
       expect(find.text('SQ'), findsOneWidget);
+    });
+  });
+
+  group('the top bar leads its type the way the design does', () {
+    testWidgets('the title takes Geist line box, not Material leading', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          const MoloTopBar(
+            title: 'Home',
+            searchHint: 'Search clients, work, documents',
+          ),
+        ),
+      );
+      final style = tester
+          .renderObject<RenderParagraph>(find.text('Home'))
+          .text
+          .style!;
+      expect(style.height, MoloTypography.normalLineHeight);
+      // 15 at 1.3 is the design's 19.5. Inherited leading made it 21.75.
+      expect(tester.getSize(find.text('Home')).height, closeTo(19.5, 0.5));
+    });
+
+    testWidgets('the search text and its hint are 13 regular at that leading', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          const MoloTopBar(
+            title: 'Home',
+            searchHint: 'Search clients, work, documents',
+          ),
+        ),
+      );
+      final hint = tester
+          .renderObject<RenderParagraph>(
+            find.text('Search clients, work, documents'),
+          )
+          .text
+          .style!;
+      expect(hint.fontSize, 13);
+      // Stated, not inherited: the design's input is regular.
+      expect(hint.fontWeight, FontWeight.w400);
+      expect(hint.height, MoloTypography.normalLineHeight);
+    });
+  });
+
+  group('the search field measures like the design box', () {
+    Future<void> pumpBar(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        host(
+          const MoloTopBar(
+            title: 'Home',
+            searchHint: 'Search clients, work, documents',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the rule takes its own pixel, so the field starts at 12', (
+      tester,
+    ) async {
+      await pumpBar(tester);
+      final bar = tester.getRect(find.byType(MoloTopBar));
+      final field = tester.getRect(find.byType(MoloSearchField));
+      // A CSS border sits inside the box it measures, so the design's content
+      // box is 40 tall and the field starts exactly 12 down. Painting the rule
+      // over a 41 box instead put it at 12.5.
+      expect(field.top - bar.top, 12);
+      expect(field.height, 40);
+      expect(field.width, 260);
+    });
+
+    testWidgets('its 1 border insets the content, as border-box does', (
+      tester,
+    ) async {
+      await pumpBar(tester);
+      final field = tester.getRect(find.byType(MoloSearchField));
+      final icon = tester.getRect(find.byType(MoloIcon).first);
+      // 14 of padding outside a 1 border is 15 of content inset in CSS. A
+      // DecoratedBox painted the border over the content and gave 14.
+      expect(icon.left - field.left, 15);
+      expect(icon.width, 15);
+      // 15 in, a 15 glyph, then the design gap of 8.
+      final hint = tester.getRect(find.text('Search clients, work, documents'));
+      expect(hint.left - field.left, 38);
     });
   });
 }
