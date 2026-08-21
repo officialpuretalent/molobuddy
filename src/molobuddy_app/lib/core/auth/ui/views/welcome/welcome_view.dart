@@ -301,6 +301,9 @@ class _AccountMenu extends StatelessWidget {
       enabled: !signingOut,
       tooltip: localisations.homeAccountMenu,
       color: MoloColours.surface,
+      // The design draws this row at a 15 radius, and the tap ink has to be
+      // clipped to it or a square ripple escapes the corners.
+      borderRadius: BorderRadius.circular(15),
       onSelected: (_) => onSignOut?.call(),
       itemBuilder: (context) => [
         PopupMenuItem<void>(
