@@ -58,3 +58,11 @@ tmp/
 
 # Subagent-driven development scratch (ledger, briefs, review packages)
 .superpowers/
+
+# Claude Design canvas exports. The design baseline is a live canvas that
+# rewrites its own HTML on every save, so tracking it means a multi-megabyte
+# diff per export. Keep the export on disk; .claude/launch.json serves it.
+docs/product/Design baseline and scope clarification/
+
+# Claude Design canvas thumbnail cache, regenerated on export.
+.thumbnail

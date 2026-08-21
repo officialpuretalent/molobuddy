@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meet through Molo campaign</title>
+  <style>
+    @font-face {
+      font-family: Geist;
+      src: url('./Geist-Regular.ttf') format('truetype');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: Geist;
+      src: url('./Geist-Medium.ttf') format('truetype');
+      font-weight: 600;
+    }
+    :root {
+      --plum: #241529;
+      --pulse: #f25775;
+      --ivory: #fff9f7;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 1080px; height: 1080px; overflow: hidden; }
+    body { font-family: Geist, sans-serif; background: var(--plum); }
+    .ad { position: relative; width: 1080px; height: 1080px; overflow: hidden; }
+    .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .shade {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(36,21,41,.92) 0%, rgba(36,21,41,.64) 31%, rgba(36,21,41,0) 61%),
+        linear-gradient(90deg, rgba(36,21,41,.20) 0%, rgba(36,21,41,0) 62%);
+    }
+    .logo-pill {
+      position: absolute;
+      left: 58px;
+      top: 52px;
+      width: 252px;
+      height: 72px;
+      border-radius: 36px;
+      background: var(--ivory);
+      overflow: hidden;
+    }
+    .logo-pill img {
+      position: absolute;
+      width: 382px;
+      height: auto;
+      left: -76px;
+      top: -83px;
+    }
+    .headline {
+      position: absolute;
+      left: 60px;
+      top: 170px;
+      width: 820px;
+      margin: 0;
+      color: var(--ivory);
+      font-size: 78px;
+      line-height: .99;
+      letter-spacing: -.055em;
+      font-weight: 600;
+    }
+    .headline em { color: var(--pulse); font-style: normal; }
+    .cta {
+      position: absolute;
+      left: 60px;
+      bottom: 54px;
+      min-height: 72px;
+      padding: 17px 26px;
+      border-radius: 36px;
+      background: var(--plum);
+      color: var(--ivory);
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 27px;
+      font-weight: 600;
+      box-shadow: 0 14px 36px rgba(36,21,41,.18);
+    }
+    .arrow {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--pulse);
+      color: var(--plum);
+      font-size: 24px;
+    }
+    .promise {
+      position: absolute;
+      right: 55px;
+      bottom: 70px;
+      color: var(--ivory);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -.02em;
+      text-shadow: 0 2px 18px rgba(36,21,41,.92);
+    }
+  </style>
+</head>
+<body>
+  <main class="ad">
+    <img class="photo" src="remote-consultation-visual-v2.png" alt="">
+    <div class="shade"></div>
+    <div class="logo-pill"><img src="molo-wordmark.png" alt="Molo"></div>
+    <h1 class="headline">Your tax professional is <em>closer than you think.</em></h1>
+    <div class="cta"><span class="arrow">→</span>Meet through Molo</div>
+    <div class="promise">Clear guidance. Wherever you are.</div>
+  </main>
+</body>
+</html>
