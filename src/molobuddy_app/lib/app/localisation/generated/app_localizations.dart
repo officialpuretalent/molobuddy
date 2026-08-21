@@ -133,12 +133,6 @@ abstract class AppLocalizations {
   /// **'Good evening'**
   String get greetingEvening;
 
-  /// No description provided for @workEmailLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Work email'**
-  String get workEmailLabel;
-
   /// No description provided for @passwordHint.
   ///
   /// In en, this message translates to:
@@ -870,6 +864,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter your full name.'**
   String get fullNameRequired;
+
+  /// No description provided for @workEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Work email'**
+  String get workEmailLabel;
 
   /// No description provided for @createPasswordLabel.
   ///

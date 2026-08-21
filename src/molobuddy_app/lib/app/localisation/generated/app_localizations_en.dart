@@ -28,9 +28,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get greetingEvening => 'Good evening';
 
   @override
-  String get workEmailLabel => 'Work email';
-
-  @override
   String get passwordHint => '••••••••';
 
   @override
@@ -417,6 +414,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fullNameRequired => 'Enter your full name.';
+
+  @override
+  String get workEmailLabel => 'Work email';
 
   @override
   String get createPasswordLabel => 'Create a password';
@@ -672,9 +672,6 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get greetingEvening => 'Good evening';
 
   @override
-  String get workEmailLabel => 'Work email';
-
-  @override
   String get passwordHint => '••••••••';
 
   @override
@@ -1061,6 +1058,9 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
 
   @override
   String get fullNameRequired => 'Enter your full name.';
+
+  @override
+  String get workEmailLabel => 'Work email';
 
   @override
   String get createPasswordLabel => 'Create a password';
