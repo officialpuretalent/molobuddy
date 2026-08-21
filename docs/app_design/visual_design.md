@@ -127,9 +127,8 @@ directly, and confirm the appearance in a browser.
 
 ## 5. Authentication and onboarding composition
 
-Sign-in is traced from the design baseline and describes what ships. The signup
-wizard and onboarding paragraphs below still describe the composition that
-preceded the baseline; they are rewritten when that half is traced.
+Both halves are traced from the design baseline, and this section describes what
+ships.
 
 ### Sign-in, compact windows
 
@@ -209,18 +208,79 @@ section 7's gate. Each of these carries its reason in the code:
 - **The two provider buttons do keep the quiet border.** They are permanently
   disabled, and 1.4.11 exempts an inactive control.
 
-### Registration preview
+### The signup wizard
 
-The first registration slice is an explicitly non-persistent product preview. It demonstrates the intended client-first journey without creating a Firebase identity or provisioning a practice before those production commands are connected.
-
-The focused flow has four short stages:
+Four stages, spanning two routes. The account step is at `/sign-up`; the rest
+are at `/onboarding`, where every answer is saved before the wizard advances, so
+an interrupted signup resumes rather than stranding an account.
 
 1. **Your account:** name, work email, password and terms acceptance.
-2. **Shape your workspace:** practice name, team size and primary tax region, with the benefit of each default made clear.
+2. **Shape your workspace:** practice name, team size and primary tax region,
+   with the benefit of each default made clear.
 3. **Choose your first win:** the outcomes the user wants Molo to improve first.
-4. **Make it useful:** import clients, add a first client or explore a sample workspace.
+4. **Make it useful:** import clients, add a first client or explore a sample
+   workspace.
 
-Expanded windows pair the form with a quiet workspace context panel. It contains only the Molo identity, current step, practice name, one concise value statement, readiness and the brand promise. It must not repeat the choices or icons shown in the active form. Compact and medium windows use the same content in one scroll-safe column with a concise workspace summary and progress bar. Back navigation retains entered values while the view is alive. The completion screen states clearly that no account or practice data was saved and returns to sign-in.
+There is no completion screen. Founding the practice enters the workspace, which
+is the thing the wizard was for.
+
+### The wizard rail
+
+Expanded windows pair the form with a dark rail at 38% of the window, capped at
+460 — narrower than sign-in's photographic hero, because a list of four steps
+earns less width than a photograph.
+
+The rail names **all four** steps, not only the current one, and marks each as
+behind, on screen or ahead: a finished step's chip carries a tick rather than its
+number, the current one is filled warm canvas, and one still ahead is quiet.
+Someone three steps in can see what is left rather than only how far a bar has
+travelled. Below the steps sit a workspace card, which shows the practice name as
+it is being typed, and the readiness figure with its bar.
+
+The rail is decoration. Nothing in it is focusable and nothing in it acts: the
+step on screen is announced by the form's own heading, and four
+unreachable-looking tab stops in front of the first field would cost more than
+they explain. It scrolls rather than clipping when the window is short.
+
+The rail names steps from outside them ("Your practice") while the form names
+tasks ("Shape your workspace"), which is how it avoids repeating the active form
+back at the reader. The one exception is step one, which the baseline calls "Your
+account" in both places.
+
+Compact and medium windows drop the rail and keep a progress bar and a practice
+summary chip. **This is a deliberate departure from the baseline**, which puts
+nothing in the rail's place: someone four steps into signup on a phone otherwise
+has no sense of position.
+
+### Choice cards
+
+Every option is one card: a traced glyph, a title, a line of explanation, and a
+mark. The mark's **shape** says how many answers are allowed before anything is
+chosen — round where choosing one unchooses its siblings, square where it does
+not. There is exactly one control per answer; an earlier version hung a Material
+checkbox beside the card's own mark, which meant two controls painting one state.
+
+Selection and keyboard focus share the strong outline; hover only firms the quiet
+one. What tells a focused card from a chosen one is the mark, which is where the
+state actually lives.
+
+### Where the wizard departs from the baseline
+
+- **A step's footnote and the password hint are not painted `#9A858D`.** At 12px
+  both are ordinary text, and that colour is 3.30:1 on the warm canvas where
+  WCAG 1.4.3 asks for 4.5:1. They take Secondary Text at 5.94:1. The satisfied
+  password hint reuses the existing Success token at 5.35:1 rather than admitting
+  the baseline's own near-identical green.
+- **A step's primary action looks incomplete but stays pressable.** The baseline
+  disables it. Pressing is how a pointer user learns what is missing — it is what
+  puts the inline messages on the fields — so the control keeps the quiet
+  appearance, gains a spoken reason naming what is outstanding, and still acts.
+- **The unselected choice mark's outline is Control Border**, not the baseline's
+  1.49:1: it is the only thing that says a control is there.
+- **The rail's own alphas are kept exactly.** Every piece of text it draws on
+  plum was measured and clears 4.5:1, the lowest being the step note at 5.02:1.
+  Its readiness figure takes a lighter pink than the bar it labels, so the number
+  separates itself from the fill rather than competing with it.
 
 The signup wizard and onboarding use the same supporting-pane width at every expanded breakpoint. The shared edge must remain fixed as those two routes fade into each other, so navigation never reveals a geometry jump. Sign-in is not part of that edge: it is a different pane, and the baseline deliberately draws the photographic hero wider than the wizard's rail.
 
