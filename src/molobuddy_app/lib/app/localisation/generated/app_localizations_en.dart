@@ -391,6 +391,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alreadyHaveAccount => 'Already have an account?';
 
   @override
+  String get wizardStepAccountTitle => 'Your account';
+
+  @override
+  String get wizardStepAccountNote => 'Name, email and a password';
+
+  @override
+  String get wizardStepPracticeTitle => 'Your practice';
+
+  @override
+  String get wizardStepPracticeNote => 'Practice, team size and region';
+
+  @override
+  String get wizardStepGoalsTitle => 'Your first win';
+
+  @override
+  String get wizardStepGoalsNote => 'What you want to fix first';
+
+  @override
+  String get wizardStepStartTitle => 'Your starting point';
+
+  @override
+  String get wizardStepStartNote => 'Real data or a sample';
+
+  @override
+  String get wizardFootnoteAccount =>
+      'Molo never signs in to eFiling, submits returns or makes payments on your behalf.';
+
+  @override
+  String get wizardFootnotePractice =>
+      'You can rename the practice and change these settings later.';
+
+  @override
+  String get wizardFootnoteGoals =>
+      'This only changes what Molo puts in front of you first. Nothing is hidden.';
+
+  @override
+  String get wizardFootnoteStart =>
+      'Sample data is clearly marked and can be removed in one step.';
+
+  @override
+  String get fullNameHint => 'Ngcebo Qwabe';
+
+  @override
+  String get passwordLongEnough => 'Long enough.';
+
+  @override
+  String get wizardAccountOutstanding =>
+      'Add your name, a work email, a password of at least 8 characters, and agree to the terms.';
+
+  @override
   String get registrationStepAccount => 'Your account';
 
   @override
@@ -540,9 +590,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get choosePriorityRequired => 'Choose at least one priority.';
 
   @override
-  String get finishSetup => 'Finish setup';
-
-  @override
   String get putSomethingUsefulInside => 'How would you like to begin?';
 
   @override
@@ -591,53 +638,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String workspaceReadiness(int percent) {
     return 'Workspace $percent% ready';
   }
-
-  @override
-  String registrationCompleteTitle(String name) {
-    return 'Your workspace is ready, $name';
-  }
-
-  @override
-  String registrationCompleteBody(String practiceName) {
-    return '$practiceName is shaped around what matters to you.';
-  }
-
-  @override
-  String get registrationCompleteSummary =>
-      'Your practice defaults, first priorities and preferred starting point are ready for the real account flow.';
-
-  @override
-  String get continueToSignIn => 'Continue to sign in';
-
-  @override
-  String get noRegistrationDataSaved =>
-      'Preview complete. No account or practice data was saved.';
-
-  @override
-  String get registrationHeroTitle => 'Watch your workspace take shape.';
-
-  @override
-  String get registrationHeroBody =>
-      'Every choice should make Molo more useful before you arrive at the home screen.';
-
-  @override
-  String get progressAccount => 'Create your account';
-
-  @override
-  String get progressAccountBody => 'Your secure way into Molo.';
-
-  @override
-  String get progressPractice => 'Shape your practice';
-
-  @override
-  String get progressPracticeBody => 'Start solo or bring your team.';
-
-  @override
-  String get progressPriorities => 'Choose your focus';
-
-  @override
-  String get progressPrioritiesBody =>
-      'Make the first workspace feel relevant.';
 
   @override
   String registrationProgress(int current, int total) {
@@ -1035,6 +1035,56 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get alreadyHaveAccount => 'Already have an account?';
 
   @override
+  String get wizardStepAccountTitle => 'Your account';
+
+  @override
+  String get wizardStepAccountNote => 'Name, email and a password';
+
+  @override
+  String get wizardStepPracticeTitle => 'Your practice';
+
+  @override
+  String get wizardStepPracticeNote => 'Practice, team size and region';
+
+  @override
+  String get wizardStepGoalsTitle => 'Your first win';
+
+  @override
+  String get wizardStepGoalsNote => 'What you want to fix first';
+
+  @override
+  String get wizardStepStartTitle => 'Your starting point';
+
+  @override
+  String get wizardStepStartNote => 'Real data or a sample';
+
+  @override
+  String get wizardFootnoteAccount =>
+      'Molo never signs in to eFiling, submits returns or makes payments on your behalf.';
+
+  @override
+  String get wizardFootnotePractice =>
+      'You can rename the practice and change these settings later.';
+
+  @override
+  String get wizardFootnoteGoals =>
+      'This only changes what Molo puts in front of you first. Nothing is hidden.';
+
+  @override
+  String get wizardFootnoteStart =>
+      'Sample data is clearly marked and can be removed in one step.';
+
+  @override
+  String get fullNameHint => 'Ngcebo Qwabe';
+
+  @override
+  String get passwordLongEnough => 'Long enough.';
+
+  @override
+  String get wizardAccountOutstanding =>
+      'Add your name, a work email, a password of at least 8 characters, and agree to the terms.';
+
+  @override
   String get registrationStepAccount => 'Your account';
 
   @override
@@ -1184,9 +1234,6 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get choosePriorityRequired => 'Choose at least one priority.';
 
   @override
-  String get finishSetup => 'Finish setup';
-
-  @override
   String get putSomethingUsefulInside => 'How would you like to begin?';
 
   @override
@@ -1235,53 +1282,6 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String workspaceReadiness(int percent) {
     return 'Workspace $percent% ready';
   }
-
-  @override
-  String registrationCompleteTitle(String name) {
-    return 'Your workspace is ready, $name';
-  }
-
-  @override
-  String registrationCompleteBody(String practiceName) {
-    return '$practiceName is shaped around what matters to you.';
-  }
-
-  @override
-  String get registrationCompleteSummary =>
-      'Your practice defaults, first priorities and preferred starting point are ready for the real account flow.';
-
-  @override
-  String get continueToSignIn => 'Continue to sign in';
-
-  @override
-  String get noRegistrationDataSaved =>
-      'Preview complete. No account or practice data was saved.';
-
-  @override
-  String get registrationHeroTitle => 'Watch your workspace take shape.';
-
-  @override
-  String get registrationHeroBody =>
-      'Every choice should make Molo more useful before you arrive at the home screen.';
-
-  @override
-  String get progressAccount => 'Create your account';
-
-  @override
-  String get progressAccountBody => 'Your secure way into Molo.';
-
-  @override
-  String get progressPractice => 'Shape your practice';
-
-  @override
-  String get progressPracticeBody => 'Start solo or bring your team.';
-
-  @override
-  String get progressPriorities => 'Choose your focus';
-
-  @override
-  String get progressPrioritiesBody =>
-      'Make the first workspace feel relevant.';
 
   @override
   String registrationProgress(int current, int total) {

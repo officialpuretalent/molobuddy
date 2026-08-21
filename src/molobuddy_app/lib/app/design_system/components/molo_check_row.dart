@@ -18,6 +18,7 @@ class MoloCheckRow extends StatelessWidget {
     required this.onChanged,
     this.enabled = true,
     this.boxSize = 19,
+    this.boxRadius = 6,
     super.key,
   });
 
@@ -31,9 +32,12 @@ class MoloCheckRow extends StatelessWidget {
   final ValueChanged<bool> onChanged;
   final bool enabled;
 
-  /// The design draws 19 at sign-in. A caller that needs another size states
-  /// it rather than scaling this one.
+  /// The design draws 19 at sign-in and 21 on the wizard's terms row.
   final double boxSize;
+
+  /// 6 at sign-in, 7 on the terms row, where the box matches the shape of a
+  /// multiple-choice mark.
+  final double boxRadius;
 
   /// The box itself, so a measurement can find it.
   static const boxKey = Key('molo_check_row_box');
@@ -47,7 +51,7 @@ class MoloCheckRow extends StatelessWidget {
       label: semanticLabel,
       child: InkWell(
         onTap: enabled ? () => onChanged(!value) : null,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(boxRadius),
         child: Row(
           children: [
             Container(
@@ -57,7 +61,7 @@ class MoloCheckRow extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: value ? MoloColours.moloPlum : MoloColours.surface,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(boxRadius),
                 border: value
                     ? null
                     : Border.all(color: MoloColours.controlBorder),
