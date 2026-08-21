@@ -1,6 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_pill_button.dart';
@@ -91,10 +90,15 @@ void main() {
   testWidgets('it is a button to a screen reader', (tester) async {
     final semantics = tester.ensureSemantics();
     await pump(tester);
-    final node = tester.getSemantics(find.text('Create an account'));
-    expect(node.label, 'Create an account');
-    expect(node.hasFlag(SemanticsFlag.isButton), isTrue);
-    expect(node.hasFlag(SemanticsFlag.isEnabled), isTrue);
+    expect(
+      tester.getSemantics(find.text('Create an account')),
+      isSemantics(
+        label: 'Create an account',
+        isButton: true,
+        isEnabled: true,
+        hasTapAction: true,
+      ),
+    );
     semantics.dispose();
   });
 
