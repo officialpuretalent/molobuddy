@@ -186,6 +186,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNavigationMeetings => 'Meetings';
 
   @override
+  String get homeNavigationTeam => 'Team';
+
+  @override
   String get homeNavigationPracticeView => 'Practice view';
 
   @override
@@ -193,9 +196,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeAskMolo => 'Ask Molo';
-
-  @override
-  String get homeTeamActivity => 'Team activity';
 
   @override
   String get homeCreateWork => 'Create work';
@@ -813,6 +813,9 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get homeNavigationMeetings => 'Meetings';
 
   @override
+  String get homeNavigationTeam => 'Team';
+
+  @override
   String get homeNavigationPracticeView => 'Practice view';
 
   @override
@@ -820,9 +823,6 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
 
   @override
   String get homeAskMolo => 'Ask Molo';
-
-  @override
-  String get homeTeamActivity => 'Team activity';
 
   @override
   String get homeCreateWork => 'Create work';

@@ -427,6 +427,12 @@ abstract class AppLocalizations {
   /// **'Meetings'**
   String get homeNavigationMeetings;
 
+  /// No description provided for @homeNavigationTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get homeNavigationTeam;
+
   /// No description provided for @homeNavigationPracticeView.
   ///
   /// In en, this message translates to:
@@ -444,12 +450,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask Molo'**
   String get homeAskMolo;
-
-  /// No description provided for @homeTeamActivity.
-  ///
-  /// In en, this message translates to:
-  /// **'Team activity'**
-  String get homeTeamActivity;
 
   /// No description provided for @homeCreateWork.
   ///

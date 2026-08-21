@@ -223,7 +223,7 @@ class _WorkspaceHome extends StatelessWidget {
         ),
         MoloNavigationDestination(
           id: 'team',
-          label: localisations.homeTeamActivity,
+          label: localisations.homeNavigationTeam,
           glyph: MoloGlyphs.team,
           section: MoloNavigationSection.secondary,
         ),
