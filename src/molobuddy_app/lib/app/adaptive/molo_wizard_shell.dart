@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:molobuddy_app/app/adaptive/auth_shell_layout.dart';
+import 'package:molobuddy_app/app/adaptive/molo_wizard_rail.dart';
 import 'package:molobuddy_app/app/adaptive/window_class.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
-import 'package:molobuddy_app/app/design_system/components/molo_wordmark.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_brand_lockup.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_pill_button.dart';
+import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/design_system/motion/molo_motion.dart';
 import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
+import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 import 'package:molobuddy_app/app/localisation/generated/app_localizations.dart';
 import 'package:molobuddy_app/app/router/app_router.dart';
 
@@ -134,10 +138,10 @@ class MoloWizardShell extends StatelessWidget {
                 return Row(
                   children: [
                     SizedBox(
-                      width: MoloAuthShellLayout.supportingPaneWidth(
+                      width: MoloAuthShellLayout.wizardRailWidth(
                         constraints.maxWidth,
                       ),
-                      child: _WorkspacePreviewPanel(progress: panelProgress),
+                      child: MoloWizardRail(progress: panelProgress),
                     ),
                     Expanded(child: _Pane(shell: this)),
                   ],
@@ -160,38 +164,16 @@ class _Pane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localisations = AppLocalizations.of(context);
     final progress = shell.progress;
     return ColoredBox(
       color: MoloColours.warmCanvas,
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              MoloSpacing.lg,
-              MoloSpacing.md,
-              MoloSpacing.lg,
-              MoloSpacing.xs,
-            ),
-            child: Row(
-              children: [
-                if (showCompactHeader) const MoloWordmark(compact: true),
-                const Spacer(),
-                if (shell.showSignInLink) ...[
-                  if (!showCompactHeader) ...[
-                    Text(
-                      localisations.alreadyHaveAccount,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(width: MoloSpacing.xs),
-                  ],
-                  TextButton(
-                    key: const Key('registration_sign_in_link'),
-                    onPressed: () => const SignInRoute().go(context),
-                    child: Text(localisations.signIn),
-                  ),
-                ],
-              ],
+            padding: const EdgeInsets.fromLTRB(32, 28, 32, 0),
+            child: _WizardHeaderRow(
+              showWordmark: showCompactHeader,
+              showSignInOffer: shell.showSignInLink,
             ),
           ),
           if (showCompactHeader && progress != null)
@@ -202,15 +184,14 @@ class _Pane extends StatelessWidget {
             _CompactWorkspaceSummary(progress: progress),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                MoloSpacing.lg,
-                MoloSpacing.lg,
-                MoloSpacing.lg,
-                MoloSpacing.xxl,
-              ),
-              child: Center(
+              // The design tops the column out 56 below the header and leaves
+              // 48 under it, and keeps it top aligned: a centred column would
+              // move the heading every time a step's controls changed height.
+              padding: const EdgeInsets.fromLTRB(32, 56, 32, 48),
+              child: Align(
+                alignment: Alignment.topCenter,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
+                  constraints: const BoxConstraints(maxWidth: 452),
                   child: AnimatedSwitcher(
                     duration: MoloMotion.duration(context, MoloMotion.step),
                     reverseDuration: MoloMotion.duration(
@@ -237,107 +218,55 @@ class _Pane extends StatelessWidget {
   }
 }
 
-class _WorkspacePreviewPanel extends StatelessWidget {
-  const _WorkspacePreviewPanel({required this.progress});
+/// The pane's top row: the wordmark where the rail is absent, then the offer to
+/// sign in instead.
+class _WizardHeaderRow extends StatelessWidget {
+  const _WizardHeaderRow({
+    required this.showWordmark,
+    required this.showSignInOffer,
+  });
 
-  final WizardProgress progress;
+  final bool showWordmark;
+  final bool showSignInOffer;
 
   @override
   Widget build(BuildContext context) {
     final localisations = AppLocalizations.of(context);
-    return ColoredBox(
-      key: const Key('registration_progress_panel'),
-      color: MoloColours.moloPlum,
-      child: Padding(
-        padding: const EdgeInsets.all(MoloSpacing.xl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const MoloWordmark(onDark: true),
-                const Spacer(),
-                Text(
-                  localisations.registrationProgress(progress.stepNumber, 4),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: MoloColours.surface.withValues(alpha: 0.72),
-                  ),
+    return Row(
+      // No spacer: a spacer is a tight flex child and would take a share of the
+      // row the pill then could not have, truncating its label while the row
+      // still had room.
+      mainAxisAlignment: showWordmark
+          ? MainAxisAlignment.spaceBetween
+          : MainAxisAlignment.end,
+      children: [
+        if (showWordmark) const MoloBrandLockup(compact: true),
+        if (showSignInOffer) ...[
+          if (!showWordmark) ...[
+            Flexible(
+              child: Text(
+                localisations.alreadyHaveAccount,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 13,
+                  letterSpacing: 0,
+                  height: MoloTypography.normalLineHeight,
+                  color: MoloColours.secondaryText,
                 ),
-              ],
-            ),
-            const Spacer(flex: 2),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: MoloColours.moloPulse,
-                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: MoloSpacing.lg),
-            Text(
-              localisations.workspacePreviewTitle,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: MoloColours.surface.withValues(alpha: 0.66),
-              ),
-            ),
-            const SizedBox(height: MoloSpacing.xs),
-            Text(
-              key: const Key('workspace_preview_practice_name'),
-              progress.practiceName.isEmpty
-                  ? localisations.workspacePreviewPlaceholder
-                  : progress.practiceName,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(color: MoloColours.surface),
-            ),
-            const SizedBox(height: MoloSpacing.sm),
-            Text(
-              localisations.workspacePreviewBody,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: MoloColours.surface.withValues(alpha: 0.64),
-                height: 1.5,
-              ),
-            ),
-            const Spacer(flex: 3),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    localisations.workspaceReadiness(progress.readinessPercent),
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: MoloColours.surface,
-                    ),
-                  ),
-                ),
-                Text(
-                  '${progress.readinessPercent}%',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: MoloColours.moloPulse,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: MoloSpacing.xs),
-            LinearProgressIndicator(
-              minHeight: 6,
-              borderRadius: BorderRadius.circular(3),
-              value: progress.readinessPercent / 100,
-              color: MoloColours.moloPulse,
-              backgroundColor: MoloColours.surface.withValues(alpha: 0.14),
-            ),
-            const SizedBox(height: MoloSpacing.lg),
-            Text(
-              localisations.brandPromise,
-              style: Theme.of(
-                context,
-              ).textTheme.labelLarge?.copyWith(color: MoloColours.surface),
-            ),
+            const SizedBox(width: 10),
           ],
-        ),
-      ),
+          Flexible(
+            child: MoloPillButton(
+              key: const Key('registration_sign_in_link'),
+              label: localisations.signIn,
+              onPressed: () => const SignInRoute().go(context),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -454,6 +383,46 @@ class _CompactWorkspaceSummary extends StatelessWidget {
   }
 }
 
+/// The eyebrow, title and blurb the design puts at the head of every step, with
+/// the back link above them where there is a step to go back to.
+class MoloWizardHeadingGroup extends StatelessWidget {
+  const MoloWizardHeadingGroup({
+    required this.eyebrow,
+    required this.title,
+    required this.blurb,
+    this.onBack,
+    super.key,
+  });
+
+  final String eyebrow;
+  final String title;
+  final String blurb;
+
+  /// Null on a step with nowhere to go back to.
+  final VoidCallback? onBack;
+
+  /// The design separates every element of this group by the same 12.
+  static const _gap = 12.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (onBack != null) ...[
+          MoloWizardBackButton(onPressed: onBack!),
+          const SizedBox(height: _gap),
+        ],
+        MoloStepEyebrow(label: eyebrow),
+        const SizedBox(height: _gap),
+        MoloStepHeading(label: title),
+        const SizedBox(height: _gap),
+        _StepBlurb(label: blurb),
+      ],
+    );
+  }
+}
+
 class MoloStepEyebrow extends StatelessWidget {
   const MoloStepEyebrow({required this.label, super.key});
 
@@ -463,19 +432,21 @@ class MoloStepEyebrow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-        color: MoloColours.pulseText,
+      style: const TextStyle(
+        fontSize: 13,
         fontWeight: FontWeight.w500,
+        letterSpacing: 0,
+        height: MoloTypography.normalLineHeight,
+        color: MoloColours.pulseText,
       ),
     );
   }
 }
 
 class MoloStepHeading extends StatelessWidget {
-  const MoloStepHeading({required this.label, this.textAlign, super.key});
+  const MoloStepHeading({required this.label, super.key});
 
   final String label;
-  final TextAlign? textAlign;
 
   @override
   Widget build(BuildContext context) {
@@ -483,136 +454,171 @@ class MoloStepHeading extends StatelessWidget {
       header: true,
       child: Text(
         label,
-        textAlign: textAlign,
-        style: Theme.of(context).textTheme.headlineMedium,
-      ),
-    );
-  }
-}
-
-class MoloWizardBackButton extends StatelessWidget {
-  const MoloWizardBackButton({required this.onPressed, super.key});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final localisations = AppLocalizations.of(context);
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: TextButton.icon(
-        onPressed: onPressed,
-        icon: const Icon(Icons.arrow_back_rounded, size: 18),
-        label: Text(localisations.backLabel),
-      ),
-    );
-  }
-}
-
-class MoloChoiceCard extends StatefulWidget {
-  const MoloChoiceCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.selected,
-    required this.onTap,
-    this.trailing,
-    super.key,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final bool selected;
-  final VoidCallback onTap;
-  final Widget? trailing;
-
-  @override
-  State<MoloChoiceCard> createState() => _MoloChoiceCardState();
-}
-
-class _MoloChoiceCardState extends State<MoloChoiceCard> {
-  bool _focused = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final selected = widget.selected;
-    final radius = BorderRadius.circular(MoloSpacing.controlRadius);
-    return Semantics(
-      selected: selected,
-      button: true,
-      child: Material(
-        color: selected ? MoloColours.pulseTint : MoloColours.surface,
-        borderRadius: radius,
-        child: InkWell(
-          onTap: widget.onTap,
-          borderRadius: radius,
-          // Focus paints its own outline below, so the default fill would
-          // otherwise linger and read as a second selected card.
-          focusColor: Colors.transparent,
-          onFocusChange: (hasFocus) => setState(() => _focused = hasFocus),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: radius,
-              border: Border.all(
-                color: selected || _focused
-                    ? MoloColours.pulseText
-                    : MoloColours.border,
-                width: selected || _focused ? 2 : 1,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(MoloSpacing.md),
-              child: Row(
-                children: [
-                  Icon(
-                    widget.icon,
-                    color: selected
-                        ? MoloColours.pulseText
-                        : MoloColours.secondaryText,
-                  ),
-                  const SizedBox(width: MoloSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.title,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: MoloSpacing.xxs),
-                        Text(
-                          widget.subtitle,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: MoloColours.secondaryText),
-                        ),
-                      ],
-                    ),
-                  ),
-                  widget.trailing ?? _SingleChoiceMark(selected: selected),
-                ],
-              ),
-            ),
-          ),
+        style: TextStyle(
+          fontSize: 34,
+          fontWeight: FontWeight.w500,
+          height: 1.12,
+          letterSpacing: MoloTypography.trackingEm(-0.025, 34),
+          color: MoloColours.moloPlum,
         ),
       ),
     );
   }
 }
 
-/// Shape-based selection mark for single-choice cards, so the chosen option
-/// stays distinguishable without relying on the tint alone.
-class _SingleChoiceMark extends StatelessWidget {
-  const _SingleChoiceMark({required this.selected});
+class _StepBlurb extends StatelessWidget {
+  const _StepBlurb({required this.label});
 
-  final bool selected;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Icon(
-      selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-      color: selected ? MoloColours.pulseText : MoloColours.controlBorder,
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 15,
+        height: 1.6,
+        letterSpacing: 0,
+        color: MoloColours.secondaryText,
+      ),
+    );
+  }
+}
+
+/// The quiet line under a step's primary action.
+class MoloStepFootnote extends StatelessWidget {
+  const MoloStepFootnote({required this.label, super.key});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 12,
+        height: 1.6,
+        letterSpacing: 0,
+        // Not the design's #9A858D, which is 3.30:1 on this ground. At 12px this
+        // is ordinary text and 1.4.3 asks for 4.5:1.
+        color: MoloColours.secondaryText,
+      ),
+    );
+  }
+}
+
+/// A step's primary action.
+///
+/// When the step's answers are not all in, this takes the design's quiet
+/// appearance — a `border` fill under a `controlBorder` label — but stays
+/// pressable. Pressing is how a pointer user learns what is missing: it is what
+/// puts the inline messages on the fields. A control that looked like this and
+/// did nothing would leave them with no way to find out.
+///
+/// The reason is also spoken, so somebody who cannot see the quiet fill is told
+/// what is outstanding rather than pressing into silence.
+class MoloWizardPrimaryAction extends StatelessWidget {
+  const MoloWizardPrimaryAction({
+    required this.label,
+    required this.complete,
+    required this.outstanding,
+    required this.onPressed,
+    this.busy = false,
+    this.buttonKey,
+    super.key,
+  });
+
+  final String label;
+
+  /// Whether every answer this step needs has been given.
+  final bool complete;
+
+  /// What is still missing, spoken when [complete] is false.
+  final String outstanding;
+
+  final VoidCallback onPressed;
+  final bool busy;
+  final Key? buttonKey;
+
+  @override
+  Widget build(BuildContext context) {
+    // MergeSemantics outside, so the hint and the button's own label and action
+    // land on one node. The other way round leaves the hint on an empty parent
+    // that a screen reader never reaches.
+    return MergeSemantics(
+      child: Semantics(
+        hint: complete ? null : outstanding,
+        child: FilledButton(
+          key: buttonKey,
+          onPressed: busy ? null : onPressed,
+          style: complete
+              ? null
+              : FilledButton.styleFrom(
+                  backgroundColor: MoloColours.border,
+                  foregroundColor: MoloColours.controlBorder,
+                ),
+          child: busy
+              ? const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: MoloColours.surface,
+                  ),
+                )
+              : Text(label),
+        ),
+      ),
+    );
+  }
+}
+
+/// The link back to the previous step.
+///
+/// Stateful only to follow its own hover: the glyph takes a fixed colour, so it
+/// cannot read the button's state the way a text style can.
+class MoloWizardBackButton extends StatefulWidget {
+  const MoloWizardBackButton({required this.onPressed, super.key});
+
+  final VoidCallback onPressed;
+
+  @override
+  State<MoloWizardBackButton> createState() => _MoloWizardBackButtonState();
+}
+
+class _MoloWizardBackButtonState extends State<MoloWizardBackButton> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final localisations = AppLocalizations.of(context);
+    final colour = _hovered ? MoloColours.moloPlum : MoloColours.pulseText;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton(
+        onPressed: widget.onPressed,
+        onHover: (value) => setState(() => _hovered = value),
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: Size.zero,
+          foregroundColor: colour,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MoloIcon(MoloGlyphs.backArrow, size: 16, color: colour),
+            const SizedBox(width: 8),
+            Text(
+              localisations.backLabel,
+              style: TextStyle(
+                fontSize: 14,
+                letterSpacing: 0,
+                height: MoloTypography.normalLineHeight,
+                color: colour,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

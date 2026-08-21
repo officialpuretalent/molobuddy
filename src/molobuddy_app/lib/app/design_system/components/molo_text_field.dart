@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_field_label.dart';
 import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 
 /// A field with its label above it, as the design draws every field.
@@ -24,6 +25,7 @@ class MoloTextField extends StatelessWidget {
     this.textInputAction,
     this.focusNode,
     this.onSubmitted,
+    this.onChanged,
     this.autocorrect = true,
     super.key,
   });
@@ -49,6 +51,11 @@ class MoloTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final FocusNode? focusNode;
   final ValueChanged<String>? onSubmitted;
+
+  /// Reported on every keystroke, for a caller that shows what is being typed
+  /// somewhere else on the screen.
+  final ValueChanged<String>? onChanged;
+
   final bool autocorrect;
 
   @override
@@ -56,28 +63,8 @@ class MoloTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Expanded(
-              child: ExcludeSemantics(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0,
-                    height: MoloTypography.normalLineHeight,
-                    color: MoloColours.moloPlum,
-                  ),
-                ),
-              ),
-            ),
-            ?trailing,
-          ],
-        ),
-        const SizedBox(height: 7),
+        MoloFieldLabel(label: label, trailing: trailing),
+        const SizedBox(height: MoloFieldLabel.gap),
         Semantics(
           container: true,
           label: label,
@@ -92,6 +79,7 @@ class MoloTextField extends StatelessWidget {
             keyboardType: keyboardType,
             textInputAction: textInputAction,
             onSubmitted: onSubmitted,
+            onChanged: onChanged,
             style: const TextStyle(
               fontSize: 15,
               letterSpacing: 0,

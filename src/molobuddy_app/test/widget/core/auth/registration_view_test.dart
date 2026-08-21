@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:molobuddy_app/app/adaptive/molo_wizard_shell.dart';
+import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_check_row.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_choice_card.dart';
 import 'package:molobuddy_app/app/molo_app.dart';
 import 'package:molobuddy_app/bootstrap/app_environment.dart';
 import 'package:molobuddy_app/core/auth/auth_providers.dart';
@@ -169,27 +173,42 @@ void main() {
       find.byKey(const Key('starting_point_sample')),
     );
 
+    // Selection is carried by the mark's fill and its tick, not by the card's
+    // tint: the chosen mark fills and shows the tick, an unchosen one is white
+    // with the tick at zero opacity.
+    BoxDecoration markOf(Key card) {
+      return tester
+              .widget<Container>(
+                find.descendant(
+                  of: find.byKey(card),
+                  matching: find.byKey(MoloChoiceCard.markKey),
+                ),
+              )
+              .decoration!
+          as BoxDecoration;
+    }
+
+    double tickOpacityOf(Key card) {
+      return tester
+          .widget<Opacity>(
+            find.descendant(
+              of: find.byKey(card),
+              matching: find.byType(Opacity),
+            ),
+          )
+          .opacity;
+    }
+
     expect(
-      find.descendant(
-        of: find.byKey(const Key('starting_point_sample')),
-        matching: find.byIcon(Icons.check_circle_rounded),
-      ),
-      findsOneWidget,
+      markOf(const Key('starting_point_sample')).color,
+      MoloColours.pulseText,
     );
+    expect(tickOpacityOf(const Key('starting_point_sample')), 1);
     expect(
-      find.descendant(
-        of: find.byKey(const Key('starting_point_import')),
-        matching: find.byIcon(Icons.circle_outlined),
-      ),
-      findsOneWidget,
+      markOf(const Key('starting_point_import')).color,
+      MoloColours.surface,
     );
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('starting_point_import')),
-        matching: find.byIcon(Icons.check_circle_rounded),
-      ),
-      findsNothing,
-    );
+    expect(tickOpacityOf(const Key('starting_point_import')), 0);
   });
 
   testWidgets('registration can return to sign in', (tester) async {
@@ -203,6 +222,104 @@ void main() {
     );
 
     expect(find.byKey(const Key('sign_in_form')), findsOneWidget);
+  });
+
+  group('step one fidelity', () {
+    testWidgets('the rail names all four steps and marks this one', (
+      tester,
+    ) async {
+      await _setViewport(tester, const Size(1440, 950));
+      await _pumpRegistration(tester);
+
+      // "Your account" twice on purpose: it is both the rail's name for step
+      // one and the form's own eyebrow, which is what the baseline writes.
+      expect(find.text('Your account'), findsNWidgets(2));
+      expect(find.text('Your practice'), findsWidgets);
+      expect(find.text('Your first win'), findsOneWidget);
+      expect(find.text('Your starting point'), findsOneWidget);
+      expect(find.text('Step 1 of 4'), findsOneWidget);
+    });
+
+    testWidgets('there is no way back from the first step', (tester) async {
+      await _setViewport(tester, const Size(1440, 950));
+      await _pumpRegistration(tester);
+      expect(find.byType(MoloWizardBackButton), findsNothing);
+    });
+
+    testWidgets('the password hint changes once it is long enough', (
+      tester,
+    ) async {
+      await _setViewport(tester, const Size(1440, 950));
+      await _pumpRegistration(tester);
+
+      expect(find.text('Use at least 8 characters.'), findsOneWidget);
+      expect(
+        tester
+            .widget<Text>(find.text('Use at least 8 characters.'))
+            .style
+            ?.color,
+        MoloColours.secondaryText,
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('registration_password_field')),
+        'long-enough-password',
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Use at least 8 characters.'), findsNothing);
+      expect(find.text('Long enough.'), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.text('Long enough.')).style?.color,
+        MoloColours.success,
+      );
+    });
+
+    testWidgets('the terms row is the design box, not a Material checkbox', (
+      tester,
+    ) async {
+      await _setViewport(tester, const Size(1440, 950));
+      await _pumpRegistration(tester);
+      expect(find.byType(Checkbox), findsNothing);
+      expect(
+        find.byKey(const Key('registration_terms_checkbox')),
+        findsOneWidget,
+      );
+      expect(
+        tester.getSize(find.byKey(MoloCheckRow.boxKey)),
+        const Size(21, 21),
+      );
+    });
+
+    testWidgets('the action is quiet until every answer is in', (tester) async {
+      await _setViewport(tester, const Size(1440, 950));
+      await _pumpRegistration(tester);
+      final button = find.byKey(const Key('registration_account_continue'));
+
+      expect(
+        tester
+            .widget<FilledButton>(button)
+            .style
+            ?.backgroundColor
+            ?.resolve(const <WidgetState>{}),
+        MoloColours.border,
+      );
+
+      await _fillAccount(tester);
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<FilledButton>(button).style,
+        isNull,
+        reason: 'a complete step defers to the theme',
+      );
+    });
+
+    testWidgets('the footnote says what Molo will not do', (tester) async {
+      await _setViewport(tester, const Size(1440, 950));
+      await _pumpRegistration(tester);
+      expect(find.textContaining('never signs in to eFiling'), findsOneWidget);
+    });
   });
 }
 
@@ -254,6 +371,12 @@ Future<void> _fillAccount(
     tester,
     find.byKey(const Key('registration_terms_checkbox')),
   );
+}
+
+/// Sign-in, then through to the account step.
+Future<void> _pumpRegistration(WidgetTester tester) async {
+  await _pumpPreviewApp(tester);
+  await _openRegistration(tester);
 }
 
 Future<void> _openRegistration(WidgetTester tester) async {
