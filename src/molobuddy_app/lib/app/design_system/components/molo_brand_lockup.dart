@@ -54,17 +54,23 @@ class MoloBrandLockup extends StatelessWidget {
             ),
             if (labelled) ...[
               SizedBox(width: _gap),
-              Text(
-                'molo',
-                style: TextStyle(
-                  fontSize: _wordmarkSize,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: MoloTypography.display(_wordmarkSize),
-                  // Material's body leading makes this line box taller than
-                  // the design's, which pushes the mark off centre and shifts
-                  // everything beneath the lockup down.
-                  height: MoloTypography.normalLineHeight,
-                  color: onDark ? MoloColours.surface : MoloColours.moloPlum,
+              // Flexible so a lockup sharing a row with an action gives ground
+              // rather than painting over it once text is scaled up.
+              Flexible(
+                child: Text(
+                  'molo',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: _wordmarkSize,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: MoloTypography.display(_wordmarkSize),
+                    // Material's body leading makes this line box taller than
+                    // the design's, which pushes the mark off centre and
+                    // shifts everything beneath the lockup down.
+                    height: MoloTypography.normalLineHeight,
+                    color: onDark ? MoloColours.surface : MoloColours.moloPlum,
+                  ),
                 ),
               ),
             ],

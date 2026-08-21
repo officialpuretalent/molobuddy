@@ -294,9 +294,15 @@ class _HeaderRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final localisations = AppLocalizations.of(context);
     return Row(
+      // No spacer: a spacer is a tight flex child, so it would take a share of
+      // the row that the pill then could not have, and the action's label would
+      // ellipsise while the row still had room. The alignment does the pushing
+      // instead, which leaves every flex share for the text that needs it.
+      mainAxisAlignment: showWordmark
+          ? MainAxisAlignment.spaceBetween
+          : MainAxisAlignment.end,
       children: [
-        if (showWordmark) const MoloBrandLockup(compact: true),
-        const Spacer(),
+        if (showWordmark) const Flexible(child: MoloBrandLockup(compact: true)),
         // The label is context for the pill, not an instruction, so the narrow
         // layout keeps the part that acts and drops the part that explains.
         if (!showWordmark) ...[

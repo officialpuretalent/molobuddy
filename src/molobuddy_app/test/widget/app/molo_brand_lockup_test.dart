@@ -4,8 +4,9 @@ import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_brand_lockup.dart';
 
 void main() {
-  Widget host(Widget child) =>
-      MaterialApp(home: Scaffold(body: Row(children: [child])));
+  Widget host(Widget child) => MaterialApp(
+    home: Scaffold(body: Row(children: [child])),
+  );
 
   const markKey = Key('mark');
 
@@ -56,5 +57,25 @@ void main() {
     await tester.pumpWidget(host(const MoloBrandLockup()));
     expect(find.bySemanticsLabel('Molo'), findsOneWidget);
     semantics.dispose();
+  });
+
+  testWidgets('in a row too narrow for it, the wordmark gives ground', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Row(
+            children: const [
+              SizedBox(width: 40, child: MoloBrandLockup(markKey: markKey)),
+            ],
+          ),
+        ),
+      ),
+    );
+    // 40 cannot hold a 26 mark, a 10 gap and the wordmark, so the wordmark
+    // ellipsises instead of overflowing into whatever sits beside it.
+    expect(tester.takeException(), isNull);
+    expect(find.text('molo'), findsOneWidget);
   });
 }
