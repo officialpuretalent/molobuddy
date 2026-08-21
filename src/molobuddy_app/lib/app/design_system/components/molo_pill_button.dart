@@ -73,7 +73,7 @@ class MoloPillButton extends StatelessWidget {
           ),
         ),
       ),
-      child: Text(label),
+      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
     );
   }
 }

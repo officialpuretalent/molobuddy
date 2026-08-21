@@ -5,17 +5,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:molobuddy_app/app/adaptive/auth_shell_layout.dart';
 import 'package:molobuddy_app/app/adaptive/window_class.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
-import 'package:molobuddy_app/app/design_system/components/molo_status_pill.dart';
-import 'package:molobuddy_app/app/design_system/components/molo_wordmark.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_brand_lockup.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_check_row.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_pill_button.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_text_field.dart';
+import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
+import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 import 'package:molobuddy_app/app/localisation/generated/app_localizations.dart';
 import 'package:molobuddy_app/app/router/app_router.dart';
 import 'package:molobuddy_app/bootstrap/app_environment.dart';
+import 'package:molobuddy_app/core/auth/auth_providers.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
-import 'package:molobuddy_app/core/auth/data/models/auth_method_descriptor.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_model.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_state.dart';
+import 'package:molobuddy_app/core/auth/ui/views/sign_in/sign_in_greeting.dart';
+import 'package:molobuddy_app/core/auth/ui/views/sign_in/sign_in_hero_pane.dart';
 import 'package:molobuddy_app/core/auth/ui/widgets/auth_legal_links_text.dart';
+
+/// The design separates the pane's four groups by 26.
+const _groupGap = 26.0;
 
 class SignInView extends ConsumerStatefulWidget {
   const SignInView({super.key});
@@ -29,6 +38,10 @@ class _SignInViewState extends ConsumerState<SignInView> {
   final _passwordController = TextEditingController();
   final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
+
+  /// The design draws this checked. Someone who is never shown the control gets
+  /// the same answer, which is also what Android and iOS do regardless.
+  bool _persistSession = true;
 
   /// Field validation belongs to this form instance, not the shared auth
   /// session, so a returning visitor never arrives to errors they did not cause.
@@ -80,33 +93,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
                   windowClass == MoloWindowClass.expanded ||
                   windowClass == MoloWindowClass.large ||
                   windowClass == MoloWindowClass.extraLarge;
-              if (showHero) {
-                return Row(
-                  children: [
-                    SizedBox(
-                      width: MoloAuthShellLayout.supportingPaneWidth(
-                        constraints.maxWidth,
-                      ),
-                      child: const _BrandStoryPanel(),
-                    ),
-                    Expanded(
-                      child: _SignInPane(
-                        viewState: viewState,
-                        initialising: authState is AsyncLoading,
-                        environment: environment,
-                        emailController: _emailController,
-                        passwordController: _passwordController,
-                        passwordFocusNode: _passwordFocusNode,
-                        obscurePassword: _obscurePassword,
-                        onTogglePassword: _togglePassword,
-                        onSubmit: _submit,
-                        showValidation: _submitted,
-                      ),
-                    ),
-                  ],
-                );
-              }
-              return _SignInPane(
+              final pane = _SignInPane(
                 viewState: viewState,
                 initialising: authState is AsyncLoading,
                 environment: environment,
@@ -117,7 +104,27 @@ class _SignInViewState extends ConsumerState<SignInView> {
                 onTogglePassword: _togglePassword,
                 onSubmit: _submit,
                 showValidation: _submitted,
-                showWordmark: true,
+                persistSession: _persistSession,
+                onPersistSessionChanged: _setPersistSession,
+                offerPersistence: ref.watch(
+                  sessionPersistenceChoosableProvider,
+                ),
+                // Where the hero is absent, the pane carries the brand itself.
+                showWordmark: !showHero,
+              );
+              if (!showHero) {
+                return pane;
+              }
+              return Row(
+                children: [
+                  SizedBox(
+                    width: MoloAuthShellLayout.signInHeroWidth(
+                      constraints.maxWidth,
+                    ),
+                    child: const SignInHeroPane(),
+                  ),
+                  Expanded(child: pane),
+                ],
               );
             },
           ),
@@ -130,6 +137,10 @@ class _SignInViewState extends ConsumerState<SignInView> {
     setState(() => _obscurePassword = !_obscurePassword);
   }
 
+  void _setPersistSession(bool value) {
+    setState(() => _persistSession = value);
+  }
+
   void _submit() {
     setState(() => _submitted = true);
     _passwordFocusNode.unfocus();
@@ -139,6 +150,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
           .signInWithEmailAndPassword(
             email: _emailController.text,
             password: _passwordController.text,
+            persistSession: _persistSession,
           ),
     );
   }
@@ -156,6 +168,9 @@ class _SignInPane extends StatelessWidget {
     required this.onTogglePassword,
     required this.onSubmit,
     required this.showValidation,
+    required this.persistSession,
+    required this.onPersistSessionChanged,
+    required this.offerPersistence,
     this.showWordmark = false,
   });
 
@@ -169,231 +184,91 @@ class _SignInPane extends StatelessWidget {
   final VoidCallback onTogglePassword;
   final VoidCallback onSubmit;
   final bool showValidation;
+  final bool persistSession;
+  final ValueChanged<bool> onPersistSessionChanged;
+  final bool offerPersistence;
   final bool showWordmark;
 
   @override
   Widget build(BuildContext context) {
     final localisations = AppLocalizations.of(context);
     final isBusy = initialising || viewState.isBusy;
-    final googleMethod = _methodById(viewState.methods, 'google.com');
 
     return ColoredBox(
       color: MoloColours.warmCanvas,
       child: Stack(
         children: [
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: MoloSpacing.lg,
-                vertical: MoloSpacing.xl,
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 460),
-                child: AutofillGroup(
-                  child: Column(
-                    key: const Key('sign_in_form'),
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (showWordmark) ...[
-                        const MoloWordmark(compact: true),
-                        const SizedBox(height: MoloSpacing.xxl),
-                      ],
-                      if (environment.isPreview) ...[
-                        _PreviewNotice(
-                          key: const Key('preview_banner'),
-                          message: localisations.previewBanner,
-                        ),
-                        const SizedBox(height: MoloSpacing.lg),
-                      ] else if (!environment.canAttemptAuthentication) ...[
-                        _ConfigurationBanner(
-                          message: localisations.configurationBanner,
-                        ),
-                        const SizedBox(height: MoloSpacing.lg),
-                      ],
-                      Semantics(
-                        header: true,
-                        child: Text(
-                          localisations.welcomeBack,
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                      ),
-                      const SizedBox(height: MoloSpacing.sm),
-                      Text(
-                        localisations.signInSubtitle,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: MoloColours.secondaryText,
-                        ),
-                      ),
-                      const SizedBox(height: MoloSpacing.xl),
-                      if (viewState.failure != null) ...[
-                        _AuthErrorBanner(failure: viewState.failure!),
-                        const SizedBox(height: MoloSpacing.md),
-                      ],
-                      TextField(
-                        key: const Key('email_field'),
-                        controller: emailController,
-                        enabled: !isBusy,
-                        autofillHints: const [AutofillHints.email],
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        autocorrect: false,
-                        decoration: InputDecoration(
-                          labelText: localisations.emailLabel,
-                          hintText: localisations.emailHint,
-                          errorText: showValidation && viewState.emailInvalid
-                              ? localisations.invalidEmail
-                              : null,
-                        ),
-                        onSubmitted: (_) => passwordFocusNode.requestFocus(),
-                      ),
-                      const SizedBox(height: MoloSpacing.md),
-                      TextField(
-                        key: const Key('password_field'),
-                        controller: passwordController,
-                        focusNode: passwordFocusNode,
-                        enabled: !isBusy,
-                        obscureText: obscurePassword,
-                        autofillHints: const [AutofillHints.password],
-                        textInputAction: TextInputAction.done,
-                        decoration: InputDecoration(
-                          labelText: localisations.passwordLabel,
-                          errorText:
-                              showValidation && viewState.passwordTooShort
-                              ? localisations.passwordTooShort
-                              : null,
-                          suffixIcon: IconButton(
-                            tooltip: obscurePassword
-                                ? localisations.showPassword
-                                : localisations.hidePassword,
-                            onPressed: onTogglePassword,
-                            icon: Icon(
-                              obscurePassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                          ),
-                        ),
-                        onSubmitted: (_) => isBusy ? null : onSubmit(),
-                      ),
-                      const SizedBox(height: MoloSpacing.xs),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: isBusy
-                              ? null
-                              : () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        localisations.forgotPasswordComingSoon,
-                                      ),
-                                    ),
-                                  );
-                                },
-                          child: Text(localisations.forgotPassword),
-                        ),
-                      ),
-                      const SizedBox(height: MoloSpacing.xs),
-                      FilledButton(
-                        key: const Key('sign_in_button'),
-                        onPressed:
-                            isBusy || !environment.canAttemptAuthentication
-                            ? null
-                            : onSubmit,
-                        child: isBusy
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox.square(
-                                    dimension: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: MoloColours.surface,
-                                    ),
-                                  ),
-                                  const SizedBox(width: MoloSpacing.sm),
-                                  Text(localisations.signingIn),
-                                ],
-                              )
-                            : Text(localisations.signIn),
-                      ),
-                      if (googleMethod != null) ...[
-                        const SizedBox(height: MoloSpacing.lg),
-                        _OrDivider(label: localisations.orContinueWith),
-                        const SizedBox(height: MoloSpacing.lg),
-                        Semantics(
-                          label: localisations.googleComingSoonHint,
-                          button: true,
-                          enabled: false,
-                          excludeSemantics: true,
-                          child: OutlinedButton(
-                            key: const Key('google_sign_in_button'),
-                            onPressed: null,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const _GoogleMark(),
-                                const SizedBox(width: MoloSpacing.sm),
-                                Flexible(
-                                  child: Text(
-                                    localisations.continueWithGoogle,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(32, 28, 32, 40),
+            child: Column(
+              children: [
+                _HeaderRow(
+                  showWordmark: showWordmark,
+                  onCreateAccount: isBusy
+                      ? null
+                      : () => const RegistrationRoute().go(context),
+                ),
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 384),
+                        child: AutofillGroup(
+                          child: Column(
+                            key: const Key('sign_in_form'),
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (environment.isPreview) ...[
+                                _PreviewNotice(
+                                  key: const Key('preview_banner'),
+                                  message: localisations.previewBanner,
                                 ),
-                                const SizedBox(width: MoloSpacing.sm),
-                                MoloStatusPill(
-                                  label: localisations.comingSoon,
-                                  foreground: MoloColours.secondaryText,
-                                  background: MoloColours.softBlush,
+                                const SizedBox(height: _groupGap),
+                              ] else if (!environment
+                                  .canAttemptAuthentication) ...[
+                                _ConfigurationBanner(
+                                  message: localisations.configurationBanner,
                                 ),
+                                const SizedBox(height: _groupGap),
                               ],
-                            ),
+                              const _HeadingGroup(),
+                              const SizedBox(height: _groupGap),
+                              if (viewState.failure != null) ...[
+                                _AuthErrorBanner(failure: viewState.failure!),
+                                const SizedBox(height: _groupGap),
+                              ],
+                              _FieldsGroup(
+                                viewState: viewState,
+                                isBusy: isBusy,
+                                emailController: emailController,
+                                passwordController: passwordController,
+                                passwordFocusNode: passwordFocusNode,
+                                obscurePassword: obscurePassword,
+                                onTogglePassword: onTogglePassword,
+                                onSubmit: onSubmit,
+                                showValidation: showValidation,
+                                offerPersistence: offerPersistence,
+                                persistSession: persistSession,
+                                onPersistSessionChanged:
+                                    onPersistSessionChanged,
+                              ),
+                              const SizedBox(height: _groupGap),
+                              _ActionsGroup(
+                                isBusy: isBusy,
+                                canAttempt:
+                                    environment.canAttemptAuthentication,
+                                onSubmit: onSubmit,
+                              ),
+                              const SizedBox(height: _groupGap),
+                              const _LegalFooter(),
+                            ],
                           ),
                         ),
-                      ],
-                      const SizedBox(height: MoloSpacing.lg),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(child: Text(localisations.newToMolo)),
-                          TextButton(
-                            key: const Key('create_account_link'),
-                            onPressed: isBusy
-                                ? null
-                                : () => const RegistrationRoute().go(context),
-                            child: Text(localisations.createAccount),
-                          ),
-                        ],
                       ),
-                      const SizedBox(height: MoloSpacing.lg),
-                      AuthLegalLinksText(
-                        label: localisations.termsNotice(
-                          localisations.termsOfService,
-                          localisations.privacyPolicy,
-                        ),
-                        termsLabel: localisations.termsOfService,
-                        privacyLabel: localisations.privacyPolicy,
-                        onTermsPressed: () => showAuthLegalPreviewDialog(
-                          context,
-                          title: localisations.termsOfService,
-                          body: localisations.legalPreviewBody,
-                          closeLabel: localisations.closeLabel,
-                        ),
-                        onPrivacyPressed: () => showAuthLegalPreviewDialog(
-                          context,
-                          title: localisations.privacyPolicy,
-                          body: localisations.legalPreviewBody,
-                          closeLabel: localisations.closeLabel,
-                        ),
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: MoloColours.secondaryText,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
           if (initialising)
@@ -405,127 +280,345 @@ class _SignInPane extends StatelessWidget {
       ),
     );
   }
-
-  static AuthMethodDescriptor? _methodById(
-    List<AuthMethodDescriptor> methods,
-    String providerId,
-  ) {
-    for (final method in methods) {
-      if (method.providerId == providerId &&
-          method.availability == AuthMethodAvailability.comingSoon) {
-        return method;
-      }
-    }
-    return null;
-  }
 }
 
-class _BrandStoryPanel extends StatelessWidget {
-  const _BrandStoryPanel();
+/// The pane's top row: the wordmark where the hero is absent, then the offer to
+/// create an account, which the design moves here from the bottom of the form.
+class _HeaderRow extends StatelessWidget {
+  const _HeaderRow({required this.showWordmark, required this.onCreateAccount});
+
+  final bool showWordmark;
+  final VoidCallback? onCreateAccount;
 
   @override
   Widget build(BuildContext context) {
     final localisations = AppLocalizations.of(context);
-    return ClipRect(
-      child: ColoredBox(
-        key: const Key('auth_hero_panel'),
-        color: MoloColours.moloPlum,
-        child: Stack(
-          children: [
-            const Positioned(
-              top: -110,
-              right: -90,
-              child: _Orb(size: 300, color: MoloColours.moloPulse),
-            ),
-            Positioned(
-              bottom: -70,
-              left: -40,
-              child: _Orb(
-                size: 190,
-                color: MoloColours.pulseText.withValues(alpha: 0.86),
+    return Row(
+      children: [
+        if (showWordmark) const MoloBrandLockup(compact: true),
+        const Spacer(),
+        // The label is context for the pill, not an instruction, so the narrow
+        // layout keeps the part that acts and drops the part that explains.
+        if (!showWordmark) ...[
+          Flexible(
+            child: Text(
+              localisations.newToMolo,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                letterSpacing: 0,
+                height: MoloTypography.normalLineHeight,
+                color: MoloColours.secondaryText,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(MoloSpacing.xl),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const MoloWordmark(onDark: true),
-                  const SizedBox(height: MoloSpacing.xl),
-                  Expanded(
-                    child: Center(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              localisations.brandStoryTitle,
-                              style: Theme.of(context).textTheme.headlineMedium
-                                  ?.copyWith(color: MoloColours.surface),
-                            ),
-                            const SizedBox(height: MoloSpacing.md),
-                            Text(
-                              localisations.brandStoryBody,
-                              style: Theme.of(context).textTheme.bodyLarge
-                                  ?.copyWith(
-                                    color: MoloColours.surface.withValues(
-                                      alpha: 0.72,
-                                    ),
-                                  ),
-                            ),
-                            const SizedBox(height: MoloSpacing.xl),
-                            _StoryPoint(
-                              label: localisations.brandStoryPointOne,
-                            ),
-                            const SizedBox(height: MoloSpacing.md),
-                            _StoryPoint(
-                              label: localisations.brandStoryPointTwo,
-                            ),
-                            const SizedBox(height: MoloSpacing.md),
-                            _StoryPoint(
-                              label: localisations.brandStoryPointThree,
-                            ),
-                          ],
-                        ),
+          ),
+          const SizedBox(width: 10),
+        ],
+        // Flexible, not fixed: a longer translation of either the label or the
+        // pill has to give ground rather than overflow the row.
+        Flexible(
+          child: MoloPillButton(
+            key: const Key('create_account_link'),
+            label: localisations.createAccount,
+            onPressed: onCreateAccount,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HeadingGroup extends StatelessWidget {
+  const _HeadingGroup();
+
+  @override
+  Widget build(BuildContext context) {
+    final localisations = AppLocalizations.of(context);
+    final greeting = switch (signInGreetingForHour(DateTime.now().hour)) {
+      SignInGreeting.morning => localisations.greetingMorning,
+      SignInGreeting.afternoon => localisations.greetingAfternoon,
+      SignInGreeting.evening => localisations.greetingEvening,
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          greeting.toUpperCase(),
+          key: const Key('sign_in_kicker'),
+          style: TextStyle(
+            fontSize: 12,
+            // The design opens this label to 0.08em, wider than the workspace
+            // kicker's 0.06em.
+            letterSpacing: MoloTypography.trackingEm(0.08, 12),
+            height: MoloTypography.normalLineHeight,
+            // Not the baseline's #9A858D: at 12px this is ordinary text, and
+            // that colour is 3.30:1 on this ground where 1.4.3 wants 4.5:1.
+            color: MoloColours.secondaryText,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Semantics(
+          header: true,
+          child: Text(
+            localisations.welcomeBack,
+            style: TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.w500,
+              height: 1.12,
+              letterSpacing: MoloTypography.trackingEm(-0.025, 34),
+              color: MoloColours.moloPlum,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          localisations.signInSubtitle,
+          style: const TextStyle(
+            fontSize: 15,
+            height: 1.55,
+            letterSpacing: 0,
+            color: MoloColours.secondaryText,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FieldsGroup extends StatelessWidget {
+  const _FieldsGroup({
+    required this.viewState,
+    required this.isBusy,
+    required this.emailController,
+    required this.passwordController,
+    required this.passwordFocusNode,
+    required this.obscurePassword,
+    required this.onTogglePassword,
+    required this.onSubmit,
+    required this.showValidation,
+    required this.offerPersistence,
+    required this.persistSession,
+    required this.onPersistSessionChanged,
+  });
+
+  final AuthViewState viewState;
+  final bool isBusy;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final FocusNode passwordFocusNode;
+  final bool obscurePassword;
+  final VoidCallback onTogglePassword;
+  final VoidCallback onSubmit;
+  final bool showValidation;
+  final bool offerPersistence;
+  final bool persistSession;
+  final ValueChanged<bool> onPersistSessionChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final localisations = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        MoloTextField(
+          label: localisations.workEmailLabel,
+          fieldKey: const Key('email_field'),
+          controller: emailController,
+          enabled: !isBusy,
+          hintText: localisations.emailHint,
+          errorText: showValidation && viewState.emailInvalid
+              ? localisations.invalidEmail
+              : null,
+          autofillHints: const [AutofillHints.email],
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          autocorrect: false,
+          onSubmitted: (_) => passwordFocusNode.requestFocus(),
+        ),
+        const SizedBox(height: 16),
+        MoloTextField(
+          label: localisations.passwordLabel,
+          fieldKey: const Key('password_field'),
+          controller: passwordController,
+          focusNode: passwordFocusNode,
+          enabled: !isBusy,
+          obscureText: obscurePassword,
+          hintText: localisations.passwordHint,
+          errorText: showValidation && viewState.passwordTooShort
+              ? localisations.passwordTooShort
+              : null,
+          autofillHints: const [AutofillHints.password],
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => isBusy ? null : onSubmit(),
+          // The design moves recovery onto the label row, where it reads as a
+          // property of the password rather than as a second action under it.
+          trailing: TextButton(
+            onPressed: isBusy
+                ? null
+                : () => ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(localisations.forgotPasswordComingSoon),
+                    ),
+                  ),
+            child: Text(localisations.forgotPassword),
+          ),
+          suffix: IconButton(
+            tooltip: obscurePassword
+                ? localisations.showPassword
+                : localisations.hidePassword,
+            onPressed: onTogglePassword,
+            // The design draws one eye and changes only the control's name, so
+            // what the state is, is carried by the tooltip.
+            // Not const: MoloGlyphs.eye builds its path lazily, so it is
+            // `static final` rather than a constant.
+            icon: MoloIcon(
+              MoloGlyphs.eye,
+              size: 18,
+              color: MoloColours.secondaryText,
+            ),
+            style: IconButton.styleFrom(
+              fixedSize: const Size.square(36),
+              padding: EdgeInsets.zero,
+              hoverColor: MoloColours.pulseTint,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+        ),
+        if (offerPersistence) ...[
+          const SizedBox(height: 16),
+          MoloCheckRow(
+            key: const Key('remember_me_row'),
+            label: Text(localisations.keepMeSignedIn),
+            semanticLabel: localisations.keepMeSignedIn,
+            value: persistSession,
+            enabled: !isBusy,
+            onChanged: onPersistSessionChanged,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _ActionsGroup extends StatelessWidget {
+  const _ActionsGroup({
+    required this.isBusy,
+    required this.canAttempt,
+    required this.onSubmit,
+  });
+
+  final bool isBusy;
+  final bool canAttempt;
+  final VoidCallback onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    final localisations = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FilledButton(
+          key: const Key('sign_in_button'),
+          onPressed: isBusy || !canAttempt ? null : onSubmit,
+          child: isBusy
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: MoloColours.surface,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: MoloSpacing.xl),
-                  Text(
-                    localisations.brandPromise,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: MoloColours.surface,
-                    ),
-                  ),
-                ],
+                    const SizedBox(width: MoloSpacing.sm),
+                    Text(localisations.signingIn),
+                  ],
+                )
+              : Text(localisations.signIn),
+        ),
+        const SizedBox(height: 18),
+        _OrDivider(label: localisations.orDividerLabel),
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            Expanded(
+              child: _ProviderButton(
+                buttonKey: const Key('microsoft_sign_in_button'),
+                label: localisations.microsoftLabel,
+                comingSoonHint: localisations.microsoftComingSoonHint,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _ProviderButton(
+                buttonKey: const Key('google_sign_in_button'),
+                label: localisations.googleLabel,
+                comingSoonHint: localisations.googleComingSoonHint,
               ),
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 }
 
-class _Orb extends StatelessWidget {
-  const _Orb({required this.size, required this.color});
+/// A federated provider the design offers and the application cannot yet
+/// honour.
+///
+/// Declared by the view rather than read from the provider catalogue: both are
+/// permanently disabled here, and the work that makes either one real owns
+/// reconnecting them. The 46-high cell has no room for a "Coming soon" pill, so
+/// the reason lives in the accessible name.
+///
+/// The outline is the quiet [MoloColours.border] the design draws. A disabled
+/// control is exempt from WCAG 1.4.11, and these two never enable.
+class _ProviderButton extends StatelessWidget {
+  const _ProviderButton({
+    required this.buttonKey,
+    required this.label,
+    required this.comingSoonHint,
+  });
 
-  final double size;
-  final Color color;
+  final Key buttonKey;
+  final String label;
+  final String comingSoonHint;
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: DecoratedBox(
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        child: SizedBox.square(dimension: size),
+    return Semantics(
+      label: comingSoonHint,
+      button: true,
+      enabled: false,
+      excludeSemantics: true,
+      child: OutlinedButton(
+        key: buttonKey,
+        onPressed: null,
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(46),
+          side: const BorderSide(color: MoloColours.border),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(MoloSpacing.controlRadius),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0,
+            height: MoloTypography.normalLineHeight,
+          ),
+        ),
+        child: Text(label, overflow: TextOverflow.ellipsis),
       ),
     );
   }
 }
 
-class _StoryPoint extends StatelessWidget {
-  const _StoryPoint({required this.label});
+class _OrDivider extends StatelessWidget {
+  const _OrDivider({required this.label});
 
   final String label;
 
@@ -533,22 +626,59 @@ class _StoryPoint extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(
-          Icons.arrow_forward_rounded,
-          color: MoloColours.moloPulse,
-          size: 20,
-        ),
-        const SizedBox(width: MoloSpacing.sm),
-        Flexible(
+        const Expanded(child: Divider(height: 1, color: MoloColours.border)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text(
             label,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: MoloColours.surface,
-              fontWeight: FontWeight.w500,
+            style: const TextStyle(
+              fontSize: 12,
+              letterSpacing: 0,
+              height: MoloTypography.normalLineHeight,
+              // Not #9A858D: 3.30:1 on this ground, and this is text.
+              color: MoloColours.secondaryText,
             ),
           ),
         ),
+        const Expanded(child: Divider(height: 1, color: MoloColours.border)),
       ],
+    );
+  }
+}
+
+class _LegalFooter extends StatelessWidget {
+  const _LegalFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    final localisations = AppLocalizations.of(context);
+    return AuthLegalLinksText(
+      label: localisations.termsNotice(
+        localisations.termsOfService,
+        localisations.privacyPolicy,
+      ),
+      termsLabel: localisations.termsOfService,
+      privacyLabel: localisations.privacyPolicy,
+      onTermsPressed: () => showAuthLegalPreviewDialog(
+        context,
+        title: localisations.termsOfService,
+        body: localisations.legalPreviewBody,
+        closeLabel: localisations.closeLabel,
+      ),
+      onPrivacyPressed: () => showAuthLegalPreviewDialog(
+        context,
+        title: localisations.privacyPolicy,
+        body: localisations.legalPreviewBody,
+        closeLabel: localisations.closeLabel,
+      ),
+      // The design left-aligns this, where the retired composition centred it.
+      textAlign: TextAlign.start,
+      style: const TextStyle(
+        fontSize: 12,
+        height: 1.6,
+        letterSpacing: 0,
+        color: MoloColours.secondaryText,
+      ),
     );
   }
 }
@@ -667,48 +797,6 @@ class _AuthErrorBanner extends ConsumerWidget {
               icon: const Icon(Icons.close, size: 20),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _OrDivider extends StatelessWidget {
-  const _OrDivider({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Expanded(child: Divider()),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: MoloSpacing.sm),
-          child: Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: MoloColours.secondaryText),
-          ),
-        ),
-        const Expanded(child: Divider()),
-      ],
-    );
-  }
-}
-
-class _GoogleMark extends StatelessWidget {
-  const _GoogleMark();
-
-  @override
-  Widget build(BuildContext context) {
-    return ExcludeSemantics(
-      child: Text(
-        'G',
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: MoloColours.secondaryText,
-          fontWeight: FontWeight.w500,
         ),
       ),
     );

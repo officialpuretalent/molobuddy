@@ -109,6 +109,72 @@ abstract class AppLocalizations {
   /// **'Sign in | Molo'**
   String get signInPageTitle;
 
+  /// No description provided for @signInHeroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every decision, every hand-off and every deadline in one place your practice can defend.'**
+  String get signInHeroBody;
+
+  /// No description provided for @greetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get greetingMorning;
+
+  /// No description provided for @greetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get greetingAfternoon;
+
+  /// No description provided for @greetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get greetingEvening;
+
+  /// No description provided for @workEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Work email'**
+  String get workEmailLabel;
+
+  /// No description provided for @passwordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'••••••••'**
+  String get passwordHint;
+
+  /// No description provided for @keepMeSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep me signed in on this device'**
+  String get keepMeSignedIn;
+
+  /// No description provided for @orDividerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get orDividerLabel;
+
+  /// No description provided for @microsoftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Microsoft'**
+  String get microsoftLabel;
+
+  /// No description provided for @googleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Google'**
+  String get googleLabel;
+
+  /// No description provided for @microsoftComingSoonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Microsoft sign-in is coming soon'**
+  String get microsoftComingSoonHint;
+
   /// No description provided for @welcomePageTitle.
   ///
   /// In en, this message translates to:
@@ -120,36 +186,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Make serious work feel light.'**
   String get brandPromise;
-
-  /// No description provided for @brandStoryTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Everything your practice needs to keep work moving.'**
-  String get brandStoryTitle;
-
-  /// No description provided for @brandStoryBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear priorities, calm collaboration and confident progress, all in one place.'**
-  String get brandStoryBody;
-
-  /// No description provided for @brandStoryPointOne.
-  ///
-  /// In en, this message translates to:
-  /// **'See what needs attention now'**
-  String get brandStoryPointOne;
-
-  /// No description provided for @brandStoryPointTwo.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep every hand-off clear'**
-  String get brandStoryPointTwo;
-
-  /// No description provided for @brandStoryPointThree.
-  ///
-  /// In en, this message translates to:
-  /// **'Move work forward with confidence'**
-  String get brandStoryPointThree;
 
   /// No description provided for @previewBanner.
   ///
@@ -175,16 +211,10 @@ abstract class AppLocalizations {
   /// **'Continue to your Molo workspace.'**
   String get signInSubtitle;
 
-  /// No description provided for @emailLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Email address'**
-  String get emailLabel;
-
   /// No description provided for @emailHint.
   ///
   /// In en, this message translates to:
-  /// **'you@example.com'**
+  /// **'you@practice.co.za'**
   String get emailHint;
 
   /// No description provided for @passwordLabel.
@@ -229,24 +259,6 @@ abstract class AppLocalizations {
   /// **'Signing in…'**
   String get signingIn;
 
-  /// No description provided for @orContinueWith.
-  ///
-  /// In en, this message translates to:
-  /// **'or continue with'**
-  String get orContinueWith;
-
-  /// No description provided for @continueWithGoogle.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue with Google'**
-  String get continueWithGoogle;
-
-  /// No description provided for @comingSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Coming soon'**
-  String get comingSoon;
-
   /// No description provided for @googleComingSoonHint.
   ///
   /// In en, this message translates to:
@@ -256,7 +268,7 @@ abstract class AppLocalizations {
   /// Sign-in agreement sentence with labels that are rendered as separate links.
   ///
   /// In en, this message translates to:
-  /// **'By signing in, you agree to the {termsLink} and {privacyLink}.'**
+  /// **'By signing in, you agree to the {termsLink} and {privacyLink}. Molo never signs in to eFiling on your behalf.'**
   String termsNotice(String termsLink, String privacyLink);
 
   /// No description provided for @invalidEmail.
@@ -802,7 +814,7 @@ abstract class AppLocalizations {
   /// No description provided for @createAccount.
   ///
   /// In en, this message translates to:
-  /// **'Create account'**
+  /// **'Create an account'**
   String get createAccount;
 
   /// No description provided for @alreadyHaveAccount.
@@ -858,12 +870,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter your full name.'**
   String get fullNameRequired;
-
-  /// No description provided for @workEmailLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Work email'**
-  String get workEmailLabel;
 
   /// No description provided for @createPasswordLabel.
   ///
