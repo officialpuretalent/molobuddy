@@ -277,6 +277,39 @@ abstract final class MoloGlyphs {
       ..lineTo(14, 14),
   );
 
+  /// The password field's reveal toggle.
+  ///
+  /// The baseline draws one eye for both states and changes only the control's
+  /// title, so there is no crossed-out variant to trace: what the state is, is
+  /// carried by the accessible name.
+  static final eye = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      // The lid, as four cubics. The source writes it with smooth-curve
+      // shorthand, whose first control point mirrors the previous segment's
+      // second; these are those mirrors written out.
+      ..moveTo(1.6, 9)
+      ..cubicTo(1.6, 9, 4.4, 4.4, 9, 4.4)
+      ..cubicTo(13.6, 4.4, 16.4, 9, 16.4, 9)
+      ..cubicTo(16.4, 9, 13.6, 13.6, 9, 13.6)
+      ..cubicTo(4.4, 13.6, 1.6, 9, 1.6, 9)
+      ..close()
+      ..addOval(Rect.fromCircle(center: const Offset(9, 9), radius: 2.1)),
+  );
+
+  /// The mark inside a checked box, drawn in the 14-unit box the baseline uses
+  /// for it rather than the usual 18.
+  static final tick = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    viewBox: 14,
+    buildPath: () => Path()
+      ..moveTo(3, 7.4)
+      ..lineTo(5.6, 10)
+      ..lineTo(11, 4.4),
+  );
+
   static final practiceView = MoloGlyph(
     cap: StrokeCap.round,
     buildPath: () => Path()
