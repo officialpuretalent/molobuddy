@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
 import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
+import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 
 /// One row of workspace navigation, on the plum sidebar or icon rail.
 ///
@@ -87,8 +88,10 @@ class MoloNavigationItem extends StatelessWidget {
                 fontSize: _fontSize,
                 fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
                 // Stated, not inherited: the ambient Material style tracks
-                // body text and the design tracks navigation not at all.
+                // body text and the design tracks navigation not at all, and
+                // it leads body text taller than Geist's own line box.
                 letterSpacing: 0,
+                height: MoloTypography.normalLineHeight,
                 color: effective,
               ),
             ),
@@ -152,6 +155,9 @@ class _Badge extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w500,
               letterSpacing: 0,
+              // Inheriting Material's leading grew the pill to 21 against the
+              // design's 19.5, which crowded the 44 row.
+              height: MoloTypography.normalLineHeight,
               color: MoloColours.moloPlum,
             ),
           ),

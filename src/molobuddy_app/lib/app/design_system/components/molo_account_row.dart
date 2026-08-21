@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
+import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 
 /// The practice and person identity row that closes the workspace sidebar.
 ///
@@ -20,6 +21,9 @@ class MoloAccountRow extends StatelessWidget {
 
   /// The second line's colour: the warm white at 66 percent.
   static const detailForeground = Color(0xA8FFF9F7);
+
+  /// The caret's ink, measured off the design's glyph at 12px.
+  static const caretSize = Size(6.94, 3.47);
 
   final String initials;
   final String name;
@@ -58,6 +62,7 @@ class MoloAccountRow extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 letterSpacing: 0,
+                height: MoloTypography.normalLineHeight,
                 color: MoloColours.moloPlum,
               ),
             ),
@@ -77,6 +82,7 @@ class MoloAccountRow extends StatelessWidget {
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0,
+                      height: MoloTypography.normalLineHeight,
                       color: MoloColours.surface,
                     ),
                   ),
@@ -88,7 +94,12 @@ class MoloAccountRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 12,
+                        // Stated rather than inherited, like every other value
+                        // here. It happens to match the ambient weight today,
+                        // which is exactly how the leading went unnoticed.
+                        fontWeight: FontWeight.w400,
                         letterSpacing: 0,
+                        height: MoloTypography.normalLineHeight,
                         color: detailForeground,
                       ),
                     ),
@@ -96,15 +107,55 @@ class MoloAccountRow extends StatelessWidget {
                 ],
               ),
             ),
-            if (showCaret)
-              const Icon(
-                Icons.keyboard_arrow_down_rounded,
-                size: 16,
-                color: detailForeground,
-              ),
+            if (showCaret) const _Caret(),
           ],
         ],
       ),
     );
   }
+}
+
+/// The small solid triangle that closes the account row.
+///
+/// The design draws this with a text glyph, U+25BE at 12px. Flutter cannot rely
+/// on that: Geist has no such glyph, so it resolves through font fallback and
+/// comes out a different shape and size on every platform. Painting it keeps
+/// the design's ink size, which was measured off the baseline's own rendering.
+///
+/// Centred in the row, where the design's sits about 2 lower: that offset is
+/// where a text baseline put it, not a placement the design chose.
+class _Caret extends StatelessWidget {
+  const _Caret();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ExcludeSemantics(
+      child: CustomPaint(
+        size: MoloAccountRow.caretSize,
+        painter: _CaretPainter(),
+      ),
+    );
+  }
+}
+
+class _CaretPainter extends CustomPainter {
+  const _CaretPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = MoloAccountRow.detailForeground
+        ..isAntiAlias = true,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CaretPainter oldDelegate) => false;
 }
