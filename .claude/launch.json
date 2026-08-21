@@ -1,0 +1,38 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "molo-app",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "web-server",
+        "--web-hostname",
+        "0.0.0.0",
+        "--web-port",
+        "4300",
+        "--no-dds",
+        "--dart-define-from-file=config/firebase.development.json"
+      ],
+      "cwd": "src/molobuddy_app",
+      "port": 4300,
+      "url": "http://localhost:4300"
+    },
+    {
+      "name": "molo-design-baseline",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4400",
+        "--bind",
+        "0.0.0.0",
+        "--directory",
+        "docs/product/Design baseline and scope clarification"
+      ],
+      "port": 4400,
+      "url": "http://localhost:4400"
+    }
+  ]
+}
