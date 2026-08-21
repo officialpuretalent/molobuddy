@@ -376,13 +376,13 @@ abstract class AppLocalizations {
   /// No description provided for @signOut.
   ///
   /// In en, this message translates to:
-  /// **'Sign out'**
+  /// **'Log out'**
   String get signOut;
 
   /// No description provided for @signingOut.
   ///
   /// In en, this message translates to:
-  /// **'Signing out…'**
+  /// **'Logging out…'**
   String get signingOut;
 
   /// No description provided for @homePageTitle.
@@ -456,6 +456,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create work'**
   String get homeCreateWork;
+
+  /// No description provided for @accountMenuSwitchPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch practice'**
+  String get accountMenuSwitchPractice;
+
+  /// No description provided for @accountMenuConnectors.
+  ///
+  /// In en, this message translates to:
+  /// **'Connectors and intake'**
+  String get accountMenuConnectors;
+
+  /// No description provided for @accountMenuYourProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile'**
+  String get accountMenuYourProfile;
+
+  /// No description provided for @accountMenuSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get accountMenuSettings;
+
+  /// No description provided for @accountMenuHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help and support'**
+  String get accountMenuHelp;
 
   /// No description provided for @homePracticeAccount.
   ///

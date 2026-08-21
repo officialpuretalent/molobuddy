@@ -159,10 +159,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get previewModeLabel => 'Preview mode';
 
   @override
-  String get signOut => 'Sign out';
+  String get signOut => 'Log out';
 
   @override
-  String get signingOut => 'Signing out…';
+  String get signingOut => 'Logging out…';
 
   @override
   String get homePageTitle => 'Home | Molo';
@@ -199,6 +199,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeCreateWork => 'Create work';
+
+  @override
+  String get accountMenuSwitchPractice => 'Switch practice';
+
+  @override
+  String get accountMenuConnectors => 'Connectors and intake';
+
+  @override
+  String get accountMenuYourProfile => 'Your profile';
+
+  @override
+  String get accountMenuSettings => 'Settings';
+
+  @override
+  String get accountMenuHelp => 'Help and support';
 
   @override
   String get homePracticeAccount => 'Practice account';
@@ -786,10 +801,10 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get previewModeLabel => 'Preview mode';
 
   @override
-  String get signOut => 'Sign out';
+  String get signOut => 'Log out';
 
   @override
-  String get signingOut => 'Signing out…';
+  String get signingOut => 'Logging out…';
 
   @override
   String get homePageTitle => 'Home | Molo';
@@ -826,6 +841,21 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
 
   @override
   String get homeCreateWork => 'Create work';
+
+  @override
+  String get accountMenuSwitchPractice => 'Switch practice';
+
+  @override
+  String get accountMenuConnectors => 'Connectors and intake';
+
+  @override
+  String get accountMenuYourProfile => 'Your profile';
+
+  @override
+  String get accountMenuSettings => 'Settings';
+
+  @override
+  String get accountMenuHelp => 'Help and support';
 
   @override
   String get homePracticeAccount => 'Practice account';

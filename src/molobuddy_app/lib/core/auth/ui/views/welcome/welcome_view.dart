@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:molobuddy_app/app/adaptive/molo_app_shell.dart';
 import 'package:molobuddy_app/app/adaptive/window_class.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_account_menu.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_account_row.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_card.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_navigation_item.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_status_pill.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_wordmark.dart';
 import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
@@ -242,6 +244,7 @@ class _WorkspaceHome extends StatelessWidget {
       onDestinationSelected: (_) => _showUnavailable(context),
       onPrimaryAction: () => _showUnavailable(context),
       accountMenuBuilder: (context, windowClass) => _AccountMenu(
+        personName: greetingName,
         compact:
             windowClass != MoloWindowClass.large &&
             windowClass != MoloWindowClass.extraLarge,
@@ -282,6 +285,7 @@ class _AccountMenu extends StatelessWidget {
   const _AccountMenu({
     required this.compact,
     required this.practice,
+    required this.personName,
     required this.signingOut,
     required this.onSignOut,
     this.onDark = false,
@@ -289,6 +293,10 @@ class _AccountMenu extends StatelessWidget {
 
   final bool compact;
   final PracticeRef practice;
+
+  /// The signed-in person. The design puts them under the practice on the
+  /// sidebar row, and keeps the practice itself at the head of the menu.
+  final String? personName;
   final bool signingOut;
   final VoidCallback? onSignOut;
   final bool onDark;
@@ -296,40 +304,110 @@ class _AccountMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localisations = AppLocalizations.of(context);
-    return PopupMenuButton<void>(
-      key: const Key('account_menu_button'),
-      enabled: !signingOut,
-      tooltip: localisations.homeAccountMenu,
-      color: MoloColours.surface,
-      // The design draws this row at a 15 radius, and the tap ink has to be
-      // clipped to it or a square ripple escapes the corners.
-      borderRadius: BorderRadius.circular(15),
-      onSelected: (_) => onSignOut?.call(),
-      itemBuilder: (context) => [
-        PopupMenuItem<void>(
-          key: const Key('sign_out_button'),
-          value: null,
-          child: Row(
-            children: [
-              const Icon(Icons.logout_rounded, color: MoloColours.pulseText),
-              const SizedBox(width: MoloSpacing.sm),
-              Text(
-                signingOut ? localisations.signingOut : localisations.signOut,
+    final person = personName?.trim();
+    final hasPerson = person != null && person.isNotEmpty;
+
+    return MenuAnchor(
+      // The panel supplies its own shape, fill and shadow, so the menu itself
+      // contributes none: a Material surface underneath would show its own
+      // corners and elevation through the design's 22 radius.
+      style: const MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(Color(0x00000000)),
+        surfaceTintColor: WidgetStatePropertyAll(Color(0x00000000)),
+        shadowColor: WidgetStatePropertyAll(Color(0x00000000)),
+        elevation: WidgetStatePropertyAll(0),
+        padding: WidgetStatePropertyAll(EdgeInsets.zero),
+      ),
+      // The design floats the panel 4 clear of the row it opens from.
+      alignmentOffset: const Offset(0, 4),
+      menuChildren: [
+        MoloAccountMenu(
+          header: MoloAccountMenuHeader(
+            initials: _initials(practice.displayLabel),
+            name: practice.displayLabel,
+            caption: localisations.homePracticeAccount,
+          ),
+          sections: [
+            [
+              // Present because the design has them, inert because their
+              // screens are not built. Same treatment as Meetings in the
+              // sidebar: visible, and not pretending to work.
+              MoloAccountMenuEntry(
+                glyph: MoloGlyphs.switchPractice,
+                label: localisations.accountMenuSwitchPractice,
+              ),
+              MoloAccountMenuEntry(
+                glyph: MoloGlyphs.connectors,
+                label: localisations.accountMenuConnectors,
+              ),
+              MoloAccountMenuEntry(
+                glyph: MoloGlyphs.profile,
+                label: localisations.accountMenuYourProfile,
+              ),
+              MoloAccountMenuEntry(
+                glyph: MoloGlyphs.settings,
+                label: localisations.accountMenuSettings,
               ),
             ],
-          ),
+            [
+              MoloAccountMenuEntry(
+                glyph: MoloGlyphs.help,
+                label: localisations.accountMenuHelp,
+                showChevron: true,
+              ),
+              MoloAccountMenuEntry(
+                key: const Key('sign_out_button'),
+                glyph: MoloGlyphs.logOut,
+                label: signingOut
+                    ? localisations.signingOut
+                    : localisations.signOut,
+                destructive: true,
+                onTap: signingOut ? null : onSignOut,
+              ),
+            ],
+          ],
         ),
       ],
-      child: compact
-          ? Icon(
-              Icons.account_circle_outlined,
-              color: onDark ? MoloColours.surface : null,
-            )
-          : MoloAccountRow(
-              initials: _initials(practice.displayLabel),
-              name: practice.displayLabel,
-              detail: localisations.homePracticeAccount,
+      builder: (context, controller, _) {
+        final trigger = compact
+            ? Icon(
+                Icons.account_circle_outlined,
+                color: onDark ? MoloColours.surface : null,
+              )
+            : MoloAccountRow(
+                initials: _initials(hasPerson ? person : practice.displayLabel),
+                name: practice.displayLabel,
+                detail: hasPerson ? person : localisations.homePracticeAccount,
+              );
+        return Semantics(
+          button: true,
+          label: localisations.homeAccountMenu,
+          child: Tooltip(
+            message: localisations.homeAccountMenu,
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                key: const Key('account_menu_button'),
+                onTap: signingOut
+                    ? null
+                    : () => controller.isOpen
+                          ? controller.close()
+                          : controller.open(),
+                borderRadius: BorderRadius.circular(15),
+                // The design states white at eight percent for this row on
+                // plum. Material's default resolves from the light theme's
+                // dark onSurface and barely registers here.
+                overlayColor: const WidgetStateMapper<Color?>({
+                  WidgetState.hovered: MoloNavigationItem.hoverFill,
+                  WidgetState.pressed: MoloNavigationItem.pressedFill,
+                  WidgetState.any: null,
+                }),
+                child: trigger,
+              ),
             ),
+          ),
+        );
+      },
     );
   }
 }
