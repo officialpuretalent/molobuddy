@@ -1,7 +1,9 @@
 export { StaticAccountingProviderRegistry } from './adapters/outbound/providers/accounting_provider_registry.js';
 export { FirestoreConnectorConnectionRepository } from './adapters/outbound/persistence/firestore_connector_connection_repository.js';
 export { FirestoreConnectorLifecycleStore } from './adapters/outbound/persistence/firestore_connector_lifecycle_store.js';
+export { FirestoreOAuthAuthorisationStateStore } from './adapters/outbound/persistence/firestore_oauth_authorisation_state_store.js';
 export { FirestoreSyncRunRepository } from './adapters/outbound/persistence/firestore_sync_run_repository.js';
+export { FirestoreWebhookReceiptRepository } from './adapters/outbound/persistence/firestore_webhook_receipt_repository.js';
 export { ListConnectorDefinitions } from './application/queries/list_connector_definitions.js';
 export { StartAccountingConnection } from './application/commands/start_accounting_connection.js';
 export {
