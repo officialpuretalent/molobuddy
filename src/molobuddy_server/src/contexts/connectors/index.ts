@@ -10,6 +10,26 @@ export {
 export type { AccountingProviderAdapter } from './application/ports/accounting_provider_adapter.js';
 export type { AccountingProviderRegistry } from './application/ports/accounting_provider_registry.js';
 export type {
+  ExternalRecordNormaliser,
+  ProviderRecordForNormalisation,
+} from './application/ports/external_record_normaliser.js';
+export type {
+  ProviderCredentialReference,
+  ProviderCredentials,
+  ProviderCredentialVault,
+  ProviderCredentialWrite,
+} from './application/ports/provider_credential_vault.js';
+export type {
+  ProviderTransport,
+  ProviderTransportRequest,
+  ProviderTransportResponse,
+} from './application/ports/provider_transport.js';
+export type {
+  ProviderWebhookRequest,
+  ProviderWebhookVerification,
+  ProviderWebhookVerifier,
+} from './application/ports/provider_webhook_verifier.js';
+export type {
   AccountingDataSourceKind,
   AccountingProviderDefinition,
   AccountingProviderKey,
@@ -19,3 +39,7 @@ export type {
   ProviderTokenExchange,
   StartProviderAuthorisation,
 } from './domain/accounting_provider.js';
+export {
+  externalRecordIdentity,
+  type NormalisedExternalRecord,
+} from './domain/external_record.js';
