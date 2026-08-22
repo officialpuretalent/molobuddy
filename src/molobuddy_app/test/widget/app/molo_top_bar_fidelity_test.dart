@@ -359,5 +359,32 @@ void main() {
       final hint = tester.getRect(find.text('Search clients, work, documents'));
       expect(hint.left - field.left, 38);
     });
+
+    testWidgets('its text sits on the field\'s centre line, not above it', (
+      tester,
+    ) async {
+      await pumpBar(tester);
+      final field = tester.getRect(find.byType(MoloSearchField));
+      final hint = tester.getRect(find.text('Search clients, work, documents'));
+      // The global input theme holds a 50 minimum, which the design's 50-high
+      // fields want and this 40-high one does not. Left to apply, it stretches
+      // the decorator to fill the field and InputDecorator top-aligns its
+      // input in the spare room, so the words ride 10.5 above the magnifier
+      // beside them.
+      expect(hint.center.dy, field.center.dy);
+    });
+
+    testWidgets('the decorator claims no more height than the field', (
+      tester,
+    ) async {
+      await pumpBar(tester);
+      final field = tester.getRect(find.byType(MoloSearchField));
+      final decorator = tester.getRect(find.byType(InputDecorator));
+      // Measured rather than centred-only, because a decorator that fills the
+      // field can hide a later regression that re-centres the text by padding
+      // it. 13px text on Geist's 1.3 line box is 16.9, which lays out at 17.
+      expect(decorator.height, 17);
+      expect(decorator.height, lessThan(field.height));
+    });
   });
 }

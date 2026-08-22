@@ -78,6 +78,14 @@ class MoloSearchField extends StatelessWidget {
                   focusedBorder: InputBorder.none,
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
+                  // The theme's fields are 50 high and carry a 50 minimum to
+                  // match. This one is 40, and that minimum stretches the
+                  // decorator to fill it; InputDecorator then top-aligns its
+                  // input in the spare room and the words ride above the
+                  // magnifier beside them. Cleared so the decorator stays its
+                  // own height and the Row centres it, the same reason this
+                  // field already declines the theme's fill and borders.
+                  constraints: const BoxConstraints(),
                   filled: false,
                 ),
               ),

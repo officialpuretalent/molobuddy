@@ -121,6 +121,11 @@ abstract final class MoloTheme {
           horizontal: MoloSpacing.md,
           vertical: 15,
         ),
+        // A control shorter than 50 must clear this in its own
+        // InputDecoration. Left in place it stretches the decorator to
+        // fill the control, and InputDecorator top-aligns its input in
+        // the spare room rather than centring it. MoloSearchField, at
+        // 40, is the one that does.
         constraints: const BoxConstraints(minHeight: 50),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(MoloSpacing.controlRadius),
