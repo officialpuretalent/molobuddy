@@ -12,6 +12,7 @@ class MoloGlyph {
     this.cap = StrokeCap.butt,
     this.join = StrokeJoin.miter,
     this.viewBox = MoloGlyphs.viewBox,
+    this.strokeWidth = MoloGlyphs.designStrokeWidth,
   });
 
   /// Builds the glyph outline in the 18-unit design space.
@@ -27,6 +28,9 @@ class MoloGlyph {
   /// use 18, but the search field's uses 16, and scaling it as though it were
   /// 18 would render it small and thin-stroked.
   final double viewBox;
+
+  /// Source SVG stroke width in design-space units.
+  final double strokeWidth;
 }
 
 /// The navigation glyphs used by the workspace sidebar and rail.
@@ -104,6 +108,37 @@ abstract final class MoloGlyphs {
       ..relativeLineTo(0, 2.6)
       ..moveTo(2.8, 8)
       ..relativeLineTo(12.4, 0),
+  );
+
+  /// The compact clock used for time-sensitive work on the Home view.
+  static final clock = MoloGlyph(
+    cap: StrokeCap.round,
+    strokeWidth: 1.6,
+    buildPath: () => Path()
+      ..addOval(Rect.fromCircle(center: const Offset(9, 9), radius: 6.2))
+      ..moveTo(9, 5.6)
+      ..lineTo(9, 9)
+      ..relativeLineTo(2.4, 1.6),
+  );
+
+  static final arrowUpRight = MoloGlyph(
+    cap: StrokeCap.round,
+    join: StrokeJoin.round,
+    buildPath: () => Path()
+      ..moveTo(4.2, 13.8)
+      ..lineTo(13.8, 4.2)
+      ..moveTo(7, 4.2)
+      ..lineTo(13.8, 4.2)
+      ..lineTo(13.8, 11),
+  );
+
+  static final plus = MoloGlyph(
+    cap: StrokeCap.round,
+    buildPath: () => Path()
+      ..moveTo(9, 3.4)
+      ..lineTo(9, 14.6)
+      ..moveTo(3.4, 9)
+      ..lineTo(14.6, 9),
   );
 
   static final meetings = MoloGlyph(
@@ -664,7 +699,7 @@ class _MoloGlyphPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         // Stated in design units; the canvas scale carries it to the rendered
         // width, which is what strokeWidthFor documents.
-        ..strokeWidth = MoloGlyphs.designStrokeWidth
+        ..strokeWidth = glyph.strokeWidth
         ..strokeCap = glyph.cap
         ..strokeJoin = glyph.join
         ..color = color

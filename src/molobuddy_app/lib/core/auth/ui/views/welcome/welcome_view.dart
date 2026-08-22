@@ -7,6 +7,7 @@ import 'package:molobuddy_app/app/design_system/components/molo_account_menu.dar
 import 'package:molobuddy_app/app/design_system/components/molo_account_row.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_card.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_navigation_item.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_signal_icon.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_status_pill.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_wordmark.dart';
 import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
@@ -200,6 +201,7 @@ class _WorkspaceHome extends StatelessWidget {
         MoloNavigationDestination(
           id: 'documents',
           label: localisations.homeNavigationDocuments,
+          compactLabel: localisations.homeCompactNavigationDocuments,
           glyph: MoloGlyphs.documents,
           showInCompact: true,
         ),
@@ -208,8 +210,9 @@ class _WorkspaceHome extends StatelessWidget {
           label: localisations.homeNavigationDeadlines,
           glyph: MoloGlyphs.deadlines,
         ),
-        // In the design's navigation, but the screen is not built yet, so it
-        // is shown without pretending to work.
+        // Meetings is a primary destination in the selected Molo workbench.
+        // Keep the source-order placement even though the feature is not
+        // implemented yet, rather than hiding a part of the designed shell.
         MoloNavigationDestination(
           id: 'meetings',
           label: localisations.homeNavigationMeetings,
@@ -245,12 +248,8 @@ class _WorkspaceHome extends StatelessWidget {
       onPrimaryAction: () => _showUnavailable(context),
       accountMenuBuilder: (context, windowClass) => _AccountMenu(
         personName: greetingName,
-        compact:
-            windowClass != MoloWindowClass.large &&
-            windowClass != MoloWindowClass.extraLarge,
-        onDark:
-            windowClass == MoloWindowClass.medium ||
-            windowClass == MoloWindowClass.expanded,
+        compact: windowClass != MoloWindowClass.large,
+        onDark: windowClass == MoloWindowClass.medium,
         practice: practice,
         signingOut: signingOut,
         onSignOut: onSignOut,
@@ -274,7 +273,9 @@ class _WorkspaceHome extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, _) => _HomeContent(
           greetingName: greetingName,
-          padded: MediaQuery.sizeOf(context).width >= MoloBreakpoints.medium,
+          padded:
+              MediaQuery.sizeOf(context).width >=
+              MoloBreakpoints.compactMaximum,
         ),
       ),
     );
@@ -455,15 +456,15 @@ class _HomeContent extends StatelessWidget {
       slivers: [
         SliverPadding(
           padding: EdgeInsets.fromLTRB(
-            padded ? MoloSpacing.xl : MoloSpacing.lg,
-            MoloSpacing.xl + barInset,
-            padded ? MoloSpacing.xl : MoloSpacing.lg,
-            MoloSpacing.display,
+            padded ? 40 : 20,
+            (padded ? 40 : 24) + barInset,
+            padded ? 40 : 20,
+            padded ? 64 : 8,
           ),
           sliver: SliverToBoxAdapter(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1120),
+                constraints: const BoxConstraints(maxWidth: 1080),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -473,50 +474,58 @@ class _HomeContent extends StatelessWidget {
                         color: MoloColours.pulseText,
                       ),
                     ),
-                    const SizedBox(height: MoloSpacing.xs),
+                    const SizedBox(height: 10),
                     Text(
                       greeting,
-                      style: Theme.of(context).textTheme.displaySmall,
-                    ),
-                    const SizedBox(height: MoloSpacing.xs),
-                    Text(
-                      localisations.homeIntro,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: MoloColours.secondaryText,
+                      style: const TextStyle(
+                        fontSize: 34,
+                        height: 1.15,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: -0.68,
+                        color: MoloColours.moloPlum,
                       ),
                     ),
-                    const SizedBox(height: MoloSpacing.lg),
+                    const SizedBox(height: 10),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      child: Text(
+                        localisations.homeIntro,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          height: MoloTypography.normalLineHeight,
+                          letterSpacing: 0,
+                          color: MoloColours.secondaryText,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
                     const _MoloBrief(),
-                    const SizedBox(height: MoloSpacing.xl),
+                    const SizedBox(height: 40),
                     _SectionHeader(
                       title: localisations.homeAttentionTitle,
                       action: localisations.homeViewAllWork,
                     ),
-                    const SizedBox(height: MoloSpacing.sm),
+                    const SizedBox(height: 14),
                     const _AttentionList(),
-                    const SizedBox(height: MoloSpacing.xl),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        if (constraints.maxWidth < 760) {
-                          return const Column(
-                            children: [
-                              _DeadlinePanel(),
-                              SizedBox(height: MoloSpacing.md),
-                              _ActivityPanel(),
-                            ],
-                          );
-                        }
-                        return const Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(child: _DeadlinePanel()),
-                            SizedBox(width: MoloSpacing.md),
-                            Expanded(child: _ActivityPanel()),
-                          ],
-                        );
-                      },
-                    ),
-                    const SizedBox(height: MoloSpacing.xl),
+                    const SizedBox(height: 40),
+                    if (padded)
+                      const Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: _DeadlinePanel()),
+                          SizedBox(width: 20),
+                          Expanded(child: _ActivityPanel()),
+                        ],
+                      )
+                    else
+                      const Column(
+                        children: [
+                          _DeadlinePanel(),
+                          SizedBox(height: 20),
+                          _ActivityPanel(),
+                        ],
+                      ),
+                    const SizedBox(height: 40),
                     const _AskMoloField(),
                   ],
                 ),
@@ -536,42 +545,47 @@ class _MoloBrief extends StatelessWidget {
   Widget build(BuildContext context) {
     final localisations = AppLocalizations.of(context);
     return MoloCard(
+      padding: const EdgeInsets.all(28),
+      radius: MoloSpacing.featuredCardRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const DecoratedBox(
+              DecoratedBox(
                 decoration: BoxDecoration(
                   color: MoloColours.moloPlum,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10),
-                    bottomRight: Radius.circular(10),
-                    bottomLeft: Radius.circular(4),
-                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
                 child: SizedBox(
-                  height: 32,
-                  width: 32,
-                  child: Icon(
-                    Icons.auto_awesome_rounded,
-                    size: 16,
-                    color: MoloColours.moloPulse,
+                  height: 30,
+                  width: 30,
+                  child: Center(
+                    child: MoloIcon(
+                      MoloGlyphs.askMolo,
+                      size: 15,
+                      color: MoloColours.moloPulse,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: MoloSpacing.sm),
+              const SizedBox(width: 10),
               Text(
                 localisations.homeMoloName,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0,
+                  height: MoloTypography.normalLineHeight,
+                ),
               ),
               const SizedBox(width: MoloSpacing.xs),
               Text(
                 localisations.homeDailyBrief,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                style: const TextStyle(
+                  fontSize: 13,
+                  height: MoloTypography.normalLineHeight,
+                  letterSpacing: 0,
                   color: MoloColours.secondaryText,
                 ),
               ),
@@ -580,12 +594,17 @@ class _MoloBrief extends StatelessWidget {
           const SizedBox(height: MoloSpacing.md),
           Text(
             localisations.homeBriefBody,
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: const TextStyle(
+              fontSize: 18,
+              height: 1.5,
+              letterSpacing: 0,
+              color: MoloColours.moloPlum,
+            ),
           ),
           const SizedBox(height: MoloSpacing.md),
           Wrap(
-            spacing: MoloSpacing.sm,
-            runSpacing: MoloSpacing.sm,
+            spacing: 10,
+            runSpacing: 10,
             children: [
               FilledButton(
                 onPressed: () => _showUnavailable(context),
@@ -596,6 +615,16 @@ class _MoloBrief extends StatelessWidget {
                 child: Text(localisations.homeSeeBlockers),
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            localisations.homeMoloDecisionNote,
+            style: const TextStyle(
+              fontSize: 13,
+              height: MoloTypography.normalLineHeight,
+              letterSpacing: 0,
+              color: MoloColours.secondaryText,
+            ),
           ),
         ],
       ),
@@ -630,28 +659,28 @@ class _AttentionList extends StatelessWidget {
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
       color: MoloColours.surface,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(MoloSpacing.cardRadius),
       border: Border.all(color: MoloColours.border),
     ),
-    child: const Column(
+    child: Column(
       children: [
         _AttentionItem(
-          icon: Icons.task_alt_rounded,
+          glyph: MoloGlyphs.clock,
           titleKey: _HomeText.vatReturn,
           bodyKey: _HomeText.vatReturnBody,
           statusKey: _HomeText.finalReview,
         ),
-        Divider(height: 1),
+        Divider(height: 1, color: MoloColours.border),
         _AttentionItem(
-          icon: Icons.north_east_rounded,
+          glyph: MoloGlyphs.arrowUpRight,
           warning: true,
           titleKey: _HomeText.incomeTax,
           bodyKey: _HomeText.incomeTaxBody,
           statusKey: _HomeText.clientReply,
         ),
-        Divider(height: 1),
+        Divider(height: 1, color: MoloColours.border),
         _AttentionItem(
-          icon: Icons.add_rounded,
+          glyph: MoloGlyphs.plus,
           titleKey: _HomeText.vatRegistration,
           bodyKey: _HomeText.vatRegistrationBody,
           statusKey: _HomeText.assignOwner,
@@ -675,14 +704,14 @@ enum _HomeText {
 
 class _AttentionItem extends StatelessWidget {
   const _AttentionItem({
-    required this.icon,
+    required this.glyph,
     required this.titleKey,
     required this.bodyKey,
     required this.statusKey,
     this.warning = false,
   });
 
-  final IconData icon;
+  final MoloGlyph glyph;
   final _HomeText titleKey;
   final _HomeText bodyKey;
   final _HomeText statusKey;
@@ -701,32 +730,38 @@ class _AttentionItem extends StatelessWidget {
       child: InkWell(
         onTap: () => _showUnavailable(context),
         child: Padding(
-          padding: const EdgeInsets.all(MoloSpacing.md),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
           child: Row(
             children: [
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: warning
-                      ? const Color(0xFFFFF1DD)
-                      : MoloColours.pulseTint,
-                  borderRadius: BorderRadius.circular(MoloSpacing.sm),
-                ),
-                child: SizedBox(
-                  height: 34,
-                  width: 34,
-                  child: Icon(icon, color: signal, size: 19),
-                ),
+              MoloSignalIcon(
+                glyph: glyph,
+                foreground: signal,
+                background: warning
+                    ? MoloColours.warningTint
+                    : MoloColours.pulseTint,
               ),
               const SizedBox(width: MoloSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: Theme.of(context).textTheme.labelLarge),
-                    const SizedBox(height: 2),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        height: MoloTypography.normalLineHeight,
+                        letterSpacing: 0,
+                        color: MoloColours.moloPlum,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Text(
                       body,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      style: const TextStyle(
+                        fontSize: 13,
+                        height: MoloTypography.normalLineHeight,
+                        letterSpacing: 0,
                         color: MoloColours.secondaryText,
                       ),
                     ),
@@ -734,13 +769,11 @@ class _AttentionItem extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: MoloSpacing.sm),
-              Text(
-                status,
-                textAlign: TextAlign.end,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: signal,
-                  fontWeight: FontWeight.w500,
-                ),
+              MoloStatusPill(
+                label: status,
+                tone: warning
+                    ? MoloStatusTone.warning
+                    : MoloStatusTone.attention,
               ),
             ],
           ),

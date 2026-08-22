@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:molobuddy_app/app/adaptive/molo_app_shell.dart';
 import 'package:molobuddy_app/app/design_system/molo_theme.dart';
 import 'package:molobuddy_app/app/localisation/generated/app_localizations.dart';
 import 'package:molobuddy_app/bootstrap/app_environment.dart';
@@ -174,6 +175,9 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Deadlines coming up'), findsOneWidget);
+    // The selected workbench has Meetings in the primary desktop navigation.
+    // It remains visible while the feature itself is still being ported.
+    expect(find.text('Meetings'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -199,7 +203,7 @@ void main() {
       ),
     );
 
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(MoloCompactNavigation), findsOneWidget);
     expect(find.text('Needs your attention'), findsOneWidget);
     expect(find.text('Ask Molo about your practice'), findsOneWidget);
     expect(tester.takeException(), isNull);

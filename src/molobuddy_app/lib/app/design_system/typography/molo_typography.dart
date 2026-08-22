@@ -15,6 +15,9 @@ import 'package:flutter/material.dart';
 /// spacing the design never asked for. Every Molo style therefore states its
 /// tracking, including when the answer is zero.
 abstract final class MoloTypography {
+  static const geist = 'Geist';
+  static const geistMono = 'Geist Mono';
+
   /// Geist's own line box, which is what the design's `line-height: normal`
   /// resolves to.
   ///
@@ -45,8 +48,27 @@ abstract final class MoloTypography {
   /// Regular weight, not medium: the tracking does the work of separating it
   /// from the heading, and the extra weight made it compete.
   static final kicker = TextStyle(
+    fontFamily: geistMono,
     fontSize: 12,
     fontWeight: FontWeight.w400,
     letterSpacing: microLabel(12),
+  );
+
+  /// The source workbench uses Geist Mono for metadata, references and
+  /// uppercase eyebrow labels. This style keeps its mechanical character
+  /// independent of Material's body roles.
+  static TextStyle mono({
+    required double fontSize,
+    FontWeight fontWeight = FontWeight.w400,
+    double? letterSpacing,
+    double height = normalLineHeight,
+    Color? color,
+  }) => TextStyle(
+    fontFamily: geistMono,
+    fontSize: fontSize,
+    fontWeight: fontWeight,
+    letterSpacing: letterSpacing ?? 0,
+    height: height,
+    color: color,
   );
 }

@@ -421,6 +421,12 @@ abstract class AppLocalizations {
   /// **'Documents'**
   String get homeNavigationDocuments;
 
+  /// No description provided for @homeCompactNavigationDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Docs'**
+  String get homeCompactNavigationDocuments;
+
   /// No description provided for @homeNavigationDeadlines.
   ///
   /// In en, this message translates to:
@@ -558,6 +564,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'See what is blocked'**
   String get homeSeeBlockers;
+
+  /// No description provided for @homeMoloDecisionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Molo proposes, you decide.'**
+  String get homeMoloDecisionNote;
 
   /// No description provided for @homeAttentionTitle.
   ///

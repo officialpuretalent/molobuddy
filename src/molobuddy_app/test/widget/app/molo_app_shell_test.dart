@@ -20,6 +20,7 @@ final _destinations = <MoloNavigationDestination>[
   MoloNavigationDestination(
     id: 'documents',
     label: 'Documents',
+    compactLabel: 'Docs',
     glyph: MoloGlyphs.documents,
     showInCompact: true,
   ),
@@ -46,8 +47,8 @@ void main() {
       onPrimaryAction: () => createPressed++,
     );
 
-    expect(find.byType(NavigationBar), findsOneWidget);
-    final navigation = find.byType(NavigationBar);
+    expect(find.byType(MoloCompactNavigation), findsOneWidget);
+    final navigation = find.byType(MoloCompactNavigation);
     expect(
       find.descendant(of: navigation, matching: find.text('Home')),
       findsOneWidget,
@@ -57,11 +58,11 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.descendant(of: navigation, matching: find.text('Create work')),
+      find.descendant(of: navigation, matching: find.text('+')),
       findsOneWidget,
     );
     expect(
-      find.descendant(of: navigation, matching: find.text('Documents')),
+      find.descendant(of: navigation, matching: find.text('Docs')),
       findsOneWidget,
     );
     expect(
@@ -70,9 +71,7 @@ void main() {
     );
     expect(find.byType(MoloSidebar), findsNothing);
 
-    await tester.tap(
-      find.descendant(of: navigation, matching: find.text('Create work')),
-    );
+    await tester.tap(find.byKey(MoloCompactNavigation.primaryActionKey));
     await tester.pump();
     expect(createPressed, 1);
 
@@ -83,32 +82,34 @@ void main() {
     expect(selected, 'work');
   });
 
-  testWidgets('uses an icon rail at medium width', (tester) async {
-    await _pumpShell(tester, size: const Size(700, 900));
+  testWidgets('keeps the compact workbench below 900px', (tester) async {
+    await _pumpShell(tester, size: const Size(899, 900));
+
+    expect(find.byType(MoloCompactNavigation), findsOneWidget);
+    expect(find.byType(MoloSidebar), findsNothing);
+    expect(find.byType(MoloNavigationRail), findsNothing);
+  });
+
+  testWidgets('uses an icon rail from 900px through 1179px', (tester) async {
+    await _pumpShell(tester, size: const Size(900, 900));
 
     expect(find.byType(MoloNavigationRail), findsOneWidget);
     expect(find.byType(MoloSidebar), findsNothing);
-    expect(find.byType(NavigationBar), findsNothing);
-  });
 
-  testWidgets('keeps the rail at expanded width', (tester) async {
-    await _pumpShell(tester, size: const Size(1000, 900));
-
+    await _pumpShell(tester, size: const Size(1179, 900));
     expect(find.byType(MoloNavigationRail), findsOneWidget);
     expect(find.byType(MoloSidebar), findsNothing);
   });
 
-  testWidgets('uses the labelled sidebar at large width', (tester) async {
-    await _pumpShell(tester, size: const Size(1280, 900));
+  testWidgets('uses the labelled sidebar at 1180px', (tester) async {
+    await _pumpShell(tester, size: const Size(1180, 900));
 
     expect(find.byType(MoloSidebar), findsOneWidget);
     expect(find.byType(MoloNavigationRail), findsNothing);
     expect(find.text('Workspace content'), findsOneWidget);
   });
 
-  testWidgets('keeps the labelled sidebar at extra-large width', (
-    tester,
-  ) async {
+  testWidgets('keeps the labelled sidebar on wider workspaces', (tester) async {
     await _pumpShell(tester, size: const Size(1800, 900));
 
     expect(find.byType(MoloSidebar), findsOneWidget);
