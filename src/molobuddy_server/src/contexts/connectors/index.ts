@@ -5,6 +5,10 @@ export { FirestoreConnectorLifecycleStore } from './adapters/outbound/persistenc
 export { FirestoreOAuthAuthorisationStateStore } from './adapters/outbound/persistence/firestore_oauth_authorisation_state_store.js';
 export { FirestoreSyncRunRepository } from './adapters/outbound/persistence/firestore_sync_run_repository.js';
 export { FirestoreWebhookReceiptRepository } from './adapters/outbound/persistence/firestore_webhook_receipt_repository.js';
+export {
+  ProviderCredentialVaultError,
+  RegionalSecretManagerCredentialVault,
+} from './adapters/outbound/secrets/regional_secret_manager_credential_vault.js';
 export { ListConnectorDefinitions } from './application/queries/list_connector_definitions.js';
 export { StartAccountingConnection } from './application/commands/start_accounting_connection.js';
 export { ChangeAccountingConnectionStatus } from './application/commands/change_accounting_connection_status.js';
@@ -58,6 +62,11 @@ export type {
   ProviderCredentialVault,
   ProviderCredentialWrite,
 } from './application/ports/provider_credential_vault.js';
+export type {
+  ProviderCredentialVaultErrorCode,
+  RegionalSecretManagerClient,
+  RegionalSecretManagerCredentialVaultConfig,
+} from './adapters/outbound/secrets/regional_secret_manager_credential_vault.js';
 export type {
   ProviderTransport,
   ProviderTransportRequest,

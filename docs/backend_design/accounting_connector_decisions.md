@@ -47,6 +47,14 @@ These are deliberate product and architecture decisions, not open questions. The
 
 **Consequence:** Credentials reside only in the practice's regional Secret Manager through `ProviderCredentialVault`; Firestore contains only a secret reference and credential generation. Refresh-token rotation is serialised per connection. Provider callbacks bind signed, single-use state to the Molo connection and allowlisted return URI.
 
+### 5.1 Regional credential-vault implementation
+
+**Decision:** The credential vault creates one Secret Manager **regional** secret per opaque Molo connection, addressed through the configured regional endpoint. It reads an explicit secret-version number, never the `latest` alias; every replacement requires the caller's observed credential generation and an ETag-protected metadata update. A version created by a losing write is destroyed and never returned as a reference.
+
+**Why:** Regional secrets keep secret data in the selected location and regional endpoints only operate on resources in that location. Explicit version references make credential rotation reproducible and avoid silently consuming a newly-written provider token. Google recommends direct use of a supported client library, regional secrets where strict residency is required, and data-access logging. [Google Cloud: regional Secret Manager data residency](https://cloud.google.com/secret-manager/regional-secrets/data-residency) · [Google Cloud: create a regional secret with the Node.js client](https://cloud.google.com/secret-manager/regional-secrets/create-regional-secret) · [Google Cloud: Secret Manager best practices](https://cloud.google.com/secret-manager/docs/best-practices)
+
+**Consequence:** The connector worker must retain its per-connection lease while rotating a refresh token; the vault's generation and ETag checks reject stale or concurrent writers rather than accepting a lost update. Deployment must grant only the connector runtime `secretAccessor`/version-management permissions in its home region, enable Secret Manager data-access audit logs, and configure an organisation policy that restricts regional Secret Manager endpoint use. This is a deployment prerequisite before live OAuth is enabled.
+
 ## 6. Regional transfer policy: provider domain is explicit consent information
 
 **Decision:** Molo stores the provider API domain/data-centre with every selected data source and permits connection only when the provider domain is approved for that practice's home-region transfer policy. The connection screen must state the provider and source location when known. An unapproved domain results in `connector_unavailable_in_region`; it is not silently routed elsewhere.
