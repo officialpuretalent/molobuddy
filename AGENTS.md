@@ -50,6 +50,8 @@ The complete admission and upgrade process is in `docs/app_design/dependency_gov
 ## Verification
 
 - Keep formatting, static analysis and tests clean.
+- Format with `dart format lib test` from `src/molobuddy_app`, never `dart format .`. Formatting `.` descends into `build/ios/SourcePackages`, where a vendored `firebase_app_check` checkout carries an `analysis_options.yaml` whose `include:` points outside its own package, and `dart format` dies with `PathNotFoundException` on the missing file. Every tracked Dart source lives under `lib` and `test`, so the narrower scope is the complete one.
+- `dart format` rewrites files by default; `--set-exit-if-changed` only sets the status. Use `--output none` for a check that must leave the tree alone. Do not pipe the command into `tail` or `head` either, because the pipeline reports that command's status and a real failure reads as success.
 - Test architectural components separately: services, repositories, view models and views.
 - Flutter changes require proportional checks on all affected targets and layout classes, not only the developer's current device.
 - Generated files must be reproducible and must never be edited manually.
