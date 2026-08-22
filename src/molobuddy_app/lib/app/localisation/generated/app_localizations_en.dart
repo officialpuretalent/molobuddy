@@ -15,27 +15,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInPageTitle => 'Sign in | Molo';
 
   @override
+  String get signInHeroBody =>
+      'Every decision, every hand-off and every deadline in one place your practice can defend.';
+
+  @override
+  String get greetingMorning => 'Good morning';
+
+  @override
+  String get greetingAfternoon => 'Good afternoon';
+
+  @override
+  String get greetingEvening => 'Good evening';
+
+  @override
+  String get passwordHint => '••••••••';
+
+  @override
+  String get keepMeSignedIn => 'Keep me signed in on this device';
+
+  @override
+  String get orDividerLabel => 'or';
+
+  @override
+  String get microsoftLabel => 'Microsoft';
+
+  @override
+  String get googleLabel => 'Google';
+
+  @override
+  String get microsoftComingSoonHint => 'Microsoft sign-in is coming soon';
+
+  @override
   String get welcomePageTitle => 'Welcome | Molo';
 
   @override
   String get brandPromise => 'Make serious work feel light.';
-
-  @override
-  String get brandStoryTitle =>
-      'Everything your practice needs to keep work moving.';
-
-  @override
-  String get brandStoryBody =>
-      'Clear priorities, calm collaboration and confident progress, all in one place.';
-
-  @override
-  String get brandStoryPointOne => 'See what needs attention now';
-
-  @override
-  String get brandStoryPointTwo => 'Keep every hand-off clear';
-
-  @override
-  String get brandStoryPointThree => 'Move work forward with confidence';
 
   @override
   String get previewBanner => 'Preview mode · Nothing is saved';
@@ -51,10 +65,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInSubtitle => 'Continue to your Molo workspace.';
 
   @override
-  String get emailLabel => 'Email address';
-
-  @override
-  String get emailHint => 'you@example.com';
+  String get emailHint => 'you@practice.co.za';
 
   @override
   String get passwordLabel => 'Password';
@@ -78,20 +89,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signingIn => 'Signing in…';
 
   @override
-  String get orContinueWith => 'or continue with';
-
-  @override
-  String get continueWithGoogle => 'Continue with Google';
-
-  @override
-  String get comingSoon => 'Coming soon';
-
-  @override
   String get googleComingSoonHint => 'Google sign-in is coming soon';
 
   @override
   String termsNotice(String termsLink, String privacyLink) {
-    return 'By signing in, you agree to the $termsLink and $privacyLink.';
+    return 'By signing in, you agree to the $termsLink and $privacyLink. Molo never signs in to eFiling on your behalf.';
   }
 
   @override
@@ -383,10 +385,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newToMolo => 'New to Molo?';
 
   @override
-  String get createAccount => 'Create account';
+  String get createAccount => 'Create an account';
 
   @override
   String get alreadyHaveAccount => 'Already have an account?';
+
+  @override
+  String get wizardStepAccountTitle => 'Your account';
+
+  @override
+  String get wizardStepAccountNote => 'Name, email and a password';
+
+  @override
+  String get wizardStepPracticeTitle => 'Your practice';
+
+  @override
+  String get wizardStepPracticeNote => 'Practice, team size and region';
+
+  @override
+  String get wizardStepGoalsTitle => 'Your first win';
+
+  @override
+  String get wizardStepGoalsNote => 'What you want to fix first';
+
+  @override
+  String get wizardStepStartTitle => 'Your starting point';
+
+  @override
+  String get wizardStepStartNote => 'Real data or a sample';
+
+  @override
+  String get wizardFootnoteAccount =>
+      'Molo never signs in to eFiling, submits returns or makes payments on your behalf.';
+
+  @override
+  String get wizardFootnotePractice =>
+      'You can rename the practice and change these settings later.';
+
+  @override
+  String get wizardFootnoteGoals =>
+      'This only changes what Molo puts in front of you first. Nothing is hidden.';
+
+  @override
+  String get wizardFootnoteStart =>
+      'Sample data is clearly marked and can be removed in one step.';
+
+  @override
+  String get fullNameHint => 'Ngcebo Qwabe';
+
+  @override
+  String get passwordLongEnough => 'Long enough.';
+
+  @override
+  String get wizardAccountOutstanding =>
+      'Add your name, a work email, a password of at least 8 characters, and agree to the terms.';
 
   @override
   String get registrationStepAccount => 'Your account';
@@ -538,9 +590,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get choosePriorityRequired => 'Choose at least one priority.';
 
   @override
-  String get finishSetup => 'Finish setup';
-
-  @override
   String get putSomethingUsefulInside => 'How would you like to begin?';
 
   @override
@@ -589,53 +638,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String workspaceReadiness(int percent) {
     return 'Workspace $percent% ready';
   }
-
-  @override
-  String registrationCompleteTitle(String name) {
-    return 'Your workspace is ready, $name';
-  }
-
-  @override
-  String registrationCompleteBody(String practiceName) {
-    return '$practiceName is shaped around what matters to you.';
-  }
-
-  @override
-  String get registrationCompleteSummary =>
-      'Your practice defaults, first priorities and preferred starting point are ready for the real account flow.';
-
-  @override
-  String get continueToSignIn => 'Continue to sign in';
-
-  @override
-  String get noRegistrationDataSaved =>
-      'Preview complete. No account or practice data was saved.';
-
-  @override
-  String get registrationHeroTitle => 'Watch your workspace take shape.';
-
-  @override
-  String get registrationHeroBody =>
-      'Every choice should make Molo more useful before you arrive at the home screen.';
-
-  @override
-  String get progressAccount => 'Create your account';
-
-  @override
-  String get progressAccountBody => 'Your secure way into Molo.';
-
-  @override
-  String get progressPractice => 'Shape your practice';
-
-  @override
-  String get progressPracticeBody => 'Start solo or bring your team.';
-
-  @override
-  String get progressPriorities => 'Choose your focus';
-
-  @override
-  String get progressPrioritiesBody =>
-      'Make the first workspace feel relevant.';
 
   @override
   String registrationProgress(int current, int total) {
@@ -657,27 +659,41 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get signInPageTitle => 'Sign in | Molo';
 
   @override
+  String get signInHeroBody =>
+      'Every decision, every hand-off and every deadline in one place your practice can defend.';
+
+  @override
+  String get greetingMorning => 'Good morning';
+
+  @override
+  String get greetingAfternoon => 'Good afternoon';
+
+  @override
+  String get greetingEvening => 'Good evening';
+
+  @override
+  String get passwordHint => '••••••••';
+
+  @override
+  String get keepMeSignedIn => 'Keep me signed in on this device';
+
+  @override
+  String get orDividerLabel => 'or';
+
+  @override
+  String get microsoftLabel => 'Microsoft';
+
+  @override
+  String get googleLabel => 'Google';
+
+  @override
+  String get microsoftComingSoonHint => 'Microsoft sign-in is coming soon';
+
+  @override
   String get welcomePageTitle => 'Welcome | Molo';
 
   @override
   String get brandPromise => 'Make serious work feel light.';
-
-  @override
-  String get brandStoryTitle =>
-      'Everything your practice needs to keep work moving.';
-
-  @override
-  String get brandStoryBody =>
-      'Clear priorities, calm collaboration and confident progress, all in one place.';
-
-  @override
-  String get brandStoryPointOne => 'See what needs attention now';
-
-  @override
-  String get brandStoryPointTwo => 'Keep every hand-off clear';
-
-  @override
-  String get brandStoryPointThree => 'Move work forward with confidence';
 
   @override
   String get previewBanner => 'Preview mode · Nothing is saved';
@@ -693,10 +709,7 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get signInSubtitle => 'Continue to your Molo workspace.';
 
   @override
-  String get emailLabel => 'Email address';
-
-  @override
-  String get emailHint => 'you@example.com';
+  String get emailHint => 'you@practice.co.za';
 
   @override
   String get passwordLabel => 'Password';
@@ -720,20 +733,11 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get signingIn => 'Signing in…';
 
   @override
-  String get orContinueWith => 'or continue with';
-
-  @override
-  String get continueWithGoogle => 'Continue with Google';
-
-  @override
-  String get comingSoon => 'Coming soon';
-
-  @override
   String get googleComingSoonHint => 'Google sign-in is coming soon';
 
   @override
   String termsNotice(String termsLink, String privacyLink) {
-    return 'By signing in, you agree to the $termsLink and $privacyLink.';
+    return 'By signing in, you agree to the $termsLink and $privacyLink. Molo never signs in to eFiling on your behalf.';
   }
 
   @override
@@ -1025,10 +1029,60 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get newToMolo => 'New to Molo?';
 
   @override
-  String get createAccount => 'Create account';
+  String get createAccount => 'Create an account';
 
   @override
   String get alreadyHaveAccount => 'Already have an account?';
+
+  @override
+  String get wizardStepAccountTitle => 'Your account';
+
+  @override
+  String get wizardStepAccountNote => 'Name, email and a password';
+
+  @override
+  String get wizardStepPracticeTitle => 'Your practice';
+
+  @override
+  String get wizardStepPracticeNote => 'Practice, team size and region';
+
+  @override
+  String get wizardStepGoalsTitle => 'Your first win';
+
+  @override
+  String get wizardStepGoalsNote => 'What you want to fix first';
+
+  @override
+  String get wizardStepStartTitle => 'Your starting point';
+
+  @override
+  String get wizardStepStartNote => 'Real data or a sample';
+
+  @override
+  String get wizardFootnoteAccount =>
+      'Molo never signs in to eFiling, submits returns or makes payments on your behalf.';
+
+  @override
+  String get wizardFootnotePractice =>
+      'You can rename the practice and change these settings later.';
+
+  @override
+  String get wizardFootnoteGoals =>
+      'This only changes what Molo puts in front of you first. Nothing is hidden.';
+
+  @override
+  String get wizardFootnoteStart =>
+      'Sample data is clearly marked and can be removed in one step.';
+
+  @override
+  String get fullNameHint => 'Ngcebo Qwabe';
+
+  @override
+  String get passwordLongEnough => 'Long enough.';
+
+  @override
+  String get wizardAccountOutstanding =>
+      'Add your name, a work email, a password of at least 8 characters, and agree to the terms.';
 
   @override
   String get registrationStepAccount => 'Your account';
@@ -1180,9 +1234,6 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get choosePriorityRequired => 'Choose at least one priority.';
 
   @override
-  String get finishSetup => 'Finish setup';
-
-  @override
   String get putSomethingUsefulInside => 'How would you like to begin?';
 
   @override
@@ -1231,53 +1282,6 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String workspaceReadiness(int percent) {
     return 'Workspace $percent% ready';
   }
-
-  @override
-  String registrationCompleteTitle(String name) {
-    return 'Your workspace is ready, $name';
-  }
-
-  @override
-  String registrationCompleteBody(String practiceName) {
-    return '$practiceName is shaped around what matters to you.';
-  }
-
-  @override
-  String get registrationCompleteSummary =>
-      'Your practice defaults, first priorities and preferred starting point are ready for the real account flow.';
-
-  @override
-  String get continueToSignIn => 'Continue to sign in';
-
-  @override
-  String get noRegistrationDataSaved =>
-      'Preview complete. No account or practice data was saved.';
-
-  @override
-  String get registrationHeroTitle => 'Watch your workspace take shape.';
-
-  @override
-  String get registrationHeroBody =>
-      'Every choice should make Molo more useful before you arrive at the home screen.';
-
-  @override
-  String get progressAccount => 'Create your account';
-
-  @override
-  String get progressAccountBody => 'Your secure way into Molo.';
-
-  @override
-  String get progressPractice => 'Shape your practice';
-
-  @override
-  String get progressPracticeBody => 'Start solo or bring your team.';
-
-  @override
-  String get progressPriorities => 'Choose your focus';
-
-  @override
-  String get progressPrioritiesBody =>
-      'Make the first workspace feel relevant.';
 
   @override
   String registrationProgress(int current, int total) {

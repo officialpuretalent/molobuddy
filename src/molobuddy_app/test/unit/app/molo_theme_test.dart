@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
 import 'package:molobuddy_app/app/design_system/molo_theme.dart';
+import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
 
 void main() {
   group('text buttons read as quiet links', () {
@@ -56,4 +57,52 @@ void main() {
       expect(iconColour.resolve({WidgetState.focused}), MoloColours.pulseText);
     });
   });
+
+  group('control geometry', () {
+    test('a field is drawn at the design radius and height', () {
+      final theme = MoloTheme.light();
+      final border = theme.inputDecorationTheme.enabledBorder;
+      expect(border, isA<OutlineInputBorder>());
+      expect(
+        (border! as OutlineInputBorder).borderRadius,
+        BorderRadius.circular(MoloSpacing.controlRadius),
+      );
+      expect(theme.inputDecorationTheme.constraints?.minHeight, 50);
+      expect(
+        theme.inputDecorationTheme.contentPadding,
+        const EdgeInsets.symmetric(horizontal: MoloSpacing.md, vertical: 15),
+      );
+    });
+
+    test('a primary action is 52 high at the design radius', () {
+      final style = MoloTheme.light().filledButtonTheme.style!;
+      expect(
+        style.minimumSize?.resolve(const <WidgetState>{}),
+        const Size.fromHeight(52),
+      );
+      expect(
+        style.shape?.resolve(const <WidgetState>{}),
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(MoloSpacing.primaryActionRadius),
+        ),
+      );
+    });
+
+    test('hovering a primary action darkens the fill, not the label', () {
+      final style = MoloTheme.light().filledButtonTheme.style!;
+      expect(
+        style.backgroundColor?.resolve(const <WidgetState>{}),
+        MoloColours.moloPlum,
+      );
+      expect(
+        style.backgroundColor?.resolve({WidgetState.hovered}),
+        MoloColours.moloPlumHover,
+      );
+      expect(
+        style.foregroundColor?.resolve({WidgetState.hovered}),
+        MoloColours.warmCanvas,
+      );
+    });
+  });
+
 }

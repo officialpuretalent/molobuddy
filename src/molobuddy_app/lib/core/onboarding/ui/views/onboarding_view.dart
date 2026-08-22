@@ -4,7 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:molobuddy_app/app/adaptive/molo_wizard_shell.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_choice_card.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_field_label.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_text_field.dart';
+import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
+import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 import 'package:molobuddy_app/app/localisation/generated/app_localizations.dart';
 import 'package:molobuddy_app/app/router/app_router.dart';
 import 'package:molobuddy_app/core/auth/ui/view_models/auth_view_model.dart';
@@ -61,6 +66,7 @@ class OnboardingView extends ConsumerWidget {
       progress: WizardProgress(
         stepNumber: _stepNumber(state.step),
         readinessPercent: _readiness(state.step),
+        steps: moloWizardSteps(localisations),
         practiceName:
             state.draftPracticeName ?? state.answers.practiceName ?? '',
       ),
@@ -201,79 +207,70 @@ class _PracticeStepState extends ConsumerState<_PracticeStep> {
       key: const Key('registration_practice_step'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: MoloSpacing.md),
-        MoloStepEyebrow(label: localisations.registrationStepPractice),
-        const SizedBox(height: MoloSpacing.sm),
-        MoloStepHeading(label: localisations.tellUsAboutPractice),
-        const SizedBox(height: MoloSpacing.sm),
-        Text(
-          localisations.practiceSubtitle,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: MoloColours.secondaryText),
+        // No back link: going back would mean un-creating an account that
+        // already exists.
+        MoloWizardHeadingGroup(
+          eyebrow: localisations.registrationStepPractice,
+          title: localisations.tellUsAboutPractice,
+          blurb: localisations.practiceSubtitle,
         ),
-        const SizedBox(height: MoloSpacing.xl),
-        TextField(
-          key: const Key('practice_name_field'),
+        const SizedBox(height: 28),
+        MoloTextField(
+          label: localisations.practiceNameLabel,
+          fieldKey: const Key('practice_name_field'),
           controller: _controller,
+          hintText: localisations.practiceNameHint,
+          errorText: _nameInvalid ? localisations.practiceNameRequired : null,
+          // The rail's workspace card shows the name as it is typed, before it
+          // is saved.
           onChanged: ref
               .read(onboardingViewModelProvider.notifier)
               .previewPracticeName,
-          textCapitalization: TextCapitalization.words,
           textInputAction: TextInputAction.done,
-          decoration: InputDecoration(
-            labelText: localisations.practiceNameLabel,
-            hintText: localisations.practiceNameHint,
-            errorText: _nameInvalid ? localisations.practiceNameRequired : null,
-          ),
+          onSubmitted: (_) => _continue(),
         ),
-        const SizedBox(height: MoloSpacing.lg),
-        Text(
-          localisations.practiceSizeQuestion,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: MoloSpacing.sm),
+        const SizedBox(height: 24),
+        MoloFieldLabel(label: localisations.practiceSizeQuestion),
+        const SizedBox(height: 10),
         for (final choice in [
           (
             PracticeSize.solo,
             'practice_size_solo',
-            Icons.person_outline_rounded,
+            MoloGlyphs.practiceSolo,
             localisations.practiceSizeSolo,
             localisations.practiceSizeSoloBody,
           ),
           (
             PracticeSize.smallTeam,
             'practice_size_small',
-            Icons.groups_2_outlined,
+            MoloGlyphs.practiceSmallTeam,
             localisations.practiceSizeSmall,
             localisations.practiceSizeSmallBody,
           ),
           (
             PracticeSize.growingTeam,
             'practice_size_growing',
-            Icons.apartment_rounded,
+            MoloGlyphs.practiceGrowing,
             localisations.practiceSizeGrowing,
             localisations.practiceSizeGrowingBody,
           ),
         ]) ...[
           MoloChoiceCard(
             key: Key(choice.$2),
-            icon: choice.$3,
+            glyph: choice.$3,
             title: choice.$4,
-            subtitle: choice.$5,
+            description: choice.$5,
             selected: _size == choice.$1,
             onTap: () => setState(() => _size = choice.$1),
           ),
-          const SizedBox(height: MoloSpacing.sm),
+          const SizedBox(height: 10),
         ],
-        const SizedBox(height: MoloSpacing.lg),
+        const SizedBox(height: 14),
+        MoloFieldLabel(label: localisations.primaryTaxRegionLabel),
+        const SizedBox(height: MoloFieldLabel.gap),
         DropdownButtonFormField<String>(
           key: const Key('practice_region_field'),
           initialValue: 'ZA',
-          decoration: InputDecoration(
-            labelText: localisations.primaryTaxRegionLabel,
-            helperText: localisations.primaryTaxRegionHelper,
-          ),
           items: [
             DropdownMenuItem(
               value: 'ZA',
@@ -282,16 +279,34 @@ class _PracticeStepState extends ConsumerState<_PracticeStep> {
           ],
           onChanged: (_) {},
         ),
-        const SizedBox(height: MoloSpacing.xl),
+        const SizedBox(height: MoloFieldLabel.gap),
+        Text(
+          localisations.primaryTaxRegionHelper,
+          style: const TextStyle(
+            fontSize: 12,
+            letterSpacing: 0,
+            height: MoloTypography.normalLineHeight,
+            color: MoloColours.secondaryText,
+          ),
+        ),
+        const SizedBox(height: 28),
         if (state.failure != null) ...[
           _OnboardingFailureNotice(failure: state.failure!),
           const SizedBox(height: MoloSpacing.md),
         ],
-        FilledButton(
-          key: const Key('registration_practice_continue'),
-          onPressed: state.busy ? null : _continue,
-          child: Text(localisations.continueLabel),
+        ListenableBuilder(
+          listenable: _controller,
+          builder: (context, _) => MoloWizardPrimaryAction(
+            buttonKey: const Key('registration_practice_continue'),
+            label: localisations.continueLabel,
+            complete: _controller.text.trim().length >= 2,
+            outstanding: localisations.practiceNameRequired,
+            busy: state.busy,
+            onPressed: _continue,
+          ),
         ),
+        const SizedBox(height: 12),
+        MoloStepFootnote(label: localisations.wizardFootnotePractice),
       ],
     );
   }
@@ -332,25 +347,25 @@ class _PrioritiesStepState extends ConsumerState<_PrioritiesStep> {
     final choices = [
       (
         OnboardingPriority.deadlines,
-        Icons.event_available_outlined,
+        MoloGlyphs.goalDeadlines,
         localisations.priorityDeadlines,
         localisations.priorityDeadlinesBody,
       ),
       (
         OnboardingPriority.documents,
-        Icons.folder_copy_outlined,
+        MoloGlyphs.goalDocuments,
         localisations.priorityDocuments,
         localisations.priorityDocumentsBody,
       ),
       (
         OnboardingPriority.teamwork,
-        Icons.hub_outlined,
+        MoloGlyphs.goalTeamwork,
         localisations.priorityTeamwork,
         localisations.priorityTeamworkBody,
       ),
       (
         OnboardingPriority.visibility,
-        Icons.auto_graph_rounded,
+        MoloGlyphs.goalVisibility,
         localisations.priorityVisibility,
         localisations.priorityVisibilityBody,
       ),
@@ -359,55 +374,47 @@ class _PrioritiesStepState extends ConsumerState<_PrioritiesStep> {
       key: const Key('registration_priorities_step'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        MoloWizardBackButton(
-          onPressed: ref.read(onboardingViewModelProvider.notifier).goBack,
+        MoloWizardHeadingGroup(
+          eyebrow: localisations.registrationStepPriorities,
+          title: localisations.whatShouldMoloHelpWith,
+          blurb: localisations.prioritiesSubtitle,
+          onBack: ref.read(onboardingViewModelProvider.notifier).goBack,
         ),
-        const SizedBox(height: MoloSpacing.md),
-        MoloStepEyebrow(label: localisations.registrationStepPriorities),
-        const SizedBox(height: MoloSpacing.sm),
-        MoloStepHeading(label: localisations.whatShouldMoloHelpWith),
-        const SizedBox(height: MoloSpacing.sm),
-        Text(
-          localisations.prioritiesSubtitle,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: MoloColours.secondaryText),
-        ),
-        const SizedBox(height: MoloSpacing.xl),
+        const SizedBox(height: 28),
         for (final choice in choices) ...[
           MoloChoiceCard(
             key: Key('priority_${choice.$1.name}'),
-            icon: choice.$2,
+            glyph: choice.$2,
             title: choice.$3,
-            subtitle: choice.$4,
+            description: choice.$4,
+            kind: MoloChoiceKind.multiple,
             selected: _chosen.contains(choice.$1),
-            trailing: Checkbox(
-              value: _chosen.contains(choice.$1),
-              onChanged: (_) => _toggle(choice.$1),
-            ),
             onTap: () => _toggle(choice.$1),
           ),
-          const SizedBox(height: MoloSpacing.sm),
+          const SizedBox(height: 10),
         ],
         if (_invalid) ...[
           const SizedBox(height: MoloSpacing.xs),
           Text(
             localisations.choosePriorityRequired,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: MoloColours.error),
+            style: const TextStyle(fontSize: 12, color: MoloColours.error),
           ),
         ],
-        const SizedBox(height: MoloSpacing.lg),
+        const SizedBox(height: 18),
         if (state.failure != null) ...[
           _OnboardingFailureNotice(failure: state.failure!),
           const SizedBox(height: MoloSpacing.md),
         ],
-        FilledButton(
-          key: const Key('complete_registration_preview'),
-          onPressed: state.busy ? null : _continue,
-          child: Text(localisations.continueLabel),
+        MoloWizardPrimaryAction(
+          buttonKey: const Key('complete_registration_preview'),
+          label: localisations.continueLabel,
+          complete: _chosen.isNotEmpty,
+          outstanding: localisations.choosePriorityRequired,
+          busy: state.busy,
+          onPressed: _continue,
         ),
+        const SizedBox(height: 12),
+        MoloStepFootnote(label: localisations.wizardFootnoteGoals),
       ],
     );
   }
@@ -460,81 +467,71 @@ class _StartingPointStepState extends ConsumerState<_StartingPointStep> {
       key: const Key('registration_starting_point_step'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        MoloWizardBackButton(
-          onPressed: ref.read(onboardingViewModelProvider.notifier).goBack,
+        MoloWizardHeadingGroup(
+          eyebrow: localisations.registrationStepStartingPoint,
+          title: localisations.putSomethingUsefulInside,
+          blurb: localisations.startingPointSubtitle,
+          onBack: ref.read(onboardingViewModelProvider.notifier).goBack,
         ),
-        const SizedBox(height: MoloSpacing.md),
-        MoloStepEyebrow(label: localisations.registrationStepStartingPoint),
-        const SizedBox(height: MoloSpacing.sm),
-        MoloStepHeading(label: localisations.putSomethingUsefulInside),
-        const SizedBox(height: MoloSpacing.sm),
-        Text(
-          localisations.startingPointSubtitle,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: MoloColours.secondaryText),
-        ),
-        const SizedBox(height: MoloSpacing.xl),
+        const SizedBox(height: 28),
         for (final choice in [
           (
             WorkspaceStartingPoint.importClients,
             'starting_point_import',
-            Icons.upload_file_outlined,
+            MoloGlyphs.startImport,
             localisations.startingPointImport,
             localisations.startingPointImportBody,
           ),
           (
             WorkspaceStartingPoint.addFirstClient,
             'starting_point_client',
-            Icons.person_add_alt_1_outlined,
+            MoloGlyphs.startFirstClient,
             localisations.startingPointClient,
             localisations.startingPointClientBody,
           ),
           (
             WorkspaceStartingPoint.sampleWorkspace,
             'starting_point_sample',
-            Icons.explore_outlined,
+            MoloGlyphs.startSample,
             localisations.startingPointSample,
             localisations.startingPointSampleBody,
           ),
         ]) ...[
           MoloChoiceCard(
             key: Key(choice.$2),
-            icon: choice.$3,
+            glyph: choice.$3,
             title: choice.$4,
-            subtitle: choice.$5,
+            description: choice.$5,
             selected: _chosen == choice.$1,
             onTap: () => setState(() {
               _chosen = choice.$1;
               _invalid = false;
             }),
           ),
-          const SizedBox(height: MoloSpacing.sm),
+          const SizedBox(height: 10),
         ],
         if (_invalid) ...[
-          const SizedBox(height: MoloSpacing.sm),
+          const SizedBox(height: MoloSpacing.xs),
           Text(
             localisations.chooseStartingPointRequired,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: MoloColours.error),
+            style: const TextStyle(fontSize: 12, color: MoloColours.error),
           ),
         ],
-        const SizedBox(height: MoloSpacing.xl),
+        const SizedBox(height: 18),
         if (state.failure != null) ...[
           _OnboardingFailureNotice(failure: state.failure!),
           const SizedBox(height: MoloSpacing.md),
         ],
-        FilledButton(
-          key: const Key('finish_registration_preview'),
-          onPressed: state.busy ? null : _finish,
-          child: state.busy
-              ? const SizedBox.square(
-                  dimension: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(localisations.buildMyWorkspace),
+        MoloWizardPrimaryAction(
+          buttonKey: const Key('finish_registration_preview'),
+          label: localisations.buildMyWorkspace,
+          complete: _chosen != null,
+          outstanding: localisations.chooseStartingPointRequired,
+          busy: state.busy,
+          onPressed: () => unawaited(_finish()),
         ),
+        const SizedBox(height: 12),
+        MoloStepFootnote(label: localisations.wizardFootnoteStart),
       ],
     );
   }

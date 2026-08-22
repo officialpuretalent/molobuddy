@@ -113,10 +113,15 @@ abstract final class MoloTheme {
         hintStyle: const TextStyle(color: MoloColours.secondaryText),
         suffixIconColor: WidgetStateColor.resolveWith(_inputStateColour),
         prefixIconColor: WidgetStateColor.resolveWith(_inputStateColour),
+        // The design draws a 50-high field with 16 of horizontal padding. 15px
+        // text at Geist's 1.3 line box is 19.5, so 15 either side lands on
+        // 49.5 and the minimum lifts it to exactly 50. A minimum rather than a
+        // fixed height, so a doubled text size grows the field.
         contentPadding: const EdgeInsets.symmetric(
           horizontal: MoloSpacing.md,
-          vertical: 18,
+          vertical: 15,
         ),
+        constraints: const BoxConstraints(minHeight: 50),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(MoloSpacing.controlRadius),
           borderSide: const BorderSide(color: MoloColours.controlBorder),
@@ -139,10 +144,37 @@ abstract final class MoloTheme {
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(54),
-          shape: controlShape,
-          textStyle: textTheme.labelLarge,
+        style: ButtonStyle(
+          // The design draws a primary action one unit rounder and two shorter
+          // than a field, which is what separates it from the fields above it.
+          minimumSize: const WidgetStatePropertyAll(Size.fromHeight(52)),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                MoloSpacing.primaryActionRadius,
+              ),
+            ),
+          ),
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return MoloColours.border;
+            }
+            if (states.contains(WidgetState.hovered) ||
+                states.contains(WidgetState.pressed)) {
+              return MoloColours.moloPlumHover;
+            }
+            return MoloColours.moloPlum;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return MoloColours.secondaryText;
+            }
+            return MoloColours.warmCanvas;
+          }),
+          // The hover fill is the whole hover state, so no overlay lightens it
+          // on top and takes the label's contrast with it.
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+          textStyle: WidgetStatePropertyAll(textTheme.labelLarge),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(

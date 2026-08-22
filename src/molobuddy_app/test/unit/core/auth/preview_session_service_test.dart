@@ -135,6 +135,7 @@ final class _StaticAuthService implements AuthService {
   Future<AuthResult<AuthUser>> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required bool persistSession,
   }) async {
     throw UnsupportedError('not used by the session service');
   }

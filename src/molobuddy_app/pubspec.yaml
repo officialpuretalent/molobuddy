@@ -39,6 +39,11 @@ dev_dependencies:
 flutter:
   generate: true
   uses-material-design: true
+  assets:
+    # Listed file by file rather than by directory: assets/brand/ also holds
+    # two unreferenced megabyte PNGs, and registering the directory would
+    # bundle them into every build.
+    - assets/brand/signin-portrait.webp
   fonts:
     - family: Geist
       fonts:

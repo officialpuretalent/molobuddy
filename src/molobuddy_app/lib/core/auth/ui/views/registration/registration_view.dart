@@ -1,8 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:molobuddy_app/app/adaptive/molo_wizard_shell.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_check_row.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_field_label.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_text_field.dart';
+import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
+import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 import 'package:molobuddy_app/app/localisation/generated/app_localizations.dart';
 import 'package:molobuddy_app/app/router/app_router.dart';
 import 'package:molobuddy_app/core/auth/data/models/auth_failure.dart';
@@ -43,7 +50,11 @@ class _RegistrationViewState extends ConsumerState<RegistrationView> {
     final state = ref.watch(registrationViewModelProvider);
     return MoloWizardShell(
       pageTitle: localisations.signUpPageTitle,
-      progress: const WizardProgress(stepNumber: 1, readinessPercent: 12),
+      progress: WizardProgress(
+        stepNumber: 1,
+        readinessPercent: 12,
+        steps: moloWizardSteps(localisations),
+      ),
       showSignInLink: true,
       child: _AccountStep(
         key: const ValueKey('account'),
@@ -56,7 +67,7 @@ class _RegistrationViewState extends ConsumerState<RegistrationView> {
         onTogglePassword: () =>
             setState(() => _obscurePassword = !_obscurePassword),
         onAcceptedTermsChanged: (value) =>
-            setState(() => _acceptedTerms = value ?? false),
+            setState(() => _acceptedTerms = value),
       ),
     );
   }
@@ -82,7 +93,7 @@ class _AccountStep extends ConsumerWidget {
   final bool obscurePassword;
   final bool acceptedTerms;
   final VoidCallback onTogglePassword;
-  final ValueChanged<bool?> onAcceptedTermsChanged;
+  final ValueChanged<bool> onAcceptedTermsChanged;
 
   /// Creates the account, then hands over to the resumable half of signup.
   Future<void> _submit(BuildContext context, WidgetRef ref) async {
@@ -107,188 +118,203 @@ class _AccountStep extends ConsumerWidget {
         key: const Key('registration_account_step'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          MoloStepEyebrow(label: localisations.registrationStepAccount),
-          const SizedBox(height: MoloSpacing.sm),
-          MoloStepHeading(label: localisations.createYourAccount),
-          const SizedBox(height: MoloSpacing.sm),
-          Text(
-            localisations.createAccountSubtitle,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(color: MoloColours.secondaryText),
+          MoloWizardHeadingGroup(
+            eyebrow: localisations.registrationStepAccount,
+            title: localisations.createYourAccount,
+            blurb: localisations.createAccountSubtitle,
           ),
-          const SizedBox(height: MoloSpacing.xl),
-          TextField(
-            key: const Key('registration_name_field'),
+          const SizedBox(height: 28),
+          MoloTextField(
+            label: localisations.fullNameLabel,
+            fieldKey: const Key('registration_name_field'),
             controller: nameController,
+            hintText: localisations.fullNameHint,
+            errorText: state.nameInvalid
+                ? localisations.fullNameRequired
+                : null,
             autofillHints: const [AutofillHints.name],
-            textCapitalization: TextCapitalization.words,
             textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: localisations.fullNameLabel,
-              errorText: state.nameInvalid
-                  ? localisations.fullNameRequired
-                  : null,
-            ),
           ),
-          const SizedBox(height: MoloSpacing.md),
-          TextField(
-            key: const Key('registration_email_field'),
+          const SizedBox(height: 18),
+          MoloTextField(
+            label: localisations.workEmailLabel,
+            fieldKey: const Key('registration_email_field'),
             controller: emailController,
+            hintText: localisations.emailHint,
+            errorText: state.emailAlreadyRegistered
+                ? localisations.emailAlreadyRegistered
+                : state.emailInvalid
+                ? localisations.invalidEmail
+                : null,
             autofillHints: const [AutofillHints.newUsername],
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             autocorrect: false,
-            decoration: InputDecoration(
-              labelText: localisations.workEmailLabel,
-              hintText: localisations.emailHint,
-              errorText: state.emailAlreadyRegistered
-                  ? localisations.emailAlreadyRegistered
-                  : state.emailInvalid
-                  ? localisations.invalidEmail
-                  : null,
-            ),
           ),
-          const SizedBox(height: MoloSpacing.md),
-          TextField(
-            key: const Key('registration_password_field'),
+          const SizedBox(height: 18),
+          _PasswordField(
             controller: passwordController,
-            autofillHints: const [AutofillHints.newPassword],
-            obscureText: obscurePassword,
-            textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              labelText: localisations.createPasswordLabel,
-              helperText: localisations.passwordHelper,
-              errorText: state.passwordTooShort
-                  ? localisations.passwordTooShort
-                  : null,
-              suffixIcon: IconButton(
-                tooltip: obscurePassword
-                    ? localisations.showPassword
-                    : localisations.hidePassword,
-                onPressed: onTogglePassword,
-                icon: Icon(
-                  obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
-              ),
-            ),
+            obscure: obscurePassword,
+            onToggle: onTogglePassword,
+            errorText: state.passwordTooShort
+                ? localisations.passwordTooShort
+                : null,
           ),
-          const SizedBox(height: MoloSpacing.md),
-          _TermsAgreement(
+          const SizedBox(height: 18),
+          MoloCheckRow(
+            key: const Key('registration_terms_checkbox'),
+            boxSize: 21,
+            boxRadius: 7,
             value: acceptedTerms,
-            hasError: state.termsNotAccepted,
-            label: localisations.acceptTermsLabel(
+            onChanged: onAcceptedTermsChanged,
+            semanticLabel: localisations.acceptTermsLabel(
               localisations.termsOfService,
               localisations.privacyPolicy,
             ),
-            termsLabel: localisations.termsOfService,
-            privacyLabel: localisations.privacyPolicy,
-            errorLabel: localisations.acceptTermsRequired,
-            onChanged: onAcceptedTermsChanged,
-            onTermsPressed: () => showAuthLegalPreviewDialog(
-              context,
-              title: localisations.termsOfService,
-              body: localisations.legalPreviewBody,
-              closeLabel: localisations.closeLabel,
-            ),
-            onPrivacyPressed: () => showAuthLegalPreviewDialog(
-              context,
-              title: localisations.privacyPolicy,
-              body: localisations.legalPreviewBody,
-              closeLabel: localisations.closeLabel,
+            // The two document names stay separate links: reading one must not
+            // be the thing that grants consent.
+            label: AuthLegalLinksText(
+              label: localisations.acceptTermsLabel(
+                localisations.termsOfService,
+                localisations.privacyPolicy,
+              ),
+              termsLabel: localisations.termsOfService,
+              privacyLabel: localisations.privacyPolicy,
+              onTermsPressed: () => showAuthLegalPreviewDialog(
+                context,
+                title: localisations.termsOfService,
+                body: localisations.legalPreviewBody,
+                closeLabel: localisations.closeLabel,
+              ),
+              onPrivacyPressed: () => showAuthLegalPreviewDialog(
+                context,
+                title: localisations.privacyPolicy,
+                body: localisations.legalPreviewBody,
+                closeLabel: localisations.closeLabel,
+              ),
             ),
           ),
-          const SizedBox(height: MoloSpacing.lg),
+          if (state.termsNotAccepted) ...[
+            const SizedBox(height: MoloSpacing.xs),
+            Text(
+              localisations.acceptTermsRequired,
+              style: const TextStyle(fontSize: 12, color: MoloColours.error),
+            ),
+          ],
+          const SizedBox(height: 28),
           if (state.failure != null) ...[
             _AccountFailureNotice(failure: state.failure!),
             const SizedBox(height: MoloSpacing.md),
           ],
-          FilledButton(
-            key: const Key('registration_account_continue'),
-            onPressed: state.submitting ? null : () => _submit(context, ref),
-            child: state.submitting
-                ? const SizedBox.square(
-                    dimension: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(localisations.continueLabel),
+          // The action's appearance follows the fields as they are typed, so it
+          // rebuilds on every keystroke rather than only on submit.
+          ListenableBuilder(
+            listenable: Listenable.merge([
+              nameController,
+              emailController,
+              passwordController,
+            ]),
+            builder: (context, _) => MoloWizardPrimaryAction(
+              buttonKey: const Key('registration_account_continue'),
+              label: localisations.continueLabel,
+              complete: _complete,
+              outstanding: localisations.wizardAccountOutstanding,
+              busy: state.submitting,
+              onPressed: () => unawaited(_submit(context, ref)),
+            ),
           ),
+          const SizedBox(height: 12),
+          MoloStepFootnote(label: localisations.wizardFootnoteAccount),
         ],
       ),
     );
   }
+
+  /// The same four conditions the view model checks on submit. Restated here
+  /// only to decide the button's appearance; the view model stays the authority
+  /// on whether the account is created.
+  bool get _complete =>
+      nameController.text.trim().isNotEmpty &&
+      emailController.text.contains('@') &&
+      passwordController.text.length >= 8 &&
+      acceptedTerms;
 }
 
-class _TermsAgreement extends StatelessWidget {
-  const _TermsAgreement({
-    required this.value,
-    required this.hasError,
-    required this.label,
-    required this.termsLabel,
-    required this.privacyLabel,
-    required this.errorLabel,
-    required this.onChanged,
-    required this.onTermsPressed,
-    required this.onPrivacyPressed,
+/// The password field and the line under it that says whether it is long
+/// enough.
+class _PasswordField extends StatelessWidget {
+  const _PasswordField({
+    required this.controller,
+    required this.obscure,
+    required this.onToggle,
+    required this.errorText,
   });
 
-  final bool value;
-  final bool hasError;
-  final String label;
-  final String termsLabel;
-  final String privacyLabel;
-  final String errorLabel;
-  final ValueChanged<bool?> onChanged;
-  final VoidCallback onTermsPressed;
-  final VoidCallback onPrivacyPressed;
+  final TextEditingController controller;
+  final bool obscure;
+  final VoidCallback onToggle;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
-    final defaultStyle = DefaultTextStyle.of(context).style;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    final localisations = AppLocalizations.of(context);
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final longEnough = controller.text.length >= 8;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Checkbox(
-              key: const Key('registration_terms_checkbox'),
-              value: value,
-              isError: hasError,
-              onChanged: onChanged,
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(right: MoloSpacing.xs),
-                child: AuthLegalLinksText(
-                  label: label,
-                  termsLabel: termsLabel,
-                  privacyLabel: privacyLabel,
-                  onTermsPressed: onTermsPressed,
-                  onPrivacyPressed: onPrivacyPressed,
-                  style: defaultStyle,
+            MoloTextField(
+              label: localisations.createPasswordLabel,
+              fieldKey: const Key('registration_password_field'),
+              controller: controller,
+              obscureText: obscure,
+              hintText: localisations.passwordHint,
+              errorText: errorText,
+              autofillHints: const [AutofillHints.newPassword],
+              textInputAction: TextInputAction.done,
+              suffix: IconButton(
+                tooltip: obscure
+                    ? localisations.showPassword
+                    : localisations.hidePassword,
+                onPressed: onToggle,
+                icon: MoloIcon(
+                  MoloGlyphs.eye,
+                  size: 18,
+                  color: MoloColours.secondaryText,
+                ),
+                style: IconButton.styleFrom(
+                  fixedSize: const Size.square(36),
+                  padding: EdgeInsets.zero,
+                  hoverColor: MoloColours.pulseTint,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ),
+            const SizedBox(height: MoloFieldLabel.gap),
+            Text(
+              longEnough
+                  ? localisations.passwordLongEnough
+                  : localisations.passwordHelper,
+              style: TextStyle(
+                fontSize: 12,
+                letterSpacing: 0,
+                height: MoloTypography.normalLineHeight,
+                // The satisfied colour is the existing success token at 5.35:1
+                // rather than the baseline's own green at 5.17:1, which would
+                // have been a second green for no gain. The unsatisfied one is
+                // secondaryText, not the baseline's #9A858D at 3.30:1.
+                color: longEnough
+                    ? MoloColours.success
+                    : MoloColours.secondaryText,
+              ),
+            ),
           ],
-        ),
-        if (hasError)
-          Padding(
-            // Indent past the checkbox's tap target so the message lines up
-            // with the sentence it belongs to.
-            padding: const EdgeInsets.only(
-              left: kMinInteractiveDimension,
-              bottom: MoloSpacing.xs,
-            ),
-            child: Text(
-              errorLabel,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: MoloColours.error),
-            ),
-          ),
-      ],
+        );
+      },
     );
   }
 }

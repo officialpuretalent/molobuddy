@@ -109,6 +109,66 @@ abstract class AppLocalizations {
   /// **'Sign in | Molo'**
   String get signInPageTitle;
 
+  /// No description provided for @signInHeroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every decision, every hand-off and every deadline in one place your practice can defend.'**
+  String get signInHeroBody;
+
+  /// No description provided for @greetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get greetingMorning;
+
+  /// No description provided for @greetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get greetingAfternoon;
+
+  /// No description provided for @greetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get greetingEvening;
+
+  /// No description provided for @passwordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'••••••••'**
+  String get passwordHint;
+
+  /// No description provided for @keepMeSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep me signed in on this device'**
+  String get keepMeSignedIn;
+
+  /// No description provided for @orDividerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get orDividerLabel;
+
+  /// No description provided for @microsoftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Microsoft'**
+  String get microsoftLabel;
+
+  /// No description provided for @googleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Google'**
+  String get googleLabel;
+
+  /// No description provided for @microsoftComingSoonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Microsoft sign-in is coming soon'**
+  String get microsoftComingSoonHint;
+
   /// No description provided for @welcomePageTitle.
   ///
   /// In en, this message translates to:
@@ -120,36 +180,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Make serious work feel light.'**
   String get brandPromise;
-
-  /// No description provided for @brandStoryTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Everything your practice needs to keep work moving.'**
-  String get brandStoryTitle;
-
-  /// No description provided for @brandStoryBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear priorities, calm collaboration and confident progress, all in one place.'**
-  String get brandStoryBody;
-
-  /// No description provided for @brandStoryPointOne.
-  ///
-  /// In en, this message translates to:
-  /// **'See what needs attention now'**
-  String get brandStoryPointOne;
-
-  /// No description provided for @brandStoryPointTwo.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep every hand-off clear'**
-  String get brandStoryPointTwo;
-
-  /// No description provided for @brandStoryPointThree.
-  ///
-  /// In en, this message translates to:
-  /// **'Move work forward with confidence'**
-  String get brandStoryPointThree;
 
   /// No description provided for @previewBanner.
   ///
@@ -175,16 +205,10 @@ abstract class AppLocalizations {
   /// **'Continue to your Molo workspace.'**
   String get signInSubtitle;
 
-  /// No description provided for @emailLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Email address'**
-  String get emailLabel;
-
   /// No description provided for @emailHint.
   ///
   /// In en, this message translates to:
-  /// **'you@example.com'**
+  /// **'you@practice.co.za'**
   String get emailHint;
 
   /// No description provided for @passwordLabel.
@@ -229,24 +253,6 @@ abstract class AppLocalizations {
   /// **'Signing in…'**
   String get signingIn;
 
-  /// No description provided for @orContinueWith.
-  ///
-  /// In en, this message translates to:
-  /// **'or continue with'**
-  String get orContinueWith;
-
-  /// No description provided for @continueWithGoogle.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue with Google'**
-  String get continueWithGoogle;
-
-  /// No description provided for @comingSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Coming soon'**
-  String get comingSoon;
-
   /// No description provided for @googleComingSoonHint.
   ///
   /// In en, this message translates to:
@@ -256,7 +262,7 @@ abstract class AppLocalizations {
   /// Sign-in agreement sentence with labels that are rendered as separate links.
   ///
   /// In en, this message translates to:
-  /// **'By signing in, you agree to the {termsLink} and {privacyLink}.'**
+  /// **'By signing in, you agree to the {termsLink} and {privacyLink}. Molo never signs in to eFiling on your behalf.'**
   String termsNotice(String termsLink, String privacyLink);
 
   /// No description provided for @invalidEmail.
@@ -802,7 +808,7 @@ abstract class AppLocalizations {
   /// No description provided for @createAccount.
   ///
   /// In en, this message translates to:
-  /// **'Create account'**
+  /// **'Create an account'**
   String get createAccount;
 
   /// No description provided for @alreadyHaveAccount.
@@ -810,6 +816,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Already have an account?'**
   String get alreadyHaveAccount;
+
+  /// No description provided for @wizardStepAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account'**
+  String get wizardStepAccountTitle;
+
+  /// No description provided for @wizardStepAccountNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, email and a password'**
+  String get wizardStepAccountNote;
+
+  /// No description provided for @wizardStepPracticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your practice'**
+  String get wizardStepPracticeTitle;
+
+  /// No description provided for @wizardStepPracticeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice, team size and region'**
+  String get wizardStepPracticeNote;
+
+  /// No description provided for @wizardStepGoalsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first win'**
+  String get wizardStepGoalsTitle;
+
+  /// No description provided for @wizardStepGoalsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'What you want to fix first'**
+  String get wizardStepGoalsNote;
+
+  /// No description provided for @wizardStepStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your starting point'**
+  String get wizardStepStartTitle;
+
+  /// No description provided for @wizardStepStartNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Real data or a sample'**
+  String get wizardStepStartNote;
+
+  /// No description provided for @wizardFootnoteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Molo never signs in to eFiling, submits returns or makes payments on your behalf.'**
+  String get wizardFootnoteAccount;
+
+  /// No description provided for @wizardFootnotePractice.
+  ///
+  /// In en, this message translates to:
+  /// **'You can rename the practice and change these settings later.'**
+  String get wizardFootnotePractice;
+
+  /// No description provided for @wizardFootnoteGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'This only changes what Molo puts in front of you first. Nothing is hidden.'**
+  String get wizardFootnoteGoals;
+
+  /// No description provided for @wizardFootnoteStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample data is clearly marked and can be removed in one step.'**
+  String get wizardFootnoteStart;
+
+  /// No description provided for @fullNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ngcebo Qwabe'**
+  String get fullNameHint;
+
+  /// No description provided for @passwordLongEnough.
+  ///
+  /// In en, this message translates to:
+  /// **'Long enough.'**
+  String get passwordLongEnough;
+
+  /// No description provided for @wizardAccountOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your name, a work email, a password of at least 8 characters, and agree to the terms.'**
+  String get wizardAccountOutstanding;
 
   /// No description provided for @registrationStepAccount.
   ///
@@ -1081,12 +1177,6 @@ abstract class AppLocalizations {
   /// **'Choose at least one priority.'**
   String get choosePriorityRequired;
 
-  /// No description provided for @finishSetup.
-  ///
-  /// In en, this message translates to:
-  /// **'Finish setup'**
-  String get finishSetup;
-
   /// No description provided for @putSomethingUsefulInside.
   ///
   /// In en, this message translates to:
@@ -1170,84 +1260,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Workspace {percent}% ready'**
   String workspaceReadiness(int percent);
-
-  /// Registration preview completion heading.
-  ///
-  /// In en, this message translates to:
-  /// **'Your workspace is ready, {name}'**
-  String registrationCompleteTitle(String name);
-
-  /// Registration preview completion body.
-  ///
-  /// In en, this message translates to:
-  /// **'{practiceName} is shaped around what matters to you.'**
-  String registrationCompleteBody(String practiceName);
-
-  /// No description provided for @registrationCompleteSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'Your practice defaults, first priorities and preferred starting point are ready for the real account flow.'**
-  String get registrationCompleteSummary;
-
-  /// No description provided for @continueToSignIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue to sign in'**
-  String get continueToSignIn;
-
-  /// No description provided for @noRegistrationDataSaved.
-  ///
-  /// In en, this message translates to:
-  /// **'Preview complete. No account or practice data was saved.'**
-  String get noRegistrationDataSaved;
-
-  /// No description provided for @registrationHeroTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Watch your workspace take shape.'**
-  String get registrationHeroTitle;
-
-  /// No description provided for @registrationHeroBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Every choice should make Molo more useful before you arrive at the home screen.'**
-  String get registrationHeroBody;
-
-  /// No description provided for @progressAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'Create your account'**
-  String get progressAccount;
-
-  /// No description provided for @progressAccountBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Your secure way into Molo.'**
-  String get progressAccountBody;
-
-  /// No description provided for @progressPractice.
-  ///
-  /// In en, this message translates to:
-  /// **'Shape your practice'**
-  String get progressPractice;
-
-  /// No description provided for @progressPracticeBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Start solo or bring your team.'**
-  String get progressPracticeBody;
-
-  /// No description provided for @progressPriorities.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose your focus'**
-  String get progressPriorities;
-
-  /// No description provided for @progressPrioritiesBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Make the first workspace feel relevant.'**
-  String get progressPrioritiesBody;
 
   /// Compact registration progress label.
   ///

@@ -50,6 +50,72 @@ final class AuthServiceProvider
 
 String _$authServiceHash() => r'0573df2b9db12b5d0809ec13b91b8e3e1359408e';
 
+/// Whether this platform lets someone choose how long a session outlives the
+/// window.
+///
+/// Web does: Firebase can hold the session in local storage or drop it with the
+/// tab. Android and iOS always persist, so a control offering the choice there
+/// would be a promise the platform does not keep — which is why the sign-in
+/// screen omits the row rather than disabling it.
+
+@ProviderFor(sessionPersistenceChoosable)
+final sessionPersistenceChoosableProvider =
+    SessionPersistenceChoosableProvider._();
+
+/// Whether this platform lets someone choose how long a session outlives the
+/// window.
+///
+/// Web does: Firebase can hold the session in local storage or drop it with the
+/// tab. Android and iOS always persist, so a control offering the choice there
+/// would be a promise the platform does not keep — which is why the sign-in
+/// screen omits the row rather than disabling it.
+
+final class SessionPersistenceChoosableProvider
+    extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  /// Whether this platform lets someone choose how long a session outlives the
+  /// window.
+  ///
+  /// Web does: Firebase can hold the session in local storage or drop it with the
+  /// tab. Android and iOS always persist, so a control offering the choice there
+  /// would be a promise the platform does not keep — which is why the sign-in
+  /// screen omits the row rather than disabling it.
+  SessionPersistenceChoosableProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'sessionPersistenceChoosableProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$sessionPersistenceChoosableHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return sessionPersistenceChoosable(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$sessionPersistenceChoosableHash() =>
+    r'a3a143960221f8b52ddc779d1e0c60c94fba645b';
+
 /// Raw identity tokens. Only the authenticated transport may read this.
 
 @ProviderFor(authTokenBroker)

@@ -49,7 +49,7 @@ final class OnboardingViewModelProvider
 }
 
 String _$onboardingViewModelHash() =>
-    r'3f9979c563fab2451a23ee575f80140c5ec35fdf';
+    r'8e20655fdfcc379caf600a2b82493b90f3db4955';
 
 /// Drives the part of signup that happens after the account exists.
 ///

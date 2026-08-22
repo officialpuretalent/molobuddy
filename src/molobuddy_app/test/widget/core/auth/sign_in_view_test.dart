@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
+import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/molo_app.dart';
 import 'package:molobuddy_app/bootstrap/app_environment.dart';
 import 'package:molobuddy_app/core/auth/auth_providers.dart';
@@ -14,7 +15,7 @@ import 'package:molobuddy_app/core/auth/data/services/preview_auth_service.dart'
 import 'package:molobuddy_app/core/auth/data/services/session_service.dart';
 
 void main() {
-  testWidgets('compact layout shows the form and disabled Google stub', (
+  testWidgets('compact layout shows the form and both disabled providers', (
     tester,
   ) async {
     await _setViewport(tester, const Size(390, 844));
@@ -45,14 +46,18 @@ void main() {
     await tester.tap(find.text('Close'));
     await tester.pumpAndSettle();
 
-    final googleButton = tester.widget<OutlinedButton>(
-      find.byKey(const Key('google_sign_in_button')),
-    );
-    expect(googleButton.onPressed, isNull);
-    expect(find.text('Coming soon'), findsOneWidget);
+    // The design has no room for a "Coming soon" pill in a 46-high grid cell,
+    // so the reason lives in each button's accessible name instead. That is
+    // asserted in sign_in_fidelity_test.
+    for (final key in const [
+      Key('microsoft_sign_in_button'),
+      Key('google_sign_in_button'),
+    ]) {
+      expect(tester.widget<OutlinedButton>(find.byKey(key)).onPressed, isNull);
+    }
   });
 
-  testWidgets('expanded layout adds a bounded brand story panel', (
+  testWidgets('expanded layout adds the hero pane at the design width', (
     tester,
   ) async {
     await _setViewport(tester, const Size(1280, 900));
@@ -60,22 +65,23 @@ void main() {
 
     expect(find.byKey(const Key('auth_hero_panel')), findsOneWidget);
     expect(find.byKey(const Key('sign_in_form')), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('auth_hero_panel'))).width, 360);
     expect(
-      find.text('Everything your practice needs to keep work moving.'),
-      findsOneWidget,
+      tester.getSize(find.byKey(const Key('auth_hero_panel'))).width,
+      closeTo(1280 * 0.44, 0.01),
     );
+    expect(find.text('Make serious work feel light.'), findsOneWidget);
   });
 
-  testWidgets('authentication pages keep a stable supporting pane edge', (
+  testWidgets('the two wizard routes keep a stable supporting pane edge', (
     tester,
   ) async {
+    // The invariant lives between /sign-up and /onboarding, which fade into
+    // each other through one shared shell. Sign-in's photographic hero is a
+    // different pane, and the baseline deliberately draws it wider, so it is
+    // not part of this comparison.
     await _setViewport(tester, const Size(1280, 900));
     await _pumpPreviewApp(tester);
 
-    final signInPaneWidth = tester
-        .getSize(find.byKey(const Key('auth_hero_panel')))
-        .width;
     final createAccountLink = find.byKey(const Key('create_account_link'));
     await tester.ensureVisible(createAccountLink);
     await tester.tap(createAccountLink);
@@ -84,7 +90,20 @@ void main() {
     final signUpPaneWidth = tester
         .getSize(find.byKey(const Key('registration_progress_panel')))
         .width;
-    expect(signUpPaneWidth, signInPaneWidth);
+
+    // Back to sign-in, because signing in is what reaches the onboarding
+    // steps, and they wear the same shell as the account step.
+    await _tapWhenVisible(
+      tester,
+      find.byKey(const Key('registration_sign_in_link')),
+    );
+    await _signIn(tester);
+    expect(find.byKey(const Key('registration_practice_step')), findsOneWidget);
+    final onboardingPaneWidth = tester
+        .getSize(find.byKey(const Key('registration_progress_panel')))
+        .width;
+
+    expect(onboardingPaneWidth, signUpPaneWidth);
   });
 
   testWidgets('page changes fade without sliding', (tester) async {
@@ -127,6 +146,11 @@ void main() {
   testWidgets('hovering an invalid field keeps its label and icon readable', (
     tester,
   ) async {
+    // The bug this guards cannot recur in the same shape: the label is no
+    // longer Material's floating one, so it never takes an error colour and
+    // can never be painted white on white. What has to hold now is that the
+    // label stays plum, the message says what is wrong, and the reveal glyph
+    // stays visible against the field.
     await _setViewport(tester, const Size(1280, 900));
     await _pumpPreviewApp(tester);
     await _tapWhenVisible(tester, find.byKey(const Key('sign_in_button')));
@@ -145,28 +169,28 @@ void main() {
         .text
         .style
         ?.color;
-    expect(labelColour, MoloColours.error);
+    expect(labelColour, MoloColours.moloPlum);
+    expect(find.text('Use at least 8 characters.'), findsOneWidget);
 
-    final icon = tester.widget<Icon>(
+    final glyph = tester.widget<MoloIcon>(
       find.descendant(
         of: find.byKey(const Key('password_field')),
-        matching: find.byIcon(Icons.visibility_outlined),
+        matching: find.byType(MoloIcon),
       ),
     );
-    final iconColour =
-        icon.color ??
-        IconTheme.of(
-          tester.element(find.byIcon(Icons.visibility_outlined)),
-        ).color;
-    expect(iconColour, isNot(MoloColours.surface));
+    expect(glyph.color, isNot(MoloColours.surface));
+    expect(glyph.color, MoloColours.secondaryText);
   });
 
-  testWidgets('the coming-soon Google control announces once', (tester) async {
+  testWidgets('each coming-soon provider control announces once', (
+    tester,
+  ) async {
     final semantics = tester.ensureSemantics();
     await _setViewport(tester, const Size(390, 844));
     await _pumpPreviewApp(tester);
 
     expect(_semanticsLabelsContaining(tester, 'Google'), hasLength(1));
+    expect(_semanticsLabelsContaining(tester, 'Microsoft'), hasLength(1));
     semantics.dispose();
   });
 
