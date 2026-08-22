@@ -288,13 +288,16 @@ class _CompactProgress extends StatelessWidget {
             key: const Key('registration_compact_progress'),
             minHeight: 4,
             borderRadius: BorderRadius.circular(2),
-            value: progress.stepNumber / 4,
+            value: progress.stepNumber / WizardProgress.totalSteps,
             color: MoloColours.pulseText,
             backgroundColor: MoloColours.pulseTint,
           ),
           const SizedBox(height: MoloSpacing.xs),
           Text(
-            localisations.registrationProgress(progress.stepNumber, 4),
+            localisations.registrationProgress(
+              progress.stepNumber,
+              WizardProgress.totalSteps,
+            ),
             textAlign: TextAlign.right,
             style: Theme.of(
               context,
