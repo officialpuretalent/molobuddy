@@ -36,10 +36,7 @@ void main() {
           glyph: MoloGlyphs.connectors,
           label: 'Connectors and intake',
         ),
-        MoloAccountMenuEntry(
-          glyph: MoloGlyphs.profile,
-          label: 'Your profile',
-        ),
+        MoloAccountMenuEntry(glyph: MoloGlyphs.profile, label: 'Your profile'),
         MoloAccountMenuEntry(glyph: MoloGlyphs.settings, label: 'Settings'),
       ],
       [

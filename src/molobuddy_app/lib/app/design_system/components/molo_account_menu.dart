@@ -259,9 +259,7 @@ class _MoloAccountMenuRow extends StatelessWidget {
     return _MoloAccountMenuSurface(
       onTap: entry.onTap,
       verticalPadding: 11,
-      hover: entry.destructive
-          ? MoloColours.errorTint
-          : MoloColours.warmCanvas,
+      hover: entry.destructive ? MoloColours.errorTint : MoloColours.warmCanvas,
       child: Row(
         children: [
           MoloIcon(entry.glyph, size: glyphSize, color: glyphColour),

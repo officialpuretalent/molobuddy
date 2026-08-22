@@ -44,8 +44,9 @@ class MoloAccountRow extends StatelessWidget {
       // 12 on every side, inside a 15 radius, as the design draws it.
       padding: const EdgeInsets.all(12),
       child: Row(
-        mainAxisAlignment:
-            labelled ? MainAxisAlignment.start : MainAxisAlignment.center,
+        mainAxisAlignment: labelled
+            ? MainAxisAlignment.start
+            : MainAxisAlignment.center,
         children: [
           Container(
             key: avatarKey,

@@ -334,49 +334,49 @@ class _AccountMenuState extends State<_AccountMenu> {
           groupId: info.tapRegionGroupId,
           onTapOutside: (_) => _controller.close(),
           child: MoloAccountMenu(
-          header: MoloAccountMenuHeader(
-            initials: _initials(widget.practice.displayLabel),
-            name: widget.practice.displayLabel,
-            caption: localisations.homePracticeAccount,
-          ),
-          sections: [
-            [
-              // Present because the design has them, inert because their
-              // screens are not built. Same treatment as Meetings in the
-              // sidebar: visible, and not pretending to work.
-              MoloAccountMenuEntry(
-                glyph: MoloGlyphs.switchPractice,
-                label: localisations.accountMenuSwitchPractice,
-              ),
-              MoloAccountMenuEntry(
-                glyph: MoloGlyphs.connectors,
-                label: localisations.accountMenuConnectors,
-              ),
-              MoloAccountMenuEntry(
-                glyph: MoloGlyphs.profile,
-                label: localisations.accountMenuYourProfile,
-              ),
-              MoloAccountMenuEntry(
-                glyph: MoloGlyphs.settings,
-                label: localisations.accountMenuSettings,
-              ),
-            ],
-            [
-              MoloAccountMenuEntry(
-                glyph: MoloGlyphs.help,
-                label: localisations.accountMenuHelp,
-                showChevron: true,
-              ),
-              MoloAccountMenuEntry(
-                key: const Key('sign_out_button'),
-                glyph: MoloGlyphs.logOut,
-                label: widget.signingOut
-                    ? localisations.signingOut
-                    : localisations.signOut,
-                destructive: true,
-                onTap: widget.signingOut ? null : widget.onSignOut,
-              ),
-            ],
+            header: MoloAccountMenuHeader(
+              initials: _initials(widget.practice.displayLabel),
+              name: widget.practice.displayLabel,
+              caption: localisations.homePracticeAccount,
+            ),
+            sections: [
+              [
+                // Present because the design has them, inert because their
+                // screens are not built. Same treatment as Meetings in the
+                // sidebar: visible, and not pretending to work.
+                MoloAccountMenuEntry(
+                  glyph: MoloGlyphs.switchPractice,
+                  label: localisations.accountMenuSwitchPractice,
+                ),
+                MoloAccountMenuEntry(
+                  glyph: MoloGlyphs.connectors,
+                  label: localisations.accountMenuConnectors,
+                ),
+                MoloAccountMenuEntry(
+                  glyph: MoloGlyphs.profile,
+                  label: localisations.accountMenuYourProfile,
+                ),
+                MoloAccountMenuEntry(
+                  glyph: MoloGlyphs.settings,
+                  label: localisations.accountMenuSettings,
+                ),
+              ],
+              [
+                MoloAccountMenuEntry(
+                  glyph: MoloGlyphs.help,
+                  label: localisations.accountMenuHelp,
+                  showChevron: true,
+                ),
+                MoloAccountMenuEntry(
+                  key: const Key('sign_out_button'),
+                  glyph: MoloGlyphs.logOut,
+                  label: widget.signingOut
+                      ? localisations.signingOut
+                      : localisations.signOut,
+                  destructive: true,
+                  onTap: widget.signingOut ? null : widget.onSignOut,
+                ),
+              ],
             ],
           ),
         ),
@@ -388,7 +388,9 @@ class _AccountMenuState extends State<_AccountMenu> {
                 color: widget.onDark ? MoloColours.surface : null,
               )
             : MoloAccountRow(
-                initials: _initials(hasPerson ? person : widget.practice.displayLabel),
+                initials: _initials(
+                  hasPerson ? person : widget.practice.displayLabel,
+                ),
                 name: widget.practice.displayLabel,
                 detail: hasPerson ? person : localisations.homePracticeAccount,
               );

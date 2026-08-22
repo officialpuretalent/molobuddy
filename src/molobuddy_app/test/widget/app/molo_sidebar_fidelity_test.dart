@@ -36,8 +36,9 @@ void main() {
     ),
   ];
 
-  Widget host(Widget child) =>
-      MaterialApp(home: Scaffold(body: Row(children: [child])));
+  Widget host(Widget child) => MaterialApp(
+    home: Scaffold(body: Row(children: [child])),
+  );
 
   Widget sidebar() => MoloSidebar(
     destinations: destinations,
@@ -127,7 +128,10 @@ void main() {
   group('create action', () {
     testWidgets('is 48 high with the design 15 radius', (tester) async {
       await tester.pumpWidget(host(sidebar()));
-      expect(tester.getSize(find.byKey(MoloSidebar.primaryActionKey)).height, 48);
+      expect(
+        tester.getSize(find.byKey(MoloSidebar.primaryActionKey)).height,
+        48,
+      );
     });
 
     testWidgets('shows its label in the sidebar', (tester) async {

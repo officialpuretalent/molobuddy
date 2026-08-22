@@ -14,13 +14,12 @@ void main() {
     expect(
       indexHtml.existsSync(),
       isTrue,
-      reason: 'web/index.html should exist; run this test from src/molobuddy_app',
+      reason:
+          'web/index.html should exist; run this test from src/molobuddy_app',
     );
 
     final source = indexHtml.readAsStringSync();
-    final assignment = RegExp(
-      r'''FIREBASE_APPCHECK_DEBUG_TOKEN\s*=''',
-    );
+    final assignment = RegExp(r'''FIREBASE_APPCHECK_DEBUG_TOKEN\s*=''');
 
     expect(
       assignment.hasMatch(source),
