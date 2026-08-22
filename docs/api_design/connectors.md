@@ -25,7 +25,7 @@ type ConnectorConnection = {
   connectionId: string;
   connectorKey: string;
   connectorVersion: string;
-  status: 'authorising' | 'active' | 'attention_required' | 'paused' | 'revoked';
+  status: 'authorising' | 'awaiting_source_selection' | 'active' | 'attention_required' | 'paused' | 'revoked';
   externalAccountName?: string;
   grantedCapabilities: string[];
   grantedScopes: string[];
@@ -34,6 +34,14 @@ type ConnectorConnection = {
   errorSummary?: { code: string; occurredAt: string };
   connectedByUid: string;
   version: string;
+};
+
+type ConnectorDataSource = {
+  dataSourceId: string;
+  connectionId: string;
+  displayName: string;
+  selected: boolean;
+  providerApiDomain?: string;
 };
 
 type SyncRun = {
@@ -89,6 +97,11 @@ Supported filters: `status`, `capability`, `regionKey`, `jurisdictionCode`.
 ```
 
 The server pins a connector version, verifies the caller may grant every requested capability, validates the return URI against an allowlist, records consent, creates an `authorising` connection and returns an OAuth authorisation URL where required.
+
+After provider authorisation, a connection enters `awaiting_source_selection`.
+It cannot become `active` until the user has explicitly selected at least one
+provider data source. The returned `version` is a strong entity tag and every
+state-changing operation that declares `If-Match` compares it before committing.
 
 **Response:** `201 Created`:
 

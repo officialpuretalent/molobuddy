@@ -1,6 +1,6 @@
 # Molo Data Design
 
-- **Status:** Identity and access drafted; remaining domains reserved for design
+- **Status:** Identity/access and connectors drafted; remaining domains reserved for design
 - **Owner:** Product and engineering
 - **Last updated:** 20 August 2026
 
@@ -17,7 +17,7 @@ Use one Markdown file per domain:
 - `documents.md`
 - `workflows.md`
 - `notifications.md`
-- `connectors.md`
+- [`connectors.md`](connectors.md)
 - `intelligence.md`
 - `audit.md`
 

@@ -8,29 +8,30 @@ This directory is the source of truth for Molo's server architecture and its tru
 
 ## Design documents
 
-| Design | Document | Purpose |
-|---|---|---|
-| Runtime and platform | [`runtime_platform.md`](runtime_platform.md) | Production runtime, HTTP stack, deployment units, performance and security |
-| Domain-driven design | [`domain_driven_design.md`](domain_driven_design.md) | Bounded contexts, layers, dependencies, transactions and events |
-| Authentication | [`authentication.md`](authentication.md) | Client-first auth, provider federation and server trust boundary |
-| Repository structure | [`repository_structure.md`](repository_structure.md) | Canonical source tree and ownership rules |
+| Design                         | Document                                                                 | Purpose                                                                                  |
+| ------------------------------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Runtime and platform           | [`runtime_platform.md`](runtime_platform.md)                             | Production runtime, HTTP stack, deployment units, performance and security               |
+| Domain-driven design           | [`domain_driven_design.md`](domain_driven_design.md)                     | Bounded contexts, layers, dependencies, transactions and events                          |
+| Authentication                 | [`authentication.md`](authentication.md)                                 | Client-first auth, provider federation and server trust boundary                         |
+| Repository structure           | [`repository_structure.md`](repository_structure.md)                     | Canonical source tree and ownership rules                                                |
+| Accounting connector decisions | [`accounting_connector_decisions.md`](accounting_connector_decisions.md) | Accepted scope, provider and operational decisions for the initial accounting connectors |
 
 ## Locked decisions
 
-| Concern | Decision |
-|---|---|
-| Backend source root | `src/molobuddy_server` |
-| Flutter source root | `src/molobuddy_app` |
-| Architecture | Domain-driven modular monolith |
-| Primary server runtime | Node.js 24 LTS on Cloud Run |
-| Language | TypeScript with strictest practical compiler options; ESM output |
-| HTTP adapter | Fastify 5 with compiled JSON Schema validation and response serialization |
-| Public contract | Existing versioned JSON/HTTPS API design; later promoted to OpenAPI |
-| Persistence | Firestore through domain-owned repository ports; no Firestore SDK in domain/application code |
-| Async model | Transactional outbox/job ledger, region-constrained Pub/Sub and Eventarc to Cloud Run receivers |
-| Authentication | Client-first Flutter experience using Firebase Authentication with Identity Platform |
-| Backend identity authority | Verified Firebase ID token plus App Check; server-owned membership and capability resolution |
-| Deployment shape | One codebase, multiple regional entrypoints; not microservices per domain |
+| Concern                    | Decision                                                                                        |
+| -------------------------- | ----------------------------------------------------------------------------------------------- |
+| Backend source root        | `src/molobuddy_server`                                                                          |
+| Flutter source root        | `src/molobuddy_app`                                                                             |
+| Architecture               | Domain-driven modular monolith                                                                  |
+| Primary server runtime     | Node.js 24 LTS on Cloud Run                                                                     |
+| Language                   | TypeScript with strictest practical compiler options; ESM output                                |
+| HTTP adapter               | Fastify 5 with compiled JSON Schema validation and response serialization                       |
+| Public contract            | Existing versioned JSON/HTTPS API design; later promoted to OpenAPI                             |
+| Persistence                | Firestore through domain-owned repository ports; no Firestore SDK in domain/application code    |
+| Async model                | Transactional outbox/job ledger, region-constrained Pub/Sub and Eventarc to Cloud Run receivers |
+| Authentication             | Client-first Flutter experience using Firebase Authentication with Identity Platform            |
+| Backend identity authority | Verified Firebase ID token plus App Check; server-owned membership and capability resolution    |
+| Deployment shape           | One codebase, multiple regional entrypoints; not microservices per domain                       |
 
 ## Architectural statement
 
