@@ -65,9 +65,11 @@ A durable receipt of a verified provider notification: provider key, connection/
 Raw payload retention, canonical record retention and final deletion/export behaviour must be set by the approved practice closure and data-retention policy before public release. Disconnect revokes future access; it does not silently destroy previous professional evidence.
 
 Every consequential connection or sync mutation commits a typed audit record in
-the same Firestore atomic operation. Audit metadata is allowlisted to practice,
-connection, provider, action, actor, correlation ID and resulting state; it
-cannot contain OAuth credentials, webhook bytes or provider payloads.
+the same Firestore atomic operation. The envelope is connector-generic so a
+future connector type does not need to change the audit store: opaque connector
+key, namespaced action, bounded target, outcome, actor, correlation ID and
+allowlisted status/count/generation facts. It cannot contain OAuth credentials,
+webhook bytes, provider payloads or arbitrary metadata.
 
 ## 4. Index and query requirements
 

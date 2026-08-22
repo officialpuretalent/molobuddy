@@ -2,7 +2,10 @@ import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 
 import { createResourceVersion } from '../../../../../platform/http/identifiers.js';
 import { runInTransaction } from '../../../../../platform/persistence/firestore.js';
-import type { ConnectorAuditEvent } from '../../../application/ports/connector_audit_event.js';
+import {
+  safeConnectorAuditFields,
+  type ConnectorAuditEvent,
+} from '../../../application/ports/connector_audit_event.js';
 import type { ConnectorConnectionRepository } from '../../../application/ports/connector_connection_repository.js';
 import type {
   ConnectorConnection,
@@ -137,8 +140,9 @@ export class FirestoreConnectorConnectionRepository implements ConnectorConnecti
   ): void {
     if (
       audit.practiceId !== connection.practiceId ||
-      audit.connectionId !== connection.connectionId ||
-      audit.providerKey !== connection.providerKey
+      audit.target.kind !== 'connection' ||
+      audit.target.id !== connection.connectionId ||
+      audit.connectorKey !== connection.providerKey
     ) {
       throw new Error('Connector audit event must belong to its connection');
     }
@@ -176,7 +180,7 @@ function stripStorageFields(stored: Record<string, unknown> | undefined) {
 
 function auditDocument(audit: ConnectorAuditEvent): Record<string, unknown> {
   return {
-    ...audit,
+    ...safeConnectorAuditFields(audit),
     recordedAt: FieldValue.serverTimestamp(),
   };
 }

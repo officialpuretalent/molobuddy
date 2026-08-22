@@ -47,15 +47,13 @@ function auditFor(
 ): ConnectorAuditEvent {
   return {
     practiceId: connection.practiceId,
-    connectionId: connection.connectionId,
-    providerKey: connection.providerKey,
-    action: 'connector.sources_selected',
+    connectorKey: connection.providerKey,
+    action: 'accounting.sources_selected',
     actor: { kind: 'user', uid: 'uid_123' },
     correlationId: 'cor_123',
-    resultingState: {
-      connectionStatus: connection.status,
-      selectedSourceCount: 1,
-    },
+    target: { kind: 'connection', id: connection.connectionId },
+    outcome: 'completed',
+    safeFacts: { statusCode: connection.status, affectedRecordCount: 1 },
     ...overrides,
   };
 }
@@ -65,6 +63,7 @@ function queuedRun(connection: ConnectorConnection): SyncRun {
     syncRunId: `syn_${randomUUID()}`,
     practiceId: connection.practiceId,
     connectionId: connection.connectionId,
+    providerKey: connection.providerKey,
     dataSourceId: `src_${randomUUID()}`,
     mode: 'delta',
     status: 'queued',
@@ -189,18 +188,22 @@ describe('firestore connector repositories', () => {
     await repository.save(
       first,
       auditFor(connection, {
-        action: 'connector.sync_queued',
+        action: 'accounting.sync_queued',
         actor: { kind: 'system', name: 'connector-worker' },
-        resultingState: { syncRunId: first.syncRunId, syncStatus: 'queued' },
+        target: { kind: 'sync_run', id: first.syncRunId },
+        outcome: 'accepted',
+        safeFacts: { statusCode: 'queued' },
       }),
     );
     await new Promise((resolve) => setTimeout(resolve, 10));
     await repository.save(
       second,
       auditFor(connection, {
-        action: 'connector.sync_queued',
+        action: 'accounting.sync_queued',
         actor: { kind: 'system', name: 'connector-worker' },
-        resultingState: { syncRunId: second.syncRunId, syncStatus: 'queued' },
+        target: { kind: 'sync_run', id: second.syncRunId },
+        outcome: 'accepted',
+        safeFacts: { statusCode: 'queued' },
       }),
     );
 
@@ -244,8 +247,8 @@ describe('firestore connector repositories', () => {
     await repository.save(
       connection,
       auditFor(connection, {
-        action: 'connector.authorisation_completed',
-        resultingState: { connectionStatus: 'awaiting_source_selection' },
+        action: 'accounting.authorisation_completed',
+        safeFacts: { statusCode: 'awaiting_source_selection' },
       }),
     );
 
@@ -256,8 +259,11 @@ describe('firestore connector repositories', () => {
     const firstEvent = events.docs[0];
     assert.ok(firstEvent !== undefined);
     const event = firstEvent.data();
-    assert.equal(event['action'], 'connector.authorisation_completed');
-    assert.equal(event['connectionId'], connection.connectionId);
+    assert.equal(event['action'], 'accounting.authorisation_completed');
+    assert.deepEqual(event['target'], {
+      kind: 'connection',
+      id: connection.connectionId,
+    });
     assert.equal(event['accessToken'], undefined);
     assert.equal(event['refreshToken'], undefined);
     assert.equal(event['rawBody'], undefined);
@@ -272,7 +278,9 @@ describe('firestore connector repositories', () => {
     await assert.rejects(
       repository.save(
         connection,
-        auditFor(connection, { connectionId: 'con_other' }),
+        auditFor(connection, {
+          target: { kind: 'connection', id: 'con_other' },
+        }),
       ),
       /must belong to its connection/,
     );

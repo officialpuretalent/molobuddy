@@ -63,6 +63,7 @@ test('a sync run starts exactly once from its queued state', () => {
     syncRunId: 'syn_123',
     practiceId: 'prc_123',
     connectionId: 'con_123',
+    providerKey: 'xero',
     dataSourceId: 'src_123',
     mode: 'delta',
   });

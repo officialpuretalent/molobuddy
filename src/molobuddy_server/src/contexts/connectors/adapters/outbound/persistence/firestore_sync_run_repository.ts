@@ -1,7 +1,10 @@
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 
 import { createResourceVersion } from '../../../../../platform/http/identifiers.js';
-import type { ConnectorAuditEvent } from '../../../application/ports/connector_audit_event.js';
+import {
+  safeConnectorAuditFields,
+  type ConnectorAuditEvent,
+} from '../../../application/ports/connector_audit_event.js';
 import type { SyncRunRepository } from '../../../application/ports/sync_run_repository.js';
 import type { SyncRun } from '../../../domain/sync_run.js';
 
@@ -26,7 +29,7 @@ export class FirestoreSyncRunRepository implements SyncRunRepository {
       version: createResourceVersion(),
     });
     batch.set(this.auditDocument(syncRun.practiceId), {
-      ...audit,
+      ...safeConnectorAuditFields(audit),
       recordedAt: FieldValue.serverTimestamp(),
     });
     await batch.commit();
@@ -62,8 +65,9 @@ export class FirestoreSyncRunRepository implements SyncRunRepository {
   ): void {
     if (
       audit.practiceId !== syncRun.practiceId ||
-      audit.connectionId !== syncRun.connectionId ||
-      audit.resultingState.syncRunId !== syncRun.syncRunId
+      audit.connectorKey !== syncRun.providerKey ||
+      audit.target.kind !== 'sync_run' ||
+      audit.target.id !== syncRun.syncRunId
     ) {
       throw new Error('Connector audit event must belong to its sync run');
     }

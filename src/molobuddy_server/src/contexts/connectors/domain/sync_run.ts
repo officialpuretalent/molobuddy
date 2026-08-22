@@ -1,3 +1,5 @@
+import type { AccountingProviderKey } from './accounting_provider.js';
+
 export type SyncRunStatus =
   'cancelled' | 'complete' | 'failed' | 'needs_review' | 'queued' | 'running';
 
@@ -5,6 +7,7 @@ export type SyncRun = Readonly<{
   syncRunId: string;
   practiceId: string;
   connectionId: string;
+  providerKey: AccountingProviderKey;
   dataSourceId: string;
   mode: 'delta' | 'full' | 'selected_sources';
   status: SyncRunStatus;
