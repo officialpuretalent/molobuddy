@@ -69,7 +69,7 @@ These are deliberate product and architecture decisions, not open questions. The
 
 **Why:** Molo should not become an uncontrolled duplicate accounting archive, but a tax practice needs durable evidence for reviewed work. SARS states that supporting records must be kept for five years from a tax return's filing date. The five-year Molo evidence rule is a conservative operational default; it does not replace a taxpayer's statutory recordkeeping obligation or legal advice. [SARS record-keeping guidance](https://www.sars.gov.za/wp-content/uploads/Docs/SmallBusiness/Small-business-leaflet-English-2026_updated-2-April-2026.pdf)
 
-**Consequence:** Disconnect revokes future access immediately but does not rewrite historical audit evidence. Purge jobs are regional, auditable and hold-aware. Raw quarantine access is restricted to authorised operational support and never exposed through public APIs.
+**Consequence:** Disconnect transitions the connection to `revoked`, revokes future access immediately and does not rewrite historical audit evidence. Purge jobs are regional, auditable and hold-aware. Raw quarantine access is restricted to authorised operational support and never exposed through public APIs.
 
 ## 9. Delivery sequence and production gates
 

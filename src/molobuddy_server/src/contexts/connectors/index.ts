@@ -10,6 +10,7 @@ export {
 
 export type { AccountingProviderAdapter } from './application/ports/accounting_provider_adapter.js';
 export type { AccountingProviderRegistry } from './application/ports/accounting_provider_registry.js';
+export type { ConnectorConnectionRepository } from './application/ports/connector_connection_repository.js';
 export type { ConnectorDefinitionView } from './application/queries/list_connector_definitions.js';
 export type {
   ExternalRecordNormaliser,
@@ -31,6 +32,7 @@ export type {
   ProviderWebhookVerification,
   ProviderWebhookVerifier,
 } from './application/ports/provider_webhook_verifier.js';
+export type { SyncRunRepository } from './application/ports/sync_run_repository.js';
 export type {
   AccountingDataSourceKind,
   AccountingProviderDefinition,
@@ -45,3 +47,22 @@ export {
   externalRecordIdentity,
   type NormalisedExternalRecord,
 } from './domain/external_record.js';
+export {
+  activateSelectedSources,
+  beginAuthorisation,
+  completeAuthorisation,
+  pauseConnection,
+  requireAttention,
+  revokeConnection,
+  type ConnectionTransitionResult,
+  type ConnectorConnection,
+  type ConnectorConnectionStatus,
+  type ConnectorDataSource,
+} from './domain/connector_connection.js';
+export {
+  completeSyncRun,
+  queueSyncRun,
+  startSyncRun,
+  type SyncRun,
+  type SyncRunStatus,
+} from './domain/sync_run.js';

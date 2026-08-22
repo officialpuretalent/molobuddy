@@ -22,11 +22,11 @@ Connection transitions:
 
 ```text
 authorising → awaiting_source_selection → active ⇄ paused
-active/paused → attention_required → authorising | disconnected
-active/paused/attention_required → disconnected
+active/paused → attention_required → authorising | revoked
+active/paused/attention_required → revoked
 ```
 
-Only `active` sources may schedule syncs. Disconnect prevents new work, removes the credential secret reference and retains accepted Molo outcomes according to policy.
+Only `active` sources may schedule syncs. Disconnect transitions the connection to `revoked`, prevents new work, removes the credential secret reference and retains accepted Molo outcomes according to policy.
 
 ### `ConnectorDataSource`
 
@@ -54,13 +54,13 @@ A durable receipt of a verified provider notification: provider key, connection/
 
 ## 3. Sensitive fields and retention
 
-| Data | Classification | Storage/handling |
-|---|---|---|
-| OAuth access/refresh tokens, webhook secrets | Secret | Regional Secret Manager only; never logs, events or Firestore. |
-| Provider raw payload | Restricted financial/personal data | Encrypted quarantine storage; restricted diagnostic access; defined short retention. |
-| Canonical external envelope | Sensitive operational/financial data | Regional Firestore; exposed only through a future authorised API projection. |
-| Connection/sync health | Operational metadata | Regional Firestore; API-safe only after response projection/redaction. |
-| Audit evidence | Immutable sensitive evidence | Regional audit store under audit retention policy. |
+| Data                                         | Classification                       | Storage/handling                                                                     |
+| -------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------ |
+| OAuth access/refresh tokens, webhook secrets | Secret                               | Regional Secret Manager only; never logs, events or Firestore.                       |
+| Provider raw payload                         | Restricted financial/personal data   | Encrypted quarantine storage; restricted diagnostic access; defined short retention. |
+| Canonical external envelope                  | Sensitive operational/financial data | Regional Firestore; exposed only through a future authorised API projection.         |
+| Connection/sync health                       | Operational metadata                 | Regional Firestore; API-safe only after response projection/redaction.               |
+| Audit evidence                               | Immutable sensitive evidence         | Regional audit store under audit retention policy.                                   |
 
 Raw payload retention, canonical record retention and final deletion/export behaviour must be set by the approved practice closure and data-retention policy before public release. Disconnect revokes future access; it does not silently destroy previous professional evidence.
 
