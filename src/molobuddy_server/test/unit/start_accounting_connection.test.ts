@@ -23,6 +23,10 @@ const actor: VerifiedActor = {
 class RecordingStore implements ConnectorLifecycleStore {
   writes: ConnectorLifecycleCommit[] = [];
 
+  async get() {
+    return undefined;
+  }
+
   async commit(
     write: ConnectorLifecycleCommit,
   ): Promise<ConnectorLifecycleCommitResult> {
@@ -32,6 +36,10 @@ class RecordingStore implements ConnectorLifecycleStore {
       version: 'version_123',
     };
     return { ok: true, value, replayed: false };
+  }
+
+  async transition(): ReturnType<ConnectorLifecycleStore['transition']> {
+    throw new Error('Unexpected lifecycle transition');
   }
 }
 

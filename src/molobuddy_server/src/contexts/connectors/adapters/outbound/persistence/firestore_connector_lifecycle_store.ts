@@ -1,6 +1,11 @@
 import { createHash } from 'node:crypto';
 
-import { FieldValue, type Firestore } from 'firebase-admin/firestore';
+import {
+  FieldValue,
+  type DocumentReference,
+  type Firestore,
+  type Transaction,
+} from 'firebase-admin/firestore';
 
 import { createResourceVersion } from '../../../../../platform/http/identifiers.js';
 import { runInTransaction } from '../../../../../platform/persistence/firestore.js';
@@ -12,6 +17,8 @@ import type {
   ConnectorLifecycleCommit,
   ConnectorLifecycleCommitResult,
   ConnectorLifecycleStore,
+  ConnectorLifecycleTransition,
+  ConnectorLifecycleTransitionResult,
   VersionedConnectorConnection,
 } from '../../../application/ports/connector_lifecycle_store.js';
 import type {
@@ -27,6 +34,20 @@ type StoredReceipt = Readonly<{
 
 export class FirestoreConnectorLifecycleStore implements ConnectorLifecycleStore {
   constructor(private readonly db: Firestore) {}
+
+  async get(
+    practiceId: string,
+    connectionId: string,
+  ): Promise<VersionedConnectorConnection | undefined> {
+    const snapshot = await this.connectionDocument(
+      practiceId,
+      connectionId,
+    ).get();
+    if (!snapshot.exists) {
+      return undefined;
+    }
+    return versionedConnection(snapshot.data() as StoredConnection);
+  }
 
   async commit(
     write: ConnectorLifecycleCommit,
@@ -59,57 +80,111 @@ export class FirestoreConnectorLifecycleStore implements ConnectorLifecycleStore
         return { ok: false, code: 'version_mismatch' };
       }
 
-      const value: VersionedConnectorConnection = {
-        connection: write.connection,
-        version: createResourceVersion(),
+      return this.writeInTransaction(transaction, write, receiptDocument);
+    });
+  }
+
+  async transition(
+    transition: ConnectorLifecycleTransition,
+  ): Promise<ConnectorLifecycleTransitionResult> {
+    const connectionDocument = this.connectionDocument(
+      transition.practiceId,
+      transition.connectionId,
+    );
+    const receiptDocument = this.idempotencyDocumentFor(
+      transition.practiceId,
+      transition.idempotency,
+    );
+    return runInTransaction(this.db, async (transaction) => {
+      const receiptSnapshot = await transaction.get(receiptDocument);
+      if (receiptSnapshot.exists) {
+        const receipt = receiptSnapshot.data() as StoredReceipt;
+        return receipt.payloadHash === transition.idempotency.payloadHash
+          ? { ok: true, value: receipt.value, replayed: true }
+          : { ok: false, code: 'idempotency_conflict' };
+      }
+      const currentSnapshot = await transaction.get(connectionDocument);
+      const current = currentSnapshot.exists
+        ? versionedConnection(currentSnapshot.data() as StoredConnection)
+        : undefined;
+      const prepared = transition.prepare(current);
+      if (!prepared.ok) {
+        return prepared;
+      }
+      const write: ConnectorLifecycleCommit = {
+        ...prepared.write,
+        expectedVersion: transition.expectedVersion,
+        idempotency: transition.idempotency,
       };
-      transaction.set(connectionDocument, {
+      this.assertWriteIsConsistent(write);
+      if (write.connection.connectionId !== transition.connectionId) {
+        throw new Error('Connector transition changed its connection identity');
+      }
+      if (current?.version !== transition.expectedVersion) {
+        return { ok: false, code: 'version_mismatch' };
+      }
+      return this.writeInTransaction(transaction, write, receiptDocument);
+    });
+  }
+
+  private async writeInTransaction(
+    transaction: Transaction,
+    write: ConnectorLifecycleCommit,
+    receiptDocument: DocumentReference,
+  ): Promise<ConnectorLifecycleCommitResult> {
+    const sourceCollection = this.sourceCollection(
+      write.connection.practiceId,
+      write.connection.connectionId,
+    );
+    // Firestore transactions require every read before the first write.
+    const existingSources =
+      write.dataSources === undefined
+        ? undefined
+        : await transaction.get(sourceCollection);
+    const value: VersionedConnectorConnection = {
+      connection: write.connection,
+      version: createResourceVersion(),
+    };
+    transaction.set(
+      this.connectionDocument(
+        write.connection.practiceId,
+        write.connection.connectionId,
+      ),
+      {
         ...write.connection,
         version: value.version,
         updatedAt: FieldValue.serverTimestamp(),
-      });
-      if (write.dataSources !== undefined) {
-        const sources = await transaction.get(
-          this.sourceCollection(
-            write.connection.practiceId,
-            write.connection.connectionId,
-          ),
-        );
-        for (const source of sources.docs) {
-          transaction.delete(source.ref);
-        }
-        for (const source of write.dataSources) {
-          transaction.set(
-            this.sourceCollection(
-              write.connection.practiceId,
-              write.connection.connectionId,
-            ).doc(source.dataSourceId),
-            {
-              ...withoutUndefined(source),
-              updatedAt: FieldValue.serverTimestamp(),
-            },
-          );
-        }
+      },
+    );
+    if (write.dataSources !== undefined) {
+      for (const source of existingSources?.docs ?? []) {
+        transaction.delete(source.ref);
       }
-      transaction.set(
-        this.auditDocument(write.connection.practiceId, write.outbox.eventId),
-        auditDocument(write.audit),
-      );
-      transaction.set(
-        this.outboxDocument(write.connection.practiceId, write.outbox.eventId),
-        {
-          ...write.outbox,
-          occurredAt: FieldValue.serverTimestamp(),
-          status: 'pending',
-        },
-      );
-      transaction.set(receiptDocument, {
-        payloadHash: write.idempotency.payloadHash,
-        value,
-        recordedAt: FieldValue.serverTimestamp(),
-      });
-      return { ok: true, value, replayed: false };
+      for (const source of write.dataSources) {
+        transaction.set(sourceCollection.doc(source.dataSourceId), {
+          ...withoutUndefined(source),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
+    }
+    transaction.set(
+      this.auditDocument(write.connection.practiceId, write.outbox.eventId),
+      auditDocument(write.audit),
+    );
+    transaction.set(
+      this.outboxDocument(write.connection.practiceId, write.outbox.eventId),
+      {
+        ...write.outbox,
+        occurredAt: FieldValue.serverTimestamp(),
+        status: 'pending',
+      },
+    );
+    transaction.set(receiptDocument, {
+      payloadHash: write.idempotency.payloadHash,
+      value,
+      recordedAt: FieldValue.serverTimestamp(),
     });
+    return { ok: true, value, replayed: false };
   }
 
   private assertWriteIsConsistent(write: ConnectorLifecycleCommit): void {
@@ -159,17 +234,44 @@ export class FirestoreConnectorLifecycleStore implements ConnectorLifecycleStore
   }
 
   private idempotencyDocument(write: ConnectorLifecycleCommit) {
-    const digest = createHash('sha256')
-      .update(write.idempotency.actorUid)
-      .update('\n')
-      .update(write.idempotency.command)
-      .update('\n')
-      .update(write.idempotency.key)
-      .digest('hex');
-    return this.db.doc(
-      `practices/${write.connection.practiceId}/idempotencyKeys/${digest}`,
+    return this.idempotencyDocumentFor(
+      write.connection.practiceId,
+      write.idempotency,
     );
   }
+
+  private idempotencyDocumentFor(
+    practiceId: string,
+    idempotency: ConnectorLifecycleCommit['idempotency'],
+  ) {
+    const digest = createHash('sha256')
+      .update(idempotency.actorUid)
+      .update('\n')
+      .update(idempotency.command)
+      .update('\n')
+      .update(idempotency.key)
+      .digest('hex');
+    return this.db.doc(`practices/${practiceId}/idempotencyKeys/${digest}`);
+  }
+}
+
+function versionedConnection(
+  stored: StoredConnection,
+): VersionedConnectorConnection {
+  return {
+    connection: {
+      connectionId: stored.connectionId,
+      practiceId: stored.practiceId,
+      providerKey: stored.providerKey,
+      connectorVersion: stored.connectorVersion,
+      status: stored.status,
+      requestedCapabilities: stored.requestedCapabilities,
+      grantedCapabilities: stored.grantedCapabilities,
+      grantedScopes: stored.grantedScopes,
+      connectedByUid: stored.connectedByUid,
+    },
+    version: stored.version,
+  };
 }
 
 function withoutUndefined(

@@ -131,6 +131,76 @@ describe('firestore connector lifecycle store', () => {
     );
   });
 
+  it('evaluates a transition after checking its idempotency receipt', async () => {
+    const db = getMoloFirestore(projectId);
+    const store = new FirestoreConnectorLifecycleStore(db);
+    const practiceId = `prc_${randomUUID().replaceAll('-', '')}`;
+    const started = writeFor(practiceId);
+    const initial = await store.commit(started);
+    assert.equal(initial.ok, true);
+
+    const eventId = `evt_${randomUUID().replaceAll('-', '')}`;
+    const transition = {
+      practiceId,
+      connectionId: started.connection.connectionId,
+      expectedVersion: initial.value.version,
+      idempotency: {
+        actorUid: 'uid_123',
+        command: 'connector.pause',
+        key: 'key_pause',
+        payloadHash: 'payload_pause',
+      },
+      prepare: (current: typeof initial.value | undefined) => {
+        if (current === undefined) {
+          return { ok: false as const, code: 'resource_not_found' as const };
+        }
+        const connection = { ...current.connection, status: 'paused' as const };
+        return {
+          ok: true as const,
+          write: {
+            connection,
+            audit: {
+              practiceId,
+              connectorKey: 'xero' as const,
+              action: 'accounting.connection_paused' as const,
+              actor: { kind: 'user' as const, uid: 'uid_123' },
+              correlationId: 'cor_pause',
+              target: {
+                kind: 'connection' as const,
+                id: connection.connectionId,
+              },
+              outcome: 'completed' as const,
+              safeFacts: { statusCode: 'paused' },
+            },
+            outbox: {
+              eventId,
+              type: 'connector.connection_paused.v1' as const,
+              connectionId: connection.connectionId,
+              connectorKey: 'xero' as const,
+              correlationId: 'cor_pause',
+            },
+          },
+        };
+      },
+    };
+
+    const first = await store.transition(transition);
+    const replay = await store.transition(transition);
+
+    assert.equal(first.ok, true);
+    assert.equal(first.value.connection.status, 'paused');
+    assert.equal(replay.ok, true);
+    assert.equal(replay.replayed, true);
+    assert.equal(
+      (
+        await db
+          .collection(`practices/${practiceId}/connectorAuditEvents`)
+          .get()
+      ).size,
+      2,
+    );
+  });
+
   it('rejects idempotency reuse with another payload and stale versions', async () => {
     const db = getMoloFirestore(projectId);
     const store = new FirestoreConnectorLifecycleStore(db);

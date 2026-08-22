@@ -7,6 +7,7 @@ export { FirestoreSyncRunRepository } from './adapters/outbound/persistence/fire
 export { FirestoreWebhookReceiptRepository } from './adapters/outbound/persistence/firestore_webhook_receipt_repository.js';
 export { ListConnectorDefinitions } from './application/queries/list_connector_definitions.js';
 export { StartAccountingConnection } from './application/commands/start_accounting_connection.js';
+export { ChangeAccountingConnectionStatus } from './application/commands/change_accounting_connection_status.js';
 export {
   documentedAccountingProviderAdapters,
   quickBooksOnlineDefinition,
@@ -28,10 +29,16 @@ export type {
   StartAccountingConnectionResult,
 } from './application/commands/start_accounting_connection.js';
 export type {
+  ChangeAccountingConnectionStatusInput,
+  ChangeAccountingConnectionStatusResult,
+} from './application/commands/change_accounting_connection_status.js';
+export type {
   ConnectorCommandIdempotency,
   ConnectorLifecycleCommit,
   ConnectorLifecycleCommitResult,
   ConnectorLifecycleStore,
+  ConnectorLifecycleTransition,
+  ConnectorLifecycleTransitionResult,
   ConnectorOutboxEvent,
   VersionedConnectorConnection,
 } from './application/ports/connector_lifecycle_store.js';
