@@ -1,4 +1,5 @@
 export { StaticAccountingProviderRegistry } from './adapters/outbound/providers/accounting_provider_registry.js';
+export { ListConnectorDefinitions } from './application/queries/list_connector_definitions.js';
 export {
   documentedAccountingProviderAdapters,
   quickBooksOnlineDefinition,
@@ -9,6 +10,7 @@ export {
 
 export type { AccountingProviderAdapter } from './application/ports/accounting_provider_adapter.js';
 export type { AccountingProviderRegistry } from './application/ports/accounting_provider_registry.js';
+export type { ConnectorDefinitionView } from './application/queries/list_connector_definitions.js';
 export type {
   ExternalRecordNormaliser,
   ProviderRecordForNormalisation,

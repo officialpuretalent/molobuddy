@@ -4,6 +4,12 @@ import type { ServerConfig } from './config.js';
 import { FirestoreOnboardingStatusReader } from '../contexts/identity_access/adapters/outbound/persistence/firestore_onboarding_status_reader.js';
 import { FirestorePracticeRefReader } from '../contexts/identity_access/adapters/outbound/persistence/firestore_practice_ref_reader.js';
 import {
+  documentedAccountingProviderAdapters,
+  ListConnectorDefinitions,
+  StaticAccountingProviderRegistry,
+  type AccountingProviderRegistry,
+} from '../contexts/connectors/index.js';
+import {
   GetSession,
   ListAuthProviders,
   type OnboardingStatusReader,
@@ -29,6 +35,7 @@ import { LocalRequestTokenVerifier } from '../platform/auth/local_request_token_
 import { getMoloFirestore } from '../platform/persistence/firestore.js';
 
 export type ControlApiContainer = Readonly<{
+  listConnectorDefinitions: ListConnectorDefinitions;
   getSession: GetSession;
   listAuthProviders: ListAuthProviders;
   provisionPractice: ProvisionPractice;
@@ -46,6 +53,7 @@ export type ControlApiContainer = Readonly<{
  * emulator to find out.
  */
 export type ControlApiDependencies = Readonly<{
+  accountingProviderRegistry?: AccountingProviderRegistry;
   practiceRepository?: PracticeRepository;
   auditEventSink?: AuditEventSink;
   practiceRefReader?: PracticeRefReader;
@@ -87,6 +95,12 @@ export function createControlApiContainer(
   );
 
   return {
+    listConnectorDefinitions: new ListConnectorDefinitions(
+      dependencies.accountingProviderRegistry ??
+        new StaticAccountingProviderRegistry(
+          documentedAccountingProviderAdapters,
+        ),
+    ),
     getSession: new GetSession(
       verifier,
       dependencies.practiceRefReader ??

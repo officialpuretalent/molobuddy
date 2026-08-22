@@ -7,6 +7,7 @@ import {
   type ControlApiDependencies,
 } from './container.js';
 import { registerIdentityAccessRoutes } from '../contexts/identity_access/adapters/inbound/http/identity_access_routes.js';
+import { registerConnectorCatalogueRoutes } from '../contexts/connectors/adapters/inbound/http/connector_catalogue_routes.js';
 import { registerOnboardingRoutes } from '../contexts/practice_management/adapters/inbound/http/onboarding_routes.js';
 import { registerPracticeRoutes } from '../contexts/practice_management/adapters/inbound/http/practice_routes.js';
 import { createOpaqueId } from '../platform/http/identifiers.js';
@@ -72,6 +73,7 @@ export async function buildControlApi(
 
   const container = createControlApiContainer(config, dependencies);
   registerHealthRoute(app, config);
+  registerConnectorCatalogueRoutes(app, container);
   registerIdentityAccessRoutes(app, container);
   registerPracticeRoutes(app, container);
   registerOnboardingRoutes(app, container);

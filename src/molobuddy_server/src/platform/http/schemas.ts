@@ -123,6 +123,73 @@ export const authProvidersResponseSchema = {
   },
 } as const;
 
+const connectorDefinitionSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'key',
+    'version',
+    'name',
+    'auth',
+    'capabilities',
+    'scopes',
+    'supportsDeltaSync',
+    'supportsWebhooks',
+    'status',
+  ],
+  properties: {
+    key: { type: 'string', minLength: 1, maxLength: 100 },
+    version: { type: 'string', minLength: 1, maxLength: 64 },
+    name: { type: 'string', minLength: 1, maxLength: 100 },
+    auth: { const: 'oauth2' },
+    capabilities: {
+      type: 'array',
+      uniqueItems: true,
+      maxItems: 32,
+      items: { type: 'string', minLength: 1, maxLength: 100 },
+    },
+    scopes: {
+      type: 'array',
+      uniqueItems: true,
+      maxItems: 64,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['key', 'description', 'required'],
+        properties: {
+          key: { type: 'string', minLength: 1, maxLength: 200 },
+          description: { type: 'string', minLength: 1, maxLength: 200 },
+          required: { type: 'boolean' },
+        },
+      },
+    },
+    supportsDeltaSync: { const: true },
+    supportsWebhooks: { type: 'boolean' },
+    status: { const: 'private' },
+  },
+} as const;
+
+export const connectorCatalogueResponseSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['data', 'meta'],
+  properties: {
+    data: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['connectors'],
+      properties: {
+        connectors: {
+          type: 'array',
+          maxItems: 32,
+          items: connectorDefinitionSchema,
+        },
+      },
+    },
+    meta: responseMetaSchema,
+  },
+} as const;
+
 const onboardingAnswersSchema = {
   type: 'object',
   additionalProperties: false,
