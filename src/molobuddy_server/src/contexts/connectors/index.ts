@@ -12,6 +12,8 @@ export {
 export { ListConnectorDefinitions } from './application/queries/list_connector_definitions.js';
 export { StartAccountingConnection } from './application/commands/start_accounting_connection.js';
 export { ChangeAccountingConnectionStatus } from './application/commands/change_accounting_connection_status.js';
+export { IssueProviderAuthorisation } from './application/commands/issue_provider_authorisation.js';
+export { HmacOAuthStateSigner } from './adapters/outbound/security/hmac_oauth_state_signer.js';
 export {
   documentedAccountingProviderAdapters,
   quickBooksOnlineDefinition,
@@ -36,6 +38,15 @@ export type {
   ChangeAccountingConnectionStatusInput,
   ChangeAccountingConnectionStatusResult,
 } from './application/commands/change_accounting_connection_status.js';
+export type {
+  IssueProviderAuthorisationInput,
+  IssueProviderAuthorisationResult,
+} from './application/commands/issue_provider_authorisation.js';
+export type { OAuthStateSigner } from './application/ports/oauth_state_signer.js';
+export type {
+  ProviderOAuthClientConfiguration,
+  ProviderOAuthClientRegistry,
+} from './application/ports/provider_oauth_client_registry.js';
 export type {
   ConnectorCommandIdempotency,
   ConnectorLifecycleCommit,

@@ -47,6 +47,14 @@ These are deliberate product and architecture decisions, not open questions. The
 
 **Consequence:** Credentials reside only in the practice's regional Secret Manager through `ProviderCredentialVault`; Firestore contains only a secret reference and credential generation. Refresh-token rotation is serialised per connection. Provider callbacks bind signed, single-use state to the Molo connection and allowlisted return URI.
 
+### 5.0 OAuth state and PKCE implementation
+
+**Decision:** Molo creates a fresh opaque state ID for each authorisation request, stores the practice/connection/provider/return URI and expiry only in the regional state store, and sends the provider an HMAC-signed envelope (`v1.stateId.signature`). The callback verifies the signature in constant time before single-use state consumption. PKCE verifier/challenge material is generated server-side only when a provider requires PKCE; client IDs and redirect URIs come from deployment configuration, never a Flutter request.
+
+**Why:** OAuth `state` binds the callback to the original request and PKCE binds an authorisation code to its original verifier, reducing interception and request-forgery risk. The HMAC envelope allows malformed or forged callbacks to be rejected without a state-store read, while the durable record provides regional, expiry and single-use guarantees. [RFC 6749: OAuth 2.0 state](https://www.rfc-editor.org/rfc/rfc6749#section-10.12) · [RFC 7636: PKCE](https://www.rfc-editor.org/rfc/rfc7636) · [OWASP OAuth 2.0 security guidance](https://cheatsheetseries.owasp.org/cheatsheets/OAuth2_Cheat_Sheet.html)
+
+**Consequence:** An authorising connection has no usable credential until callback completion has verified state, exchanged the code, written credentials to the regional vault and committed the next audited lifecycle state. Callback completion is deliberately a separate saga because Secret Manager and Firestore do not share a transaction; it compensates a vault write if the lifecycle commit cannot succeed.
+
 ### 5.1 Regional credential-vault implementation
 
 **Decision:** The credential vault creates one Secret Manager **regional** secret per opaque Molo connection, addressed through the configured regional endpoint. It reads an explicit secret-version number, never the `latest` alias; every replacement requires the caller's observed credential generation and an ETag-protected metadata update. A version created by a losing write is destroyed and never returned as a reference.
