@@ -81,13 +81,18 @@ class _MoloChoiceCardState extends State<MoloChoiceCard> {
               ),
             ),
             child: Padding(
-              // The design pads 16 down the sides of the row and 18 across it,
-              // and the two-pixel selected edge is drawn inside that, so the
-              // contents never shift as a card is chosen.
-              padding: EdgeInsets.symmetric(
-                vertical: strongEdge ? 15 : 16,
-                horizontal: strongEdge ? 17 : 18,
-              ),
+              // The design pads 16 and 18 inside a 1 border, and border-box
+              // holds that border within the element, so the contents start 17
+              // down and 19 across. A DecoratedBox paints its border over the
+              // padding rather than adding it to the box, so the padding
+              // carries the border's pixel and never moves.
+              //
+              // Constant on purpose. The design keeps one padding and one 1
+              // border in both states and draws the chosen edge as an inset
+              // ring, which costs no layout at all. Trading a pixel of padding
+              // for a wider border instead shrank the card by 2 as it was
+              // chosen, and a column of them jumped as each was ticked.
+              padding: const EdgeInsets.symmetric(vertical: 17, horizontal: 19),
               child: Row(
                 children: [
                   MoloIcon(
