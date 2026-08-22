@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:molobuddy_app/app/adaptive/auth_shell_layout.dart';
-import 'package:molobuddy_app/app/adaptive/window_class.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_brand_lockup.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_check_row.dart';
@@ -89,11 +88,9 @@ class _SignInViewState extends ConsumerState<SignInView> {
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final windowClass = moloWindowClassFor(constraints.maxWidth);
-              final showHero =
-                  windowClass == MoloWindowClass.expanded ||
-                  windowClass == MoloWindowClass.large ||
-                  windowClass == MoloWindowClass.extraLarge;
+              final showHero = MoloAuthShellLayout.showsSupportingPane(
+                constraints.maxWidth,
+              );
               final pane = _SignInPane(
                 viewState: viewState,
                 initialising: authState is AsyncLoading,

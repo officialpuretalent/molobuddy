@@ -70,7 +70,6 @@ class OnboardingView extends ConsumerWidget {
         practiceName:
             state.draftPracticeName ?? state.answers.practiceName ?? '',
       ),
-      showWorkspaceSummary: true,
       child: switch (state.step) {
         OnboardingStep.practice => _PracticeStep(
           key: const ValueKey('practice'),

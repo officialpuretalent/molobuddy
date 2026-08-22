@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:molobuddy_app/app/adaptive/auth_shell_layout.dart';
 import 'package:molobuddy_app/app/adaptive/molo_wizard_rail.dart';
-import 'package:molobuddy_app/app/adaptive/window_class.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_brand_lockup.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_pill_button.dart';
 import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/design_system/motion/molo_motion.dart';
-import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
 import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
 import 'package:molobuddy_app/app/localisation/generated/app_localizations.dart';
 import 'package:molobuddy_app/app/router/app_router.dart';
@@ -103,7 +101,6 @@ class MoloWizardShell extends StatelessWidget {
     required this.child,
     this.progress,
     this.showSignInLink = false,
-    this.showWorkspaceSummary = false,
     super.key,
   });
 
@@ -117,7 +114,6 @@ class MoloWizardShell extends StatelessWidget {
   final WizardProgress? progress;
 
   final bool showSignInLink;
-  final bool showWorkspaceSummary;
 
   @override
   Widget build(BuildContext context) {
@@ -128,11 +124,9 @@ class MoloWizardShell extends StatelessWidget {
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final windowClass = moloWindowClassFor(constraints.maxWidth);
-              final showPanel =
-                  windowClass == MoloWindowClass.expanded ||
-                  windowClass == MoloWindowClass.large ||
-                  windowClass == MoloWindowClass.extraLarge;
+              final showPanel = MoloAuthShellLayout.showsSupportingPane(
+                constraints.maxWidth,
+              );
               final panelProgress = progress;
               if (showPanel && panelProgress != null) {
                 return Row(
@@ -164,7 +158,6 @@ class _Pane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = shell.progress;
     return ColoredBox(
       color: MoloColours.warmCanvas,
       child: Column(
@@ -176,12 +169,6 @@ class _Pane extends StatelessWidget {
               showSignInOffer: shell.showSignInLink,
             ),
           ),
-          if (showCompactHeader && progress != null)
-            _CompactProgress(progress: progress),
-          if (showCompactHeader &&
-              progress != null &&
-              shell.showWorkspaceSummary)
-            _CompactWorkspaceSummary(progress: progress),
           Expanded(
             child: SingleChildScrollView(
               // The design tops the column out 56 below the header and leaves
@@ -232,6 +219,40 @@ class _WizardHeaderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localisations = AppLocalizations.of(context);
+    // The design words the offer the same at every width, so the label travels
+    // with its pill rather than dropping when the wordmark appears beside it.
+    final offer = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Text(
+            // Two lines rather than one. The design's header has room for the
+            // sentence beside the wordmark from about 430 up; a phone at 375
+            // does not, and truncating it to "Already have an a..." says less
+            // than wrapping it. The words stay the design's at every width;
+            // only the number of lines they take moves.
+            localisations.alreadyHaveAccount,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 13,
+              letterSpacing: 0,
+              height: MoloTypography.normalLineHeight,
+              color: MoloColours.secondaryText,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Flexible(
+          child: MoloPillButton(
+            key: const Key('registration_sign_in_link'),
+            label: localisations.signIn,
+            onPressed: () => const SignInRoute().go(context),
+          ),
+        ),
+      ],
+    );
+
     return Row(
       // No spacer: a spacer is a tight flex child and would take a share of the
       // row the pill then could not have, truncating its label while the row
@@ -241,153 +262,12 @@ class _WizardHeaderRow extends StatelessWidget {
           : MainAxisAlignment.end,
       children: [
         if (showWordmark) const MoloBrandLockup(compact: true),
-        if (showSignInOffer) ...[
-          if (!showWordmark) ...[
-            Flexible(
-              child: Text(
-                localisations.alreadyHaveAccount,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 13,
-                  letterSpacing: 0,
-                  height: MoloTypography.normalLineHeight,
-                  color: MoloColours.secondaryText,
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-          ],
-          Flexible(
-            child: MoloPillButton(
-              key: const Key('registration_sign_in_link'),
-              label: localisations.signIn,
-              onPressed: () => const SignInRoute().go(context),
-            ),
-          ),
-        ],
+        if (showSignInOffer) Flexible(child: offer),
       ],
     );
   }
 }
 
-class _CompactProgress extends StatelessWidget {
-  const _CompactProgress({required this.progress});
-
-  final WizardProgress progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final localisations = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: MoloSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          LinearProgressIndicator(
-            key: const Key('registration_compact_progress'),
-            minHeight: 4,
-            borderRadius: BorderRadius.circular(2),
-            value: progress.stepNumber / WizardProgress.totalSteps,
-            color: MoloColours.pulseText,
-            backgroundColor: MoloColours.pulseTint,
-          ),
-          const SizedBox(height: MoloSpacing.xs),
-          Text(
-            localisations.registrationProgress(
-              progress.stepNumber,
-              WizardProgress.totalSteps,
-            ),
-            textAlign: TextAlign.right,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: MoloColours.secondaryText),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CompactWorkspaceSummary extends StatelessWidget {
-  const _CompactWorkspaceSummary({required this.progress});
-
-  final WizardProgress progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final localisations = AppLocalizations.of(context);
-    final practiceName = progress.practiceName.isEmpty
-        ? localisations.workspacePreviewPlaceholder
-        : progress.practiceName;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        MoloSpacing.lg,
-        MoloSpacing.sm,
-        MoloSpacing.lg,
-        0,
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: MoloColours.pulseTint,
-          borderRadius: BorderRadius.circular(MoloSpacing.controlRadius),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(MoloSpacing.sm),
-          child: Row(
-            children: [
-              const SizedBox.square(
-                dimension: 38,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: MoloColours.moloPlum,
-                    borderRadius: BorderRadius.all(Radius.circular(11)),
-                  ),
-                  child: Icon(
-                    Icons.space_dashboard_outlined,
-                    size: 19,
-                    color: MoloColours.moloPulse,
-                  ),
-                ),
-              ),
-              const SizedBox(width: MoloSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      practiceName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                    Text(
-                      localisations.workspaceReadiness(
-                        progress.readinessPercent,
-                      ),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: MoloColours.secondaryText,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                '${progress.readinessPercent}%',
-                style: Theme.of(
-                  context,
-                ).textTheme.labelLarge?.copyWith(color: MoloColours.pulseText),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The eyebrow, title and blurb the design puts at the head of every step, with
-/// the back link above them where there is a step to go back to.
 class MoloWizardHeadingGroup extends StatelessWidget {
   const MoloWizardHeadingGroup({
     required this.eyebrow,

@@ -1,4 +1,18 @@
 abstract final class MoloAuthShellLayout {
+  /// The width at which sign-in shows its photograph and the wizard its rail.
+  ///
+  /// The design's own number, and not one of [MoloBreakpoints]: the baseline
+  /// switches these two screens on 900 while the app's window classes turn at
+  /// 840. Following the classes drew a rail between 840 and 900 that the
+  /// design does not draw, so these screens keep the design's threshold and
+  /// the rest of the app keeps the classes.
+  static const supportingPaneMinimumWidth = 900.0;
+
+  /// Whether [availableWidth] has room for the supporting pane beside the form.
+  static bool showsSupportingPane(double availableWidth) {
+    return availableWidth >= supportingPaneMinimumWidth;
+  }
+
   /// The dark supporting pane the signup wizard shares across its routes.
   ///
   /// Fixed rather than proportional, because `/sign-up` and `/onboarding` fade

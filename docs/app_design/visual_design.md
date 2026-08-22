@@ -247,10 +247,17 @@ tasks ("Shape your workspace"), which is how it avoids repeating the active form
 back at the reader. The one exception is step one, which the baseline calls "Your
 account" in both places.
 
-Compact and medium windows drop the rail and keep a progress bar and a practice
-summary chip. **This is a deliberate departure from the baseline**, which puts
-nothing in the rail's place: someone four steps into signup on a phone otherwise
-has no sense of position.
+Below 900 the rail goes and the header gains the brand lockup it was carrying,
+which is exactly what the baseline does. Nothing stands in the rail's place: no
+progress bar, no step count, no practice chip. An earlier pass added all three on
+the argument that someone four steps into signup on a phone has no sense of
+position; the baseline disagrees, and the step's own eyebrow already names where
+the reader is.
+
+The 900 is the baseline's own threshold rather than one of the app's window
+classes, which turn at 840. Following the classes drew a rail between 840 and 900
+that the design does not draw, so sign-in and the wizard keep the design's number
+and every other screen keeps the classes.
 
 ### Choice cards
 
