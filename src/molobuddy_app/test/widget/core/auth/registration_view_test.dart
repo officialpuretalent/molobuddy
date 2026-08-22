@@ -24,9 +24,11 @@ void main() {
     await _openRegistration(tester);
 
     expect(find.byKey(const Key('registration_account_step')), findsOneWidget);
+    // The design draws one wizard header at every width, so a narrow window
+    // gains the wordmark the rail would have carried and nothing more.
     expect(
       find.byKey(const Key('registration_compact_progress')),
-      findsOneWidget,
+      findsNothing,
     );
 
     await _tapWhenVisible(

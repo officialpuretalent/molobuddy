@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:molobuddy_app/app/adaptive/molo_wizard_shell.dart';
 import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
+import 'package:molobuddy_app/app/design_system/components/molo_brand_lockup.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_pill_button.dart';
 import 'package:molobuddy_app/app/design_system/molo_theme.dart';
 import 'package:molobuddy_app/app/localisation/generated/app_localizations.dart';
@@ -93,12 +94,14 @@ void main() {
     expect(find.byKey(const Key('registration_sign_in_link')), findsOneWidget);
   });
 
-  testWidgets('on compact the lockup appears and the label drops', (
+  testWidgets('on compact the lockup joins the offer, which keeps its words', (
     tester,
   ) async {
+    // The baseline words the offer the same at every width. Dropping the
+    // sentence left a bare pill that did not say what signing in was for.
     await pump(tester, const Size(390, 900));
     expect(find.text('molo'), findsOneWidget);
-    expect(find.text('Already have an account?'), findsNothing);
+    expect(find.text('Already have an account?'), findsOneWidget);
     expect(find.byKey(const Key('registration_sign_in_link')), findsOneWidget);
   });
 
@@ -281,6 +284,58 @@ void main() {
       await tester.tap(find.byKey(const Key('primary')), warnIfMissed: false);
       await tester.pump();
       expect(presses, 0);
+    });
+  });
+
+  group('the compact header matches the design', () {
+    // The baseline draws one wizard header at every width. Compact adds the
+    // wordmark the rail would otherwise carry, and nothing else: no progress
+    // bar, no step count, no workspace chip.
+    testWidgets('it adds the wordmark and nothing else', (tester) async {
+      await pump(tester, const Size(700, 900));
+      expect(
+        find.byKey(const Key('registration_progress_panel')),
+        findsNothing,
+      );
+      expect(find.byType(MoloBrandLockup), findsOneWidget);
+      expect(
+        find.byKey(const Key('registration_compact_progress')),
+        findsNothing,
+      );
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(find.text('Step 2 of 4'), findsNothing);
+    });
+
+    testWidgets('the offer keeps its words as well as its pill', (
+      tester,
+    ) async {
+      await pump(tester, const Size(700, 900));
+      expect(
+        find.byKey(const Key('registration_sign_in_link')),
+        findsOneWidget,
+      );
+      expect(find.text('Already have an account?'), findsOneWidget);
+    });
+
+    testWidgets('the rail waits for the width the design waits for', (
+      tester,
+    ) async {
+      // The baseline switches on vw < 900. Ours switched on the app's 840
+      // window class, so 840 to 900 drew a rail the design does not.
+      await pump(tester, const Size(880, 950));
+      expect(
+        find.byKey(const Key('registration_progress_panel')),
+        findsNothing,
+      );
+      expect(find.byType(MoloBrandLockup), findsOneWidget);
+
+      await pump(tester, const Size(920, 950));
+      expect(
+        find.byKey(const Key('registration_progress_panel')),
+        findsOneWidget,
+      );
+      // Wide, the rail carries the wordmark, so the pane must not repeat it.
+      expect(find.byType(MoloBrandLockup), findsOneWidget);
     });
   });
 }
