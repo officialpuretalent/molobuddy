@@ -55,6 +55,16 @@ export type {
 } from './application/ports/provider_webhook_verifier.js';
 export type { SyncRunRepository } from './application/ports/sync_run_repository.js';
 export type {
+  ConsumeOAuthAuthorisationStateResult,
+  OAuthAuthorisationState,
+  OAuthAuthorisationStateStore,
+} from './application/ports/oauth_authorisation_state_store.js';
+export type { SyncCheckpointRepository } from './application/ports/sync_checkpoint_repository.js';
+export type {
+  RecordWebhookReceiptResult,
+  WebhookReceiptRepository,
+} from './application/ports/webhook_receipt_repository.js';
+export type {
   AccountingDataSourceKind,
   AccountingProviderDefinition,
   AccountingProviderKey,
@@ -87,3 +97,9 @@ export {
   type SyncRun,
   type SyncRunStatus,
 } from './domain/sync_run.js';
+export {
+  mayAcquireLease,
+  mayAdvanceCheckpoint,
+  type SyncCheckpoint,
+} from './domain/sync_checkpoint.js';
+export type { WebhookReceipt } from './domain/webhook_receipt.js';
