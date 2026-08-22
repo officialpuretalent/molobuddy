@@ -137,7 +137,7 @@ Future<void> _pumpShell(
         primaryActionLabel: 'Create work',
         primaryActionTooltip: 'Create work',
         brandSemanticLabel: 'Molo',
-      searchHint: 'Search',
+        searchHint: 'Search',
         onDestinationSelected: onDestinationSelected ?? (_) {},
         onPrimaryAction: onPrimaryAction,
         child: const Center(child: Text('Workspace content')),

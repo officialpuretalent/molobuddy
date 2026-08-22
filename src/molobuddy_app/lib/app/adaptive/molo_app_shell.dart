@@ -30,6 +30,7 @@ class MoloNavigationDestination {
 
   final String id;
   final String label;
+
   /// The design's line glyph. Stroked, so selection changes colour only and
   /// there is no filled counterpart to swap in.
   final MoloGlyph glyph;
@@ -581,7 +582,12 @@ class _MoloNavigationFrame extends StatelessWidget {
       width: width,
       color: MoloColours.moloPlum,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(horizontalPadding, 18, horizontalPadding, 12),
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          18,
+          horizontalPadding,
+          12,
+        ),
         child: Column(
           children: [
             // The design stacks brand, destinations and the create action from
@@ -630,8 +636,9 @@ class _MoloSidebarBrand extends StatelessWidget {
       // first row by 18.
       padding: const EdgeInsets.fromLTRB(10, 0, 10, 18),
       child: Row(
-        mainAxisAlignment:
-            labelled ? MainAxisAlignment.start : MainAxisAlignment.center,
+        mainAxisAlignment: labelled
+            ? MainAxisAlignment.start
+            : MainAxisAlignment.center,
         children: [
           MoloBrandLockup(
             onDark: true,
@@ -670,30 +677,31 @@ class _MoloPrimaryAction extends StatelessWidget {
           height: 48,
           child: FilledButton(
             onPressed: onPressed,
-            style: FilledButton.styleFrom(
-              backgroundColor: MoloColours.surface,
-              foregroundColor: MoloColours.moloPlum,
-              // The design uses 15 here, one more than the control radius.
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              padding: EdgeInsets.zero,
-              // Built from the theme's button role rather than from a bare
-              // TextStyle. A button style's text style replaces the role
-              // outright instead of merging with it, so writing one from
-              // scratch dropped the font family with it and the label came out
-              // in the platform default instead of Geist, half again too wide.
-              textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0,
-                height: MoloTypography.normalLineHeight,
-              ),
-            ).copyWith(
-              overlayColor: const WidgetStatePropertyAll(
-                MoloColours.pulseTint,
-              ),
-            ),
+            style:
+                FilledButton.styleFrom(
+                  backgroundColor: MoloColours.surface,
+                  foregroundColor: MoloColours.moloPlum,
+                  // The design uses 15 here, one more than the control radius.
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  padding: EdgeInsets.zero,
+                  // Built from the theme's button role rather than from a bare
+                  // TextStyle. A button style's text style replaces the role
+                  // outright instead of merging with it, so writing one from
+                  // scratch dropped the font family with it and the label came out
+                  // in the platform default instead of Geist, half again too wide.
+                  textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0,
+                    height: MoloTypography.normalLineHeight,
+                  ),
+                ).copyWith(
+                  overlayColor: const WidgetStatePropertyAll(
+                    MoloColours.pulseTint,
+                  ),
+                ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

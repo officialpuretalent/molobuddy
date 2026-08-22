@@ -16,9 +16,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// `RawMenuAnchor` keeps dismissal, focus and the anchor rect and supplies no
 /// surface of its own. See `docs/app_design/visual_design.md`.
 void main() {
-  final welcomeView = File(
-    'lib/core/auth/ui/views/welcome/welcome_view.dart',
-  );
+  final welcomeView = File('lib/core/auth/ui/views/welcome/welcome_view.dart');
 
   test('the account panel is hosted by RawMenuAnchor', () {
     expect(

@@ -39,7 +39,11 @@ void main() {
   /// The design's own nine destinations, so the offsets below can be compared
   /// with the baseline row for row rather than approximately.
   final destinations = <MoloNavigationDestination>[
-    MoloNavigationDestination(id: 'home', label: 'Home', glyph: MoloGlyphs.home),
+    MoloNavigationDestination(
+      id: 'home',
+      label: 'Home',
+      glyph: MoloGlyphs.home,
+    ),
     MoloNavigationDestination(
       id: 'work',
       label: 'Work',
@@ -323,10 +327,7 @@ void main() {
       );
       // The plus takes the button own style rather than stating a weight, so
       // this guards the button style as much as the glyph.
-      expect(
-        resolvedStyle(tester, find.text('+')).fontWeight,
-        FontWeight.w500,
-      );
+      expect(resolvedStyle(tester, find.text('+')).fontWeight, FontWeight.w500);
       expect(resolvedStyle(tester, find.text('+')).fontSize, 18);
     });
   });

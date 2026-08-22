@@ -17,7 +17,10 @@ void main() {
     });
 
     test('trims surrounding whitespace a config file easily carries', () {
-      expect(appCheckDebugTokenGlobal('  token-with-spaces  '), 'token-with-spaces');
+      expect(
+        appCheckDebugTokenGlobal('  token-with-spaces  '),
+        'token-with-spaces',
+      );
     });
 
     test('falls back to SDK generation when no token is configured', () {

@@ -75,7 +75,9 @@ class MoloNavigationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final foreground = selected ? MoloColours.surface : idleForeground;
-    final effective = enabled ? foreground : idleForeground.withValues(alpha: 0.38);
+    final effective = enabled
+        ? foreground
+        : idleForeground.withValues(alpha: 0.38);
     final badge = badgeLabel;
 
     final row = Row(

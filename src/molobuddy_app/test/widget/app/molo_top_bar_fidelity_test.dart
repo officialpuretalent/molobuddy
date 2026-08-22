@@ -32,7 +32,10 @@ void main() {
 
   Widget host(Widget child) => MaterialApp(
     theme: MoloTheme.light(),
-    home: Scaffold(appBar: child as PreferredSizeWidget, body: const SizedBox()),
+    home: Scaffold(
+      appBar: child as PreferredSizeWidget,
+      body: const SizedBox(),
+    ),
   );
 
   group('top bar', () {
@@ -74,7 +77,9 @@ void main() {
 
     testWidgets('drops the search field when compact', (tester) async {
       await tester.pumpWidget(
-        host(const MoloTopBar(title: 'Home', searchHint: 'Search', compact: true)),
+        host(
+          const MoloTopBar(title: 'Home', searchHint: 'Search', compact: true),
+        ),
       );
       expect(find.byType(MoloSearchField), findsNothing);
     });
@@ -85,10 +90,7 @@ void main() {
       await tester.pumpWidget(
         host(const MoloTopBar(title: 'Home', searchHint: 'Search')),
       );
-      expect(
-        tester.getSize(find.byType(MoloSearchField)),
-        const Size(260, 40),
-      );
+      expect(tester.getSize(find.byType(MoloSearchField)), const Size(260, 40));
     });
 
     testWidgets('shows the hint the practice reads', (tester) async {
