@@ -211,4 +211,83 @@ void main() {
     );
     semantics.dispose();
   });
+
+  group('the card holds its box as it is chosen', () {
+    // The shared harness centres the card in a loose box, where its Material
+    // stretches to the viewport. These measure the box itself, so they give it
+    // a column to shrink-wrap into instead.
+    Future<void> pumpBox(WidgetTester tester, {required bool selected}) async {
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: MoloTheme.light(),
+          home: Scaffold(
+            backgroundColor: MoloColours.warmCanvas,
+            body: Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: 452,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    MoloChoiceCard(
+                      glyph: MoloGlyphs.goalDeadlines,
+                      title: 'Stay ahead of deadlines',
+                      description:
+                          'See what is due and what needs attention now.',
+                      selected: selected,
+                      kind: MoloChoiceKind.multiple,
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Rect contents(WidgetTester tester) => tester.getRect(
+      find
+          .descendant(
+            of: find.byType(MoloChoiceCard),
+            matching: find.byType(Row),
+          )
+          .first,
+    );
+
+    testWidgets('choosing it leaves its height alone', (tester) async {
+      await pumpBox(tester, selected: false);
+      final off = tester.getSize(find.byType(MoloChoiceCard));
+      await pumpBox(tester, selected: true);
+      final on = tester.getSize(find.byType(MoloChoiceCard));
+      // The design keeps one padding and one 1px border in both states and
+      // draws the chosen edge as an inset ring, which costs no layout. Trading
+      // a pixel of padding for a wider border instead shrank the card by 2 as
+      // it was chosen, and a column of them jumped as each was ticked.
+      expect(on.height, off.height);
+    });
+
+    testWidgets('its contents sit where the design puts them, chosen or not', (
+      tester,
+    ) async {
+      await pumpBox(tester, selected: false);
+      var card = tester.getRect(find.byType(MoloChoiceCard));
+      var row = contents(tester);
+      // 16 and 18 of padding inside a 1 border, which border-box holds inside
+      // the element, so the contents start 17 down and 19 across.
+      expect(row.top - card.top, 17);
+      expect(row.left - card.left, 19);
+
+      await pumpBox(tester, selected: true);
+      card = tester.getRect(find.byType(MoloChoiceCard));
+      row = contents(tester);
+      expect(row.top - card.top, 17);
+      expect(row.left - card.left, 19);
+    });
+  });
 }
