@@ -1,7 +1,9 @@
 export { StaticAccountingProviderRegistry } from './adapters/outbound/providers/accounting_provider_registry.js';
 export { FirestoreConnectorConnectionRepository } from './adapters/outbound/persistence/firestore_connector_connection_repository.js';
+export { FirestoreConnectorLifecycleStore } from './adapters/outbound/persistence/firestore_connector_lifecycle_store.js';
 export { FirestoreSyncRunRepository } from './adapters/outbound/persistence/firestore_sync_run_repository.js';
 export { ListConnectorDefinitions } from './application/queries/list_connector_definitions.js';
+export { StartAccountingConnection } from './application/commands/start_accounting_connection.js';
 export {
   documentedAccountingProviderAdapters,
   quickBooksOnlineDefinition,
@@ -13,6 +15,18 @@ export {
 export type { AccountingProviderAdapter } from './application/ports/accounting_provider_adapter.js';
 export type { AccountingProviderRegistry } from './application/ports/accounting_provider_registry.js';
 export type { ConnectorConnectionRepository } from './application/ports/connector_connection_repository.js';
+export type {
+  StartAccountingConnectionInput,
+  StartAccountingConnectionResult,
+} from './application/commands/start_accounting_connection.js';
+export type {
+  ConnectorCommandIdempotency,
+  ConnectorLifecycleCommit,
+  ConnectorLifecycleCommitResult,
+  ConnectorLifecycleStore,
+  ConnectorOutboxEvent,
+  VersionedConnectorConnection,
+} from './application/ports/connector_lifecycle_store.js';
 export {
   safeConnectorAuditFields,
   type ConnectorAuditEvent,
