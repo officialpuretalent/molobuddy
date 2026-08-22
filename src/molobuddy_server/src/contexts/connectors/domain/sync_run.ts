@@ -3,6 +3,7 @@ export type SyncRunStatus =
 
 export type SyncRun = Readonly<{
   syncRunId: string;
+  practiceId: string;
   connectionId: string;
   dataSourceId: string;
   mode: 'delta' | 'full' | 'selected_sources';

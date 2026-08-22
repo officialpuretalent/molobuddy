@@ -40,6 +40,7 @@ test('a connection requires explicit data-source selection before activation', (
   const active = activateSelectedSources(authorised.connection, [
     {
       dataSourceId: 'src_123',
+      practiceId: 'prc_123',
       connectionId: 'con_123',
       providerDataSourceId: 'tenant_123',
       displayName: 'Example organisation',
@@ -60,6 +61,7 @@ test('only an active connection may be paused', () => {
 test('a sync run starts exactly once from its queued state', () => {
   const queued = queueSyncRun({
     syncRunId: 'syn_123',
+    practiceId: 'prc_123',
     connectionId: 'con_123',
     dataSourceId: 'src_123',
     mode: 'delta',

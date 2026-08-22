@@ -1,4 +1,6 @@
 export { StaticAccountingProviderRegistry } from './adapters/outbound/providers/accounting_provider_registry.js';
+export { FirestoreConnectorConnectionRepository } from './adapters/outbound/persistence/firestore_connector_connection_repository.js';
+export { FirestoreSyncRunRepository } from './adapters/outbound/persistence/firestore_sync_run_repository.js';
 export { ListConnectorDefinitions } from './application/queries/list_connector_definitions.js';
 export {
   documentedAccountingProviderAdapters,

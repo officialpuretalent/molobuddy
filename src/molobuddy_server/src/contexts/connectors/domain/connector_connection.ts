@@ -25,6 +25,7 @@ export type ConnectorConnection = Readonly<{
 
 export type ConnectorDataSource = Readonly<{
   dataSourceId: string;
+  practiceId: string;
   connectionId: string;
   providerDataSourceId: string;
   displayName: string;

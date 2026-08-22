@@ -75,6 +75,11 @@ Required query shapes:
 - external records by source/kind/provider ID and by changed/retrieved time;
 - webhook receipts by connection and provider event key.
 
+The initial deployed index is `connectorSyncRuns(connectionId ASC, updatedAt DESC)`.
+It supports the practice-local sync history query without a cross-practice
+collection-group query. Add further indexes only alongside the concrete,
+authorised query that needs them.
+
 Indexes must follow actual Firestore query shapes; no generic global external-record search index is permitted. Any cross-practice operational search uses anonymised metrics, not tenant records.
 
 ## 5. Compatibility and acceptance
