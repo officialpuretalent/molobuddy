@@ -177,9 +177,10 @@ export const sageBusinessCloudAccountingDefinition: AccountingProviderDefinition
     api: {
       baseUrl: 'https://api.accounting.sage.com/v3.1/',
       sourceContext: {
-        name: 'company',
-        location: 'provider_managed',
-        description: 'Company authorisation context established by Sage.',
+        name: 'X-Business',
+        location: 'header',
+        description:
+          'The selected Sage Accounting business; required to avoid the mutable lead-business default.',
       },
       endpoints: providerReadEndpoints({
         account: 'ledger_accounts',

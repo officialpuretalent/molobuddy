@@ -89,4 +89,8 @@ test('Sage Business Cloud Accounting does not invent a public scope catalogue', 
   assert.equal(url.searchParams.has('scope'), false);
   assert.equal(adapter.definition.scopeBundles.length, 0);
   assert.equal(adapter.definition.supportsWebhooks, false);
+  assert.deepEqual(
+    adapter.buildReadRequest('invoice', 'business-123').requiredHeaders,
+    ['Authorization', 'X-Business'],
+  );
 });
