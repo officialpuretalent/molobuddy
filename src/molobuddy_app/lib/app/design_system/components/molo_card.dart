@@ -12,6 +12,7 @@ class MoloCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(MoloSpacing.lg),
     this.backgroundColor = MoloColours.surface,
+    this.radius = MoloSpacing.cardRadius,
     this.semanticLabel,
     super.key,
   });
@@ -19,6 +20,7 @@ class MoloCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final Color backgroundColor;
+  final double radius;
   final String? semanticLabel;
 
   @override
@@ -26,7 +28,7 @@ class MoloCard extends StatelessWidget {
     final surface = DecoratedBox(
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(MoloSpacing.cardRadius),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: MoloColours.border),
       ),
       child: Padding(padding: padding, child: child),

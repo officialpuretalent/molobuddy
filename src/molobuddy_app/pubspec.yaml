@@ -51,3 +51,9 @@ flutter:
           weight: 400
         - asset: assets/fonts/Geist-Medium.ttf
           weight: 500
+    - family: Geist Mono
+      fonts:
+        - asset: assets/fonts/GeistMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/GeistMono-Medium.ttf
+          weight: 500

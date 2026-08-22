@@ -47,6 +47,18 @@ void main() {
       expect(tester.getSize(find.byType(MoloTopBar)).height, 65);
     });
 
+    testWidgets('uses the 44px compact header from the workbench', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          const MoloTopBar(title: 'Home', searchHint: 'Search', compact: true),
+        ),
+      );
+      expect(MoloTopBar.compactHeight, 44);
+      expect(tester.getSize(find.byType(MoloTopBar)).height, 44);
+    });
+
     testWidgets('sets the title at 15px medium', (tester) async {
       await tester.pumpWidget(
         host(const MoloTopBar(title: 'Home', searchHint: 'Search')),
@@ -145,6 +157,10 @@ void main() {
     testWidgets('the shell hands the body a top inset of the bar height', (
       tester,
     ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(900, 900);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
       // The design makes the header sticky inside the scroll container, so
       // content passes under a translucent bar. That only works if the body
       // fills the full height and insets its own first item instead.
@@ -183,6 +199,10 @@ void main() {
     testWidgets('the body reaches the top edge, behind the bar', (
       tester,
     ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(900, 900);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
       await tester.pumpWidget(
         MaterialApp(
           theme: MoloTheme.light(),

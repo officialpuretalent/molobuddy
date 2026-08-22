@@ -1,18 +1,23 @@
+/// The three workspace layouts expressed by the Molo workbench.
+///
+/// The source design does not have a device breakpoint system. It has one
+/// compact layout below 900px, an icon rail from 900px up to 1180px, and a
+/// labelled sidebar from 1180px. Keeping the names below preserves the
+/// app-shell API while making the design boundaries explicit.
 enum MoloWindowClass { compact, medium, expanded, large, extraLarge }
 
 abstract final class MoloBreakpoints {
-  static const medium = 600.0;
-  static const expanded = 840.0;
-  static const large = 1200.0;
-  static const extraLarge = 1600.0;
+  /// The compact workbench becomes the wide workbench at this exact width.
+  static const compactMaximum = 900.0;
+
+  /// The icon rail becomes a labelled sidebar at this exact width.
+  static const labelledSidebarMinimum = 1180.0;
 }
 
 MoloWindowClass moloWindowClassFor(double width) {
   return switch (width) {
-    < MoloBreakpoints.medium => MoloWindowClass.compact,
-    < MoloBreakpoints.expanded => MoloWindowClass.medium,
-    < MoloBreakpoints.large => MoloWindowClass.expanded,
-    < MoloBreakpoints.extraLarge => MoloWindowClass.large,
-    _ => MoloWindowClass.extraLarge,
+    < MoloBreakpoints.compactMaximum => MoloWindowClass.compact,
+    < MoloBreakpoints.labelledSidebarMinimum => MoloWindowClass.medium,
+    _ => MoloWindowClass.large,
   };
 }

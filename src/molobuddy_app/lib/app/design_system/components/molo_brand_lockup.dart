@@ -5,7 +5,7 @@ import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart'
 /// The Molo mark, and the wordmark beside it where there is room.
 ///
 /// The design draws this lockup at exactly two sizes: 26/21 in the sidebar and
-/// the sign-in hero, 22/18 in a compact header. It is one component because
+/// the sign-in hero, 20/17 in a compact header. It is one component because
 /// the mark's radius, the gap and the wordmark's size move together, and a
 /// caller that only knew one of the three would drift.
 class MoloBrandLockup extends StatelessWidget {
@@ -29,10 +29,10 @@ class MoloBrandLockup extends StatelessWidget {
   /// Lets a caller keep a measurement key on the mark itself.
   final Key? markKey;
 
-  double get _markSize => compact ? 22 : 26;
-  double get _markRadius => compact ? 8 : 9;
-  double get _gap => compact ? 9 : 10;
-  double get _wordmarkSize => compact ? 18 : 21;
+  double get _markSize => compact ? 20 : 26;
+  double get _markRadius => compact ? 7 : 9;
+  double get _gap => compact ? 8 : 10;
+  double get _wordmarkSize => compact ? 17 : 21;
 
   @override
   Widget build(BuildContext context) {

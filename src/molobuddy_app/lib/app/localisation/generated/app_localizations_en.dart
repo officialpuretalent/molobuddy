@@ -182,6 +182,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNavigationDocuments => 'Documents';
 
   @override
+  String get homeCompactNavigationDocuments => 'Docs';
+
+  @override
   String get homeNavigationDeadlines => 'Deadlines';
 
   @override
@@ -253,6 +256,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeSeeBlockers => 'See what is blocked';
+
+  @override
+  String get homeMoloDecisionNote => 'Molo proposes, you decide.';
 
   @override
   String get homeAttentionTitle => 'Needs your attention';
@@ -826,6 +832,9 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
   String get homeNavigationDocuments => 'Documents';
 
   @override
+  String get homeCompactNavigationDocuments => 'Docs';
+
+  @override
   String get homeNavigationDeadlines => 'Deadlines';
 
   @override
@@ -897,6 +906,9 @@ class AppLocalizationsEnZa extends AppLocalizationsEn {
 
   @override
   String get homeSeeBlockers => 'See what is blocked';
+
+  @override
+  String get homeMoloDecisionNote => 'Molo proposes, you decide.';
 
   @override
   String get homeAttentionTitle => 'Needs your attention';

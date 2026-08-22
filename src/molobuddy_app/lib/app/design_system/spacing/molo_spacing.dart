@@ -29,4 +29,7 @@ abstract final class MoloSpacing {
 
   /// A surface card in the workspace.
   static const cardRadius = 24.0;
+
+  /// The featured workbench surfaces, such as the daily brief and Ask Molo.
+  static const featuredCardRadius = 26.0;
 }

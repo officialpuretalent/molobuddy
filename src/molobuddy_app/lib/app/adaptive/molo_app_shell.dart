@@ -6,7 +6,6 @@ import 'package:molobuddy_app/app/design_system/colour/molo_colours.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_brand_lockup.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_navigation_item.dart';
 import 'package:molobuddy_app/app/design_system/components/molo_search_field.dart';
-import 'package:molobuddy_app/app/design_system/components/molo_wordmark.dart';
 import 'package:molobuddy_app/app/design_system/icons/molo_glyphs.dart';
 import 'package:molobuddy_app/app/design_system/spacing/molo_spacing.dart';
 import 'package:molobuddy_app/app/design_system/typography/molo_typography.dart';
@@ -24,6 +23,7 @@ class MoloNavigationDestination {
     required this.glyph,
     this.section = MoloNavigationSection.primary,
     this.showInCompact = false,
+    this.compactLabel,
     this.badgeLabel,
     this.enabled = true,
   });
@@ -39,6 +39,10 @@ class MoloNavigationDestination {
 
   /// Compact navigation is intentionally limited to high-impact work.
   final bool showInCompact;
+
+  /// The compact tab label, where the source uses a shorter label (for
+  /// example, “Docs” rather than “Documents”).
+  final String? compactLabel;
 
   /// A localised, human-readable count or status supplied by the feature.
   ///
@@ -180,53 +184,17 @@ class _MoloCompactShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final compactDestinations = destinations
+    final markedCompactDestinations = destinations
         .where((destination) => destination.showInCompact)
         .toList(growable: false);
-    assert(
-      compactDestinations.length <= 4,
-      'Compact navigation has room for four destinations plus one action.',
-    );
-    final selectedIndex = compactDestinations.indexWhere(
-      (destination) => destination.id == selectedDestinationId,
-    );
-    final navigationDestinations = <NavigationDestination>[];
-    for (var index = 0; index < compactDestinations.length; index++) {
-      if (index == 2) {
-        navigationDestinations.add(
-          NavigationDestination(
-            icon: const Icon(Icons.add_rounded),
-            selectedIcon: const Icon(Icons.add_rounded),
-            label: primaryActionLabel,
-          ),
-        );
-      }
-      final destination = compactDestinations[index];
-      navigationDestinations.add(
-        NavigationDestination(
-          // Stroked glyph in both states: the design has no filled variant.
-          icon: MoloIcon(
-            destination.glyph,
-            size: MoloNavigationItem.labelledIconSize,
-            color: MoloNavigationItem.idleForeground,
-          ),
-          selectedIcon: MoloIcon(
-            destination.glyph,
-            size: MoloNavigationItem.labelledIconSize,
-            color: MoloColours.surface,
-          ),
-          label: destination.label,
-        ),
-      );
-    }
-
-    // A compact shell always has Home, Work, Documents and Ask Molo. Keeping
-    // the fallback makes the widget robust while a route set is still being
-    // assembled, without selecting a navigation item that does not exist.
-    final effectiveIndex = selectedIndex < 0 ? 0 : selectedIndex;
-    final navigationIndex = effectiveIndex >= 2
-        ? effectiveIndex + 1
-        : effectiveIndex;
+    // A feature under construction may supply just one destination. In that
+    // case it remains operable in the compact shell rather than producing an
+    // empty navigation bar; the complete workbench explicitly marks its four
+    // source destinations and keeps their source order.
+    final compactDestinations = markedCompactDestinations.isEmpty
+        ? destinations.take(4).toList(growable: false)
+        : markedCompactDestinations;
+    assert(compactDestinations.isNotEmpty && compactDestinations.length <= 4);
     return Scaffold(
       key: scaffoldKey,
       appBar: MoloTopBar(
@@ -240,19 +208,182 @@ class _MoloCompactShell extends StatelessWidget {
         ],
       ),
       body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationIndex,
-        onDestinationSelected: (index) {
-          if (index == 2) {
-            onPrimaryAction?.call();
-            return;
-          }
-          final destinationIndex = index > 2 ? index - 1 : index;
-          if (destinationIndex < compactDestinations.length) {
-            onDestinationSelected(compactDestinations[destinationIndex]);
-          }
-        },
-        destinations: navigationDestinations,
+      bottomNavigationBar: MoloCompactNavigation(
+        destinations: compactDestinations,
+        selectedDestinationId: selectedDestinationId,
+        primaryActionLabel: primaryActionLabel,
+        primaryActionTooltip: primaryActionTooltip,
+        onDestinationSelected: onDestinationSelected,
+        onPrimaryAction: onPrimaryAction,
+      ),
+    );
+  }
+}
+
+/// The workbench's compact navigation bar.
+///
+/// This is deliberately not Material's [NavigationBar]. The reference uses a
+/// 56px pulse action embedded in a plum, 80px-tall bar with four 11px labels;
+/// Material's destination indicators, label animation and default heights are
+/// all visibly different even after theming.
+class MoloCompactNavigation extends StatelessWidget {
+  const MoloCompactNavigation({
+    required this.destinations,
+    required this.selectedDestinationId,
+    required this.primaryActionLabel,
+    required this.primaryActionTooltip,
+    required this.onDestinationSelected,
+    required this.onPrimaryAction,
+    super.key,
+  });
+
+  static const height = 80.0;
+  static const primaryActionKey = Key('molo_compact_primary_action');
+
+  final List<MoloNavigationDestination> destinations;
+  final String selectedDestinationId;
+  final String primaryActionLabel;
+  final String primaryActionTooltip;
+  final ValueChanged<MoloNavigationDestination> onDestinationSelected;
+  final VoidCallback? onPrimaryAction;
+
+  @override
+  Widget build(BuildContext context) {
+    assert(destinations.isNotEmpty && destinations.length <= 4);
+    return SafeArea(
+      top: false,
+      child: Material(
+        color: MoloColours.moloPlum,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: SizedBox(
+          height: height,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 10, 8, 14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: _children(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _children() {
+    final children = <Widget>[];
+    for (var index = 0; index < destinations.length; index++) {
+      if (index == 2) {
+        children.addAll([
+          const SizedBox(width: 4),
+          _primaryAction(),
+          const SizedBox(width: 4),
+        ]);
+      } else if (index > 0) {
+        children.add(const SizedBox(width: 4));
+      }
+      final destination = destinations[index];
+      children.add(
+        _MoloCompactDestination(
+          destination: destination,
+          selected: destination.id == selectedDestinationId,
+          onSelected: onDestinationSelected,
+        ),
+      );
+    }
+    if (destinations.length < 2) {
+      children.addAll([const SizedBox(width: 4), _primaryAction()]);
+    }
+    return children;
+  }
+
+  Widget _primaryAction() => Tooltip(
+    message: primaryActionTooltip,
+    child: Semantics(
+      button: true,
+      label: primaryActionLabel,
+      child: SizedBox(
+        key: primaryActionKey,
+        width: 56,
+        child: InkWell(
+          onTap: onPrimaryAction,
+          borderRadius: BorderRadius.circular(18),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          hoverColor: MoloColours.moloPulseHover,
+          child: const DecoratedBox(
+            decoration: BoxDecoration(
+              color: MoloColours.moloPulse,
+              borderRadius: BorderRadius.all(Radius.circular(18)),
+            ),
+            child: Center(
+              child: Text(
+                '+',
+                style: TextStyle(
+                  fontSize: 22,
+                  height: 1,
+                  color: MoloColours.moloPlum,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _MoloCompactDestination extends StatelessWidget {
+  const _MoloCompactDestination({
+    required this.destination,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final MoloNavigationDestination destination;
+  final bool selected;
+  final ValueChanged<MoloNavigationDestination> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = selected ? MoloColours.surface : const Color(0xA8FFF9F7);
+    final label = destination.compactLabel ?? destination.label;
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: InkWell(
+          onTap: destination.enabled ? () => onSelected(destination) : null,
+          borderRadius: BorderRadius.circular(14),
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: selected ? MoloNavigationItem.selectedFill : null,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: ExcludeSemantics(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  MoloIcon(destination.glyph, size: 20, color: foreground),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      height: MoloTypography.normalLineHeight,
+                      letterSpacing: 0,
+                      fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
+                      color: foreground,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -297,9 +428,7 @@ class _MoloWideShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelled =
-        windowClass == MoloWindowClass.large ||
-        windowClass == MoloWindowClass.extraLarge;
+    final labelled = windowClass == MoloWindowClass.large;
     final navigation = labelled
         ? MoloSidebar(
             destinations: destinations,
@@ -391,6 +520,7 @@ class MoloTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   /// 12 of padding above and below a 40 tall control, plus the hairline rule.
   static const height = 65.0;
+  static const compactHeight = 44.0;
 
   /// The warm canvas at 72 percent, which the blur behind it resolves against.
   static const background = Color(0xB8FFF9F7);
@@ -406,7 +536,7 @@ class MoloTopBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget> trailing;
 
   @override
-  Size get preferredSize => const Size.fromHeight(height);
+  Size get preferredSize => Size.fromHeight(compact ? compactHeight : height);
 
   @override
   Widget build(BuildContext context) {
@@ -425,7 +555,7 @@ class MoloTopBar extends StatelessWidget implements PreferredSizeWidget {
             border: Border(bottom: BorderSide(color: ruleColour)),
           ),
           child: SizedBox(
-            height: height,
+            height: compact ? compactHeight : height,
             child: Padding(
               padding: EdgeInsets.fromLTRB(
                 // 40 on desktop, 20 when compact.
@@ -437,7 +567,7 @@ class MoloTopBar extends StatelessWidget implements PreferredSizeWidget {
                 // box is 40 tall, not 41, and its search field starts exactly
                 // 12 down. A Flutter border paints over the box instead of
                 // reserving room in it, so the room is reserved here.
-                13,
+                compact ? 12 : 13,
               ),
               child: Row(
                 children: [
@@ -445,7 +575,7 @@ class MoloTopBar extends StatelessWidget implements PreferredSizeWidget {
                     child: Row(
                       children: [
                         if (compact) ...[
-                          const MoloWordmark(compact: true),
+                          const MoloBrandLockup(compact: true),
                           const SizedBox(width: 14),
                         ],
                         Flexible(

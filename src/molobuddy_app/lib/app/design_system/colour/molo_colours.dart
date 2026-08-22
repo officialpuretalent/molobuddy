@@ -6,6 +6,7 @@ abstract final class MoloColours {
   static const surface = Color(0xFFFFFFFF);
   static const softBlush = Color(0xFFF8ECEE);
   static const moloPulse = Color(0xFFF25775);
+  static const moloPulseHover = Color(0xFFFF6B87);
   static const pulseTint = Color(0xFFFDECEF);
   static const pulseText = Color(0xFF9B263B);
   static const secondaryText = Color(0xFF685E68);
@@ -35,6 +36,9 @@ abstract final class MoloColours {
   static const success = Color(0xFF087A55);
   static const warning = Color(0xFFA85D00);
   static const error = Color(0xFFC2382B);
+  static const warningTint = Color(0xFFFFF1DD);
+  static const successTint = Color(0xFFE8F5F0);
+  static const informationTint = Color(0xFFEEF1FF);
 
   /// Quiet backdrop behind error copy. Pairs with [error] for the icon and
   /// with the default body colour for the text, which keeps the text contrast

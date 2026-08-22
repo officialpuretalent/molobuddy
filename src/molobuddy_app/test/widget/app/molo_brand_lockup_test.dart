@@ -18,14 +18,14 @@ void main() {
     expect(tester.widget<Text>(find.text('molo')).style?.fontSize, 21);
   });
 
-  testWidgets('the compact lockup is 22 square beside an 18px wordmark', (
+  testWidgets('the compact lockup is 20 square beside a 17px wordmark', (
     tester,
   ) async {
     await tester.pumpWidget(
       host(const MoloBrandLockup(compact: true, markKey: markKey)),
     );
-    expect(tester.getSize(find.byKey(markKey)), const Size(22, 22));
-    expect(tester.widget<Text>(find.text('molo')).style?.fontSize, 18);
+    expect(tester.getSize(find.byKey(markKey)), const Size(20, 20));
+    expect(tester.widget<Text>(find.text('molo')).style?.fontSize, 17);
   });
 
   testWidgets('the wordmark tracks -0.02em at its own size', (tester) async {
