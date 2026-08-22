@@ -9,6 +9,7 @@ import {
   FirestoreSyncRunRepository,
   type ConnectorConnection,
   type ConnectorDataSource,
+  type ConnectorAuditEvent,
   type SyncRun,
 } from '../../../src/contexts/connectors/index.js';
 import { getMoloFirestore } from '../../../src/platform/persistence/firestore.js';
@@ -37,6 +38,25 @@ function sourceFor(connection: ConnectorConnection): ConnectorDataSource {
     providerDataSourceId: 'provider-company-123',
     displayName: 'Mokoena Media Tax',
     selected: true,
+  };
+}
+
+function auditFor(
+  connection: ConnectorConnection,
+  overrides: Partial<ConnectorAuditEvent> = {},
+): ConnectorAuditEvent {
+  return {
+    practiceId: connection.practiceId,
+    connectionId: connection.connectionId,
+    providerKey: connection.providerKey,
+    action: 'connector.sources_selected',
+    actor: { kind: 'user', uid: 'uid_123' },
+    correlationId: 'cor_123',
+    resultingState: {
+      connectionStatus: connection.status,
+      selectedSourceCount: 1,
+    },
+    ...overrides,
   };
 }
 
@@ -74,7 +94,11 @@ describe('firestore connector repositories', () => {
     const connection = connectionFor(`prc_${randomUUID()}`);
     const source = sourceFor(connection);
 
-    await repository.saveWithDataSources(connection, [source]);
+    await repository.saveWithDataSources(
+      connection,
+      [source],
+      auditFor(connection),
+    );
 
     assert.deepEqual(
       await repository.get(connection.practiceId, connection.connectionId),
@@ -103,10 +127,13 @@ describe('firestore connector repositories', () => {
       displayName: 'Current company',
     };
 
-    await repository.saveWithDataSources(connection, [obsolete]);
-    await repository.saveWithDataSources({ ...connection, status: 'active' }, [
-      current,
-    ]);
+    await repository.saveWithDataSources(
+      connection,
+      [obsolete],
+      auditFor(connection),
+    );
+    const active = { ...connection, status: 'active' as const };
+    await repository.saveWithDataSources(active, [current], auditFor(active));
 
     assert.deepEqual(
       await repository.listDataSources(
@@ -133,9 +160,11 @@ describe('firestore connector repositories', () => {
     const connection = connectionFor(`prc_${randomUUID()}`);
 
     await assert.rejects(
-      repository.saveWithDataSources(connection, [
-        { ...sourceFor(connection), practiceId: `prc_${randomUUID()}` },
-      ]),
+      repository.saveWithDataSources(
+        connection,
+        [{ ...sourceFor(connection), practiceId: `prc_${randomUUID()}` }],
+        auditFor(connection),
+      ),
       /must belong to their connection/,
     );
     assert.equal(
@@ -157,9 +186,23 @@ describe('firestore connector repositories', () => {
     const first = queuedRun(connection);
     const second = queuedRun(connection);
 
-    await repository.save(first);
+    await repository.save(
+      first,
+      auditFor(connection, {
+        action: 'connector.sync_queued',
+        actor: { kind: 'system', name: 'connector-worker' },
+        resultingState: { syncRunId: first.syncRunId, syncStatus: 'queued' },
+      }),
+    );
     await new Promise((resolve) => setTimeout(resolve, 10));
-    await repository.save(second);
+    await repository.save(
+      second,
+      auditFor(connection, {
+        action: 'connector.sync_queued',
+        actor: { kind: 'system', name: 'connector-worker' },
+        resultingState: { syncRunId: second.syncRunId, syncStatus: 'queued' },
+      }),
+    );
 
     assert.deepEqual(
       await repository.get(connection.practiceId, first.syncRunId),
@@ -180,12 +223,58 @@ describe('firestore connector repositories', () => {
     const connection = connectionFor(`prc_${randomUUID()}`);
     const source = sourceFor(connection);
 
-    await repository.saveWithDataSources(connection, [source]);
+    await repository.saveWithDataSources(
+      connection,
+      [source],
+      auditFor(connection),
+    );
 
     const stored = await storedAt(
       db,
       `practices/${connection.practiceId}/connectorConnections/${connection.connectionId}/dataSources/${source.dataSourceId}`,
     );
     assert.equal(stored['providerApiDomain'], undefined);
+  });
+
+  it('writes allowlisted connector audit evidence with the same state change', async () => {
+    const db = getMoloFirestore(projectId);
+    const repository = new FirestoreConnectorConnectionRepository(db);
+    const connection = connectionFor(`prc_${randomUUID()}`);
+
+    await repository.save(
+      connection,
+      auditFor(connection, {
+        action: 'connector.authorisation_completed',
+        resultingState: { connectionStatus: 'awaiting_source_selection' },
+      }),
+    );
+
+    const events = await db
+      .collection(`practices/${connection.practiceId}/connectorAuditEvents`)
+      .get();
+    assert.equal(events.size, 1);
+    const firstEvent = events.docs[0];
+    assert.ok(firstEvent !== undefined);
+    const event = firstEvent.data();
+    assert.equal(event['action'], 'connector.authorisation_completed');
+    assert.equal(event['connectionId'], connection.connectionId);
+    assert.equal(event['accessToken'], undefined);
+    assert.equal(event['refreshToken'], undefined);
+    assert.equal(event['rawBody'], undefined);
+    assert.notEqual(event['recordedAt'], undefined);
+  });
+
+  it('rejects an audit event that names a different connection', async () => {
+    const db = getMoloFirestore(projectId);
+    const repository = new FirestoreConnectorConnectionRepository(db);
+    const connection = connectionFor(`prc_${randomUUID()}`);
+
+    await assert.rejects(
+      repository.save(
+        connection,
+        auditFor(connection, { connectionId: 'con_other' }),
+      ),
+      /must belong to its connection/,
+    );
   });
 });

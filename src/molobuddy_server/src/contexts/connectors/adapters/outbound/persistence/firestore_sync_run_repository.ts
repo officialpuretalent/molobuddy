@@ -1,6 +1,7 @@
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 
 import { createResourceVersion } from '../../../../../platform/http/identifiers.js';
+import type { ConnectorAuditEvent } from '../../../application/ports/connector_audit_event.js';
 import type { SyncRunRepository } from '../../../application/ports/sync_run_repository.js';
 import type { SyncRun } from '../../../domain/sync_run.js';
 
@@ -16,12 +17,19 @@ export class FirestoreSyncRunRepository implements SyncRunRepository {
     return snapshot.exists ? asSyncRun(snapshot.data()) : undefined;
   }
 
-  async save(syncRun: SyncRun): Promise<void> {
-    await this.runDocument(syncRun.practiceId, syncRun.syncRunId).set({
+  async save(syncRun: SyncRun, audit: ConnectorAuditEvent): Promise<void> {
+    this.assertAuditBelongsTo(syncRun, audit);
+    const batch = this.db.batch();
+    batch.set(this.runDocument(syncRun.practiceId, syncRun.syncRunId), {
       ...syncRun,
       updatedAt: FieldValue.serverTimestamp(),
       version: createResourceVersion(),
     });
+    batch.set(this.auditDocument(syncRun.practiceId), {
+      ...audit,
+      recordedAt: FieldValue.serverTimestamp(),
+    });
+    await batch.commit();
   }
 
   async listForConnection(
@@ -40,6 +48,25 @@ export class FirestoreSyncRunRepository implements SyncRunRepository {
     return this.db.doc(
       `practices/${practiceId}/connectorSyncRuns/${syncRunId}`,
     );
+  }
+
+  private auditDocument(practiceId: string) {
+    return this.db
+      .collection(`practices/${practiceId}/connectorAuditEvents`)
+      .doc();
+  }
+
+  private assertAuditBelongsTo(
+    syncRun: SyncRun,
+    audit: ConnectorAuditEvent,
+  ): void {
+    if (
+      audit.practiceId !== syncRun.practiceId ||
+      audit.connectionId !== syncRun.connectionId ||
+      audit.resultingState.syncRunId !== syncRun.syncRunId
+    ) {
+      throw new Error('Connector audit event must belong to its sync run');
+    }
   }
 }
 

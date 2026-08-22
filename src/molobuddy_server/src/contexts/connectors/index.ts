@@ -13,6 +13,7 @@ export {
 export type { AccountingProviderAdapter } from './application/ports/accounting_provider_adapter.js';
 export type { AccountingProviderRegistry } from './application/ports/accounting_provider_registry.js';
 export type { ConnectorConnectionRepository } from './application/ports/connector_connection_repository.js';
+export type { ConnectorAuditEvent } from './application/ports/connector_audit_event.js';
 export type { ConnectorDefinitionView } from './application/queries/list_connector_definitions.js';
 export type {
   ExternalRecordNormaliser,

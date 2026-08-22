@@ -2,6 +2,7 @@ import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 
 import { createResourceVersion } from '../../../../../platform/http/identifiers.js';
 import { runInTransaction } from '../../../../../platform/persistence/firestore.js';
+import type { ConnectorAuditEvent } from '../../../application/ports/connector_audit_event.js';
 import type { ConnectorConnectionRepository } from '../../../application/ports/connector_connection_repository.js';
 import type {
   ConnectorConnection,
@@ -26,15 +27,22 @@ export class FirestoreConnectorConnectionRepository implements ConnectorConnecti
     return snapshot.exists ? asConnectorConnection(snapshot.data()) : undefined;
   }
 
-  async save(connection: ConnectorConnection): Promise<void> {
-    await this.connectionDocument(
-      connection.practiceId,
-      connection.connectionId,
-    ).set({
-      ...connection,
-      updatedAt: FieldValue.serverTimestamp(),
-      version: createResourceVersion(),
-    });
+  async save(
+    connection: ConnectorConnection,
+    audit: ConnectorAuditEvent,
+  ): Promise<void> {
+    this.assertAuditBelongsTo(connection, audit);
+    const batch = this.db.batch();
+    batch.set(
+      this.connectionDocument(connection.practiceId, connection.connectionId),
+      {
+        ...connection,
+        updatedAt: FieldValue.serverTimestamp(),
+        version: createResourceVersion(),
+      },
+    );
+    batch.set(this.auditDocument(connection.practiceId), auditDocument(audit));
+    await batch.commit();
   }
 
   async listDataSources(
@@ -52,8 +60,10 @@ export class FirestoreConnectorConnectionRepository implements ConnectorConnecti
   async saveWithDataSources(
     connection: ConnectorConnection,
     sources: readonly ConnectorDataSource[],
+    audit: ConnectorAuditEvent,
   ): Promise<void> {
     this.assertSourcesBelongTo(connection, sources);
+    this.assertAuditBelongsTo(connection, audit);
     const connectionDocument = this.connectionDocument(
       connection.practiceId,
       connection.connectionId,
@@ -75,6 +85,10 @@ export class FirestoreConnectorConnectionRepository implements ConnectorConnecti
         updatedAt: FieldValue.serverTimestamp(),
         version: createResourceVersion(),
       });
+      transaction.set(
+        this.auditDocument(connection.practiceId),
+        auditDocument(audit),
+      );
       for (const source of sources) {
         transaction.set(sourceCollection.doc(source.dataSourceId), {
           ...withoutUndefined(source),
@@ -96,6 +110,12 @@ export class FirestoreConnectorConnectionRepository implements ConnectorConnecti
     );
   }
 
+  private auditDocument(practiceId: string) {
+    return this.db
+      .collection(`practices/${practiceId}/connectorAuditEvents`)
+      .doc();
+  }
+
   private assertSourcesBelongTo(
     connection: ConnectorConnection,
     sources: readonly ConnectorDataSource[],
@@ -108,6 +128,19 @@ export class FirestoreConnectorConnectionRepository implements ConnectorConnecti
       )
     ) {
       throw new Error('Connector data sources must belong to their connection');
+    }
+  }
+
+  private assertAuditBelongsTo(
+    connection: ConnectorConnection,
+    audit: ConnectorAuditEvent,
+  ): void {
+    if (
+      audit.practiceId !== connection.practiceId ||
+      audit.connectionId !== connection.connectionId ||
+      audit.providerKey !== connection.providerKey
+    ) {
+      throw new Error('Connector audit event must belong to its connection');
     }
   }
 }
@@ -139,4 +172,11 @@ function stripStorageFields(stored: Record<string, unknown> | undefined) {
       ([key]) => key !== 'updatedAt' && key !== 'version',
     ),
   );
+}
+
+function auditDocument(audit: ConnectorAuditEvent): Record<string, unknown> {
+  return {
+    ...audit,
+    recordedAt: FieldValue.serverTimestamp(),
+  };
 }

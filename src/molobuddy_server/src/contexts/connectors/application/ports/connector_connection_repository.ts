@@ -2,6 +2,7 @@ import type {
   ConnectorConnection,
   ConnectorDataSource,
 } from '../../domain/connector_connection.js';
+import type { ConnectorAuditEvent } from './connector_audit_event.js';
 
 /**
  * The regional persistence boundary for consent and source selection. Secret
@@ -13,7 +14,10 @@ export interface ConnectorConnectionRepository {
     connectionId: string,
   ): Promise<ConnectorConnection | undefined>;
 
-  save(connection: ConnectorConnection): Promise<void>;
+  save(
+    connection: ConnectorConnection,
+    audit: ConnectorAuditEvent,
+  ): Promise<void>;
 
   listDataSources(
     practiceId: string,
@@ -27,5 +31,6 @@ export interface ConnectorConnectionRepository {
   saveWithDataSources(
     connection: ConnectorConnection,
     sources: readonly ConnectorDataSource[],
+    audit: ConnectorAuditEvent,
   ): Promise<void>;
 }
