@@ -102,3 +102,26 @@ These are deliberate product and architecture decisions, not open questions. The
 **Why:** Public availability metadata has no practice or credential data. By contrast, an OAuth callback or a provider webhook is a security boundary: the existing API design requires signed single-use state, regional resolution, credential storage, signature verification, idempotent receipts and asynchronous processing. Publishing those routes before their storage/audit controls would create an unauthorised data-ingress surface. [Connector API contract](../api_design/connectors.md)
 
 **Consequence:** The current adapter code remains no-I/O by construction. The next implementation slice is the regional connection lifecycle and its tests—not provider SDK installation or live API calls.
+
+## 11. Remaining implementation and activation checklist
+
+This checklist is deliberately split between work Molo controls and work that requires provider or operational authority. It is the handoff record for this branch.
+
+### Backend work still controlled by Molo
+
+- Complete the OAuth callback saga: code exchange boundary, credential-reference persistence, compensating cleanup, audited transition to `awaiting_source_selection`, and source-selection activation.
+- Build regional connector HTTP routes, capability enforcement, optimistic-concurrency/`If-Match` handling, callback route, and safe error responses.
+- Implement the durable worker plane: sync-run scheduling, checkpoint lease acquisition/advance, transactional outbox dispatcher, retries with `notBefore`, daily reconciliation, and retention/purge jobs.
+- Implement provider-specific retrieval, normalisation, canonical external-record persistence, record-version idempotency, and the authorised audit query/export projection.
+- Implement provider-specific webhook signature verification, receipt processing, restricted raw-payload quarantine, and replay/out-of-order handling.
+- Add operational metrics, alerts, runbooks, backup/restore rehearsal, and failure-injection tests for the above background paths.
+
+### Explicitly deferred
+
+- **Flutter connector-management UI** is deferred to a separate application slice. It must consume the versioned regional API and use generated wire contracts; it must not access Firestore, Secret Manager, provider credentials, or provider APIs directly.
+
+### External activation prerequisites
+
+- Create provider developer/sandbox accounts, register exact regional callback URLs, store provider client credentials and the OAuth-state signing key in regional Secret Manager, and grant least-privilege regional IAM.
+- Obtain each provider's production approval/certification where required, then execute the provider-specific acceptance suite in its sandbox and pilot tenants.
+- Approve provider-domain/residency policy, retention/hold procedures, operational ownership, incident response, and customer-facing consent/support wording before changing any connector from `private`.
